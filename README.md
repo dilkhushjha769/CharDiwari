@@ -1,41 +1,42 @@
-# CharDiwari (React + Vite)
+# CharDiwari (Next.js + React)
 
-A modern React application built with Node.js and Vite.
+A modern web application built with [Next.js](https://nextjs.org/) (App Router), React 19, and Node.js.
 
 ## 🚀 Features
 
-- ⚡️ Lightning fast HMR with [Vite](https://vitejs.dev/)
-- ⚛️ [React 19](https://react.dev/)
-- 📦 Modern package management with `npm`
-- 🔍 Fast linting with `oxlint`
+- ⚡️ **Next.js App Router** for server/client components and fast page routing
+- ⚛️ **React 19** with server-side rendering and static optimization
+- 🎨 **Tailwind CSS v4** styling system
+- 🛡️ **ESLint** pre-configured for Next.js
 
 ## 📁 Project Structure
 
 ```text
-├── public/          # Static assets
-├── src/             # Application source code
-│   ├── assets/      # Images, icons, and media
-│   ├── App.css      # Component styles
-│   ├── App.jsx      # Main application component
-│   ├── index.css    # Global stylesheet
-│   └── main.jsx     # App entry point
-├── .gitignore       # Git ignored paths (node_modules, dist, .env, etc.)
-├── index.html       # HTML entry point
-├── package.json     # Project dependencies & scripts
-├── vite.config.js   # Vite configuration
-└── README.md        # Project documentation
+├── public/                 # Static assets (images, icons, svgs)
+├── src/
+│   └── app/
+│       ├── favicon.ico     # Favicon
+│       ├── globals.css     # Global styles & Tailwind directives
+│       ├── layout.js       # Root layout component
+│       └── page.js         # Root homepage route
+├── .gitignore              # Git ignored files & directories
+├── eslint.config.mjs       # ESLint configuration
+├── jsconfig.json           # Path aliasing configuration (@/*)
+├── next.config.mjs         # Next.js configuration
+├── package.json            # Project dependencies & scripts
+└── README.md               # Project documentation
 ```
 
 ## 🛠️ Getting Started
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (version 18+ or later recommended)
+- [Node.js](https://nodejs.org/) (version 18.18+ or later)
 - `npm`
 
 ### Installation
 
-Install the dependencies:
+If you clone the repository or need to re-install dependencies:
 
 ```bash
 npm install
@@ -43,15 +44,17 @@ npm install
 
 ### Development Server
 
-Start the local development server:
+Run the development server:
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Building for Production
+You can start editing the page by modifying `src/app/page.js`. The page auto-updates as you edit the file.
+
+### Production Build
 
 Create an optimized production build:
 
@@ -59,15 +62,15 @@ Create an optimized production build:
 npm run build
 ```
 
-Preview the production build locally:
+Start the production server:
 
 ```bash
-npm run preview
+npm run start
 ```
 
 ### Linting
 
-Run code linting:
+Check code quality with ESLint:
 
 ```bash
 npm run lint
