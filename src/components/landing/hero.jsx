@@ -12,10 +12,12 @@ const cornerMarks = ["-top-3 -left-3", "-top-3 -right-3", "-bottom-3 -left-3", "
 
 export function Hero() {
   return (
-    <section id="top" className="relative isolate overflow-hidden">
+    // Pulled up under the transparent header so the two read as one piece. The
+    // grid fades in below the bar, so the nav links never sit on grid lines.
+    <section id="top" className="relative isolate -mt-16 overflow-hidden pt-16">
       <div
         aria-hidden="true"
-        className="bg-blueprint pointer-events-none absolute inset-0 -z-20 [mask-image:linear-gradient(to_bottom,black_55%,transparent)]"
+        className="bg-blueprint pointer-events-none absolute inset-0 -z-20 [mask-image:linear-gradient(to_bottom,transparent_3rem,black_8rem,black_55%,transparent)]"
       />
       {/* Reads the search filters from the URL, so it needs its own boundary. */}
       <Suspense fallback={null}>

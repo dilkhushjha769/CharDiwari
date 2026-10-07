@@ -57,7 +57,7 @@ export function HeroSkyline() {
     <div
       ref={containerRef}
       aria-hidden="true"
-      className="pointer-events-none absolute inset-y-0 right-0 -z-10 hidden w-[62%] opacity-0 transition-opacity duration-1000 ease-out-strong data-ready:opacity-100 md:block [mask-composite:intersect] [mask-image:linear-gradient(to_right,transparent_20%,black_52%),radial-gradient(ellipse_70%_65%_at_62%_48%,black_35%,transparent_75%)] [&>canvas]:size-full"
+      className="pointer-events-none absolute top-16 bottom-0 right-0 -z-10 hidden w-[62%] opacity-0 transition-opacity duration-1000 ease-out-strong data-ready:opacity-100 md:block [mask-composite:intersect] [mask-image:linear-gradient(to_right,transparent_20%,black_52%),radial-gradient(ellipse_70%_65%_at_62%_48%,black_35%,transparent_75%)] [&>canvas]:size-full"
     />
   )
 }
