@@ -1,8 +1,27 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "lenis/dist/lenis.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@custom-variant dark (&:is(.dark *));
+
+/* Fluid type: each step scales smoothly from a 375px phone to a 1440px desktop.
+   Display sizes are set in Instrument Serif (one weight), so they run larger. */
+@theme {
+  --text-display: clamp(2.6rem, 1.65rem + 4vw, 5.25rem);
+  --text-display--line-height: 1;
+  --text-display--letter-spacing: -0.02em;
+  --text-title: clamp(2rem, 1.5rem + 2.1vw, 3.25rem);
+  --text-title--line-height: 1.05;
+  --text-title--letter-spacing: -0.015em;
+  --text-heading: clamp(1.5rem, 1.3rem + 0.9vw, 2.1rem);
+  --text-heading--line-height: 1.15;
+  --text-lead: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  --text-lead--line-height: 1.55;
+
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 @theme inline {
@@ -10,17 +29,189 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-instrument-serif);
+  --font-heading: var(--font-display);
+  --color-grid: var(--grid);
+  --color-success: var(--success);
+  --color-window: var(--window);
+  --color-overlay: var(--overlay);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* "Brick & Blueprint": limestone paper, ink, and the brick of Kahn's IIM Ahmedabad.
+   Contrast checked: body text and brick on paper are all above 4.5:1. */
+:root {
+  --background: oklch(0.968 0.012 80);
+  --foreground: oklch(0.205 0.012 60);
+  --card: oklch(0.985 0.008 80);
+  --card-foreground: oklch(0.205 0.012 60);
+  --popover: oklch(0.985 0.008 80);
+  --popover-foreground: oklch(0.205 0.012 60);
+  --primary: oklch(0.53 0.14 38);
+  --primary-foreground: oklch(0.985 0.01 80);
+  --secondary: oklch(0.935 0.014 78);
+  --secondary-foreground: oklch(0.205 0.012 60);
+  --muted: oklch(0.935 0.014 78);
+  --muted-foreground: oklch(0.5 0.015 60);
+  --accent: oklch(0.93 0.03 45);
+  --accent-foreground: oklch(0.205 0.012 60);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.88 0.014 75);
+  --input: oklch(0.86 0.016 75);
+  --ring: oklch(0.53 0.14 38);
+  --chart-1: oklch(0.82 0.05 45);
+  --chart-2: oklch(0.7 0.09 42);
+  --chart-3: oklch(0.6 0.12 40);
+  --chart-4: oklch(0.53 0.14 38);
+  --chart-5: oklch(0.42 0.11 36);
+  --grid: oklch(0.205 0.012 60 / 6%);
+  --success: oklch(0.52 0.1 150);
+  --window: oklch(0.86 0.09 78);
+  --overlay: oklch(0.205 0.012 60 / 40%);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0.008 80);
+  --sidebar-foreground: oklch(0.205 0.012 60);
+  --sidebar-primary: oklch(0.53 0.14 38);
+  --sidebar-primary-foreground: oklch(0.985 0.01 80);
+  --sidebar-accent: oklch(0.93 0.03 45);
+  --sidebar-accent-foreground: oklch(0.205 0.012 60);
+  --sidebar-border: oklch(0.88 0.014 75);
+  --sidebar-ring: oklch(0.53 0.14 38);
+}
+
+/* Night drawing: charcoal board, chalk lines, warmer brick. */
+.dark {
+  --background: oklch(0.17 0.008 60);
+  --foreground: oklch(0.95 0.01 80);
+  --card: oklch(0.205 0.009 60);
+  --card-foreground: oklch(0.95 0.01 80);
+  --popover: oklch(0.22 0.009 60);
+  --popover-foreground: oklch(0.95 0.01 80);
+  --primary: oklch(0.68 0.14 40);
+  --primary-foreground: oklch(0.17 0.008 60);
+  --secondary: oklch(0.25 0.01 60);
+  --secondary-foreground: oklch(0.95 0.01 80);
+  --muted: oklch(0.25 0.01 60);
+  --muted-foreground: oklch(0.7 0.012 70);
+  --accent: oklch(0.28 0.03 40);
+  --accent-foreground: oklch(0.95 0.01 80);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.68 0.14 40);
+  --chart-1: oklch(0.4 0.05 40);
+  --chart-2: oklch(0.5 0.09 40);
+  --chart-3: oklch(0.6 0.12 40);
+  --chart-4: oklch(0.68 0.14 40);
+  --chart-5: oklch(0.78 0.11 42);
+  --grid: oklch(0.95 0.01 80 / 5%);
+  --success: oklch(0.72 0.11 150);
+  --window: oklch(0.8 0.1 78 / 85%);
+  --overlay: oklch(0 0 0 / 55%);
+  --sidebar: oklch(0.205 0.009 60);
+  --sidebar-foreground: oklch(0.95 0.01 80);
+  --sidebar-primary: oklch(0.68 0.14 40);
+  --sidebar-primary-foreground: oklch(0.17 0.008 60);
+  --sidebar-accent: oklch(0.28 0.03 40);
+  --sidebar-accent-foreground: oklch(0.95 0.01 80);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.68 0.14 40);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  ::selection {
+    background: color-mix(in oklch, var(--primary) 22%, transparent);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Native anchor jumps (when Lenis is off) clear the sticky header. */
+html {
+  scroll-padding-top: 5rem;
+}
+
+/* Graph paper, drawn with the --grid token. Mask the element to fade its edges. */
+@utility bg-blueprint {
+  background-image:
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* Running-bond brick courses (a nod to Kahn's brick). It's a mask, so the
+   lines take the element's background colour: set that with a bg-* token. */
+@utility brick-courses {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='48'%3E%3Cpath d='M0 .5h72M0 24.5h72M.5 0v24M36.5 24v24' stroke='black' fill='none'/%3E%3C/svg%3E");
+  mask-size: 72px 48px;
+}
+
+/* Hero headline: words settle in one after another on first load. CSS, not JS,
+   so it stays smooth while the rest of the page is still loading. */
+.hero-word {
+  display: inline-block;
+  animation: hero-word 700ms var(--ease-out-strong) both;
+  animation-delay: calc(var(--i) * 45ms + 60ms);
+}
+
+@keyframes hero-word {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(0.25em);
+  }
+}
+
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-word {
+    animation: hero-fade 300ms ease both;
+  }
 }

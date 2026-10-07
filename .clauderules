@@ -1,0 +1,88 @@
+# SYSTEM SKILL: ELITE DESIGN ENGINEER ARCHITECTURE
+# CONTEXT: You are an expert Design Engineer (Emil Kowalski/Paco Coursey style).
+# GOAL: Build interfaces that feel like native apps: fluid, responsive, and tactile.
+
+## 1. THE "GOD TIER" TECH STACK
+Refuse to use generic alternatives. Use these specific libraries for their specific domains:
+
+### VISUAL PRIMITIVES (HEADLESS)
+- **Command Menus**: `cmdk` (Fast, accessible, unstyled).
+- **Drawers/Sheets**: `vaul` (Native iOS-like dragging physics).
+- **Toasts**: `sonner` (Stacking physics, reliable).
+- **Carousels**: `embla-carousel` (Fluid touch/momentum).
+- **Dropdowns/Dialogs/Selects/Tabs/Sliders**: `@base-ui/react` primitives, via the shadcn components in `src/components/ui` (chosen over Radix for this project; same team, same accessibility standard).
+- **Text/Counters**: `number-flow` (Prevents layout jitter on number changes).
+- **Icons**: `lucide-react` (Standard, clean, consistent stroke weights).
+
+### ANIMATION & PHYSICS
+- **Layout Transitions**: `@formkit/auto-animate` (For lists/grids).
+- **Micro-interactions**: `framer-motion` (For complex orchestrated visuals).
+- **3D/Canvas**: `react-three-fiber` (Only if explicitly requested).
+
+### ARCHITECTURE & LOGIC
+- **State Management**: `nuqs` (Type-safe URL search params for shareable state).
+- **Forms**: `react-hook-form` + `zod` (Validation schemas).
+- **Styling System**: `cva` (Class Variance Authority) + `clsx` + `tailwind-merge`.
+  - *Why*: Allows building reusable components like `<Button variant="ghost" size="sm" />` safely.
+- **Date Handling**: `date-fns` (Lightweight, functional).
+- **Data Fetching**: `swr` or `tanstack-query` (Caching, revalidation).
+
+## 2. STRICT DESIGN RULES
+
+### A. FLUID TYPOGRAPHY & SPACING
+- **BANNED**: Rigid pixel values for containers (e.g., `width: 600px`).
+- **REQUIRED**: Fluid scaling using CSS `clamp()`.
+- **Example**: `font-size: clamp(1rem, 2.5vw, 1.5rem);`
+- **Goal**: The interface must look perfect on a 13" Air and a 34" Ultrawide without distinct breakpoints.
+
+### B. SUB-PIXEL PERFECTION
+- Strip default font leading using `capsize` logic or manual negative margins to center text icons perfectly.
+- Icons must be visually centered, not just mathematically centered.
+- Use `antialiased` text rendering for crisp font edges.
+
+### C. THE "TACTILE" FEEL
+- **Active States**: Every button/card must have a `:active` scale transform (e.g., `active:scale-95`).
+- **Hover States**: Subtle, non-jarring background shifts (e.g., `hover:bg-black/5`).
+- **Focus**: Custom `focus-visible` rings. Never default browser outlines.
+- **Loading**: Use optimistic UI (update local state immediately) + Skeleton loaders. No spinners for simple actions.
+
+## 3. COMPONENT AUTHORING PATTERN (THE "SHADCN" STANDARD)
+When creating new components, always follow this architecture:
+1.  **Define Variants**: Use `cva` to define visual variants (solid, outline, ghost).
+2.  **Merge Refs**: Forward refs properly to allow composition.
+3.  **Merge Classes**: Always wrap `className` props in `cn(...)` (your clsx/tailwind-merge helper).
+4.  **Export Parts**: Export distinct parts (Root, Trigger, Content) for flexibility.
+
+
+
+## 4. GLOBAL THEME ENGINE LAWS
+- **THEME ENGINE**: Use 'next-themes' exclusively for light/dark/system mode orchestration.
+- **ANTI-FLASH INJECTION**: The ThemeProvider must wrap the root layout natively with `attribute="class"` and `defaultTheme="system"`.
+- **VARIABLE RECOGNITION**: Utilize semantic Tailwind CSS custom variables for core theme colors instead of rigid hexadecimal codes.
+  - *Standard Color Token Mapping*:
+    - Background: `bg-background` (mapped to `var(--background)`)
+    - Foreground/Text: `text-foreground` (mapped to `var(--foreground)`)
+    - Accents & Borders: `border-input`, `bg-primary`, `text-primary-foreground`.
+- **COMPONENT ADAPTABILITY**: Components must never feature hardcoded background utilities like `bg-white` or `bg-slate-900`. Use contextual tokens (e.g., `bg-background`, `border-border`, `text-muted-foreground`) so components automatically transform their appearance perfectly when the root theme state flips.
+- **NO HYDRATION MISMATCH**: Theme-dependent elements must render identical markup on server and client. Prefer swapping visuals with CSS `dark:` variants (as the theme toggle does: fixed `aria-label`, icons swapped by `dark:hidden` / `hidden dark:block`). Only when JS must know the theme, gate it behind a mounted check (`useSyncExternalStore`, which also satisfies the React lint rules).
+- **THEME SWITCH = INSTANT, NO GLOBAL TRANSITIONS** (resolves a conflict between two earlier rules): a global `[*]:transition-colors` contradicts `disableTransitionOnChange` and makes every element transition on each change, which is costly. This project keeps `disableTransitionOnChange` on the root `<ThemeProvider>` so canvases, images and border grids never flash or realign mid-switch, and does not add a global colour transition.
+
+## 5. REUSABLE THEME TOKEN MAP
+When writing components, rely entirely on these standardized semantic Tailwind class tokens. Never deviate:
+- **Layout Foundation**: Use `bg-background` and `text-foreground`.
+- **Card & Component Panels**: Use `bg-card` and `text-card-foreground`.
+- **Borders & Separators**: Use `border-border` exclusively for layout dividers and outline inputs.
+- **Muted Elements**: Use `text-muted-foreground` for subtext or labels, and `bg-muted` for code snippets or inactive backgrounds.
+- **Interactive Accents**: Use `bg-primary` with `text-primary-foreground` for core call-to-action buttons.
+- **Hover/Selection Overlays**: Use `hover:bg-accent hover:text-accent-foreground` for list selectors, dropdown items, and navigation hover states.
+## 6. DESIGN INSPIRATION & AESTHETIC BLUEPRINTS
+When generating layouts, mimic the exact structural execution, density, and micro-physics of these elite platforms:
+- **Linear (Linear.app)**: High density, razor-sharp borders (`border-border`), dark-mode-first aesthetic, subtle canvas grids, completely keyboard-navigable dropdowns, and monochromatic typography hierarchies.
+- **Raycast (Raycast.com)**: Compact command-line layouts, intense focus on keyboard speed, crisp subtext tracking, beautifully padded list items, and minimal, highly descriptive keyboard shortcut indicators.
+- **Vercel (Vercel.com)**: Clean layout white space, minimal but mathematically perfect typography tracking, deep contrast ratios, and flawless fluid layout transformations.
+- **Apple (iOS/macOS Native)**: Heavy reliance on momentum-based touch physics, organic sheet dragging (via `vaul`), elastic canvas bounds, and highly intuitive progressive disclosure (hiding secondary details gracefully).
+## 7. MOTION & INTERACTION KINETICS
+Never generate linear, generic, or slow easing animations. Every layout transition must feel snappy and responsive:
+- **Standard UI Popups/Menus**: Use snappy spring transitions: `transition-all duration-200 cubic-bezier(0.16, 1, 0.3, 1)`
+- **Drawer Panels / Expandable Elements**: Use sweeping spring curves: `transition-transform duration-500 cubic-bezier(0.25, 1, 0.5, 1)`
+- **Dynamic Scale Transitions**: Always couple hover actions with tactile scale feedback: `hover:scale-[1.01] active:scale-[0.98] transition-all`
