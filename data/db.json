@@ -1,0 +1,62 @@
+{
+  "users": [
+    {
+      "id": "usr_1791317066113_fvjxhme",
+      "email": "alex.architect@gmail.com",
+      "name": "Alex Morgan",
+      "passwordHash": null,
+      "provider": "google",
+      "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=face",
+      "createdAt": "2026-10-06T20:04:26.113Z",
+      "updatedAt": "2026-10-06T20:04:26.113Z"
+    },
+    {
+      "id": "usr_1791317190069_o008ceo",
+      "email": "testuser_1791317189461@chardiwari.test",
+      "name": "Test Candidate",
+      "passwordHash": "$2b$10$4Uus69HrDUFeUnL6cKVupu0aAtD4VcprFzsUUa13/uDUHqq8Nhns.",
+      "provider": "credentials",
+      "avatarUrl": "https://api.dicebear.com/7.x/initials/svg?seed=Test%20Candidate",
+      "createdAt": "2026-10-06T20:06:30.069Z",
+      "updatedAt": "2026-10-06T20:06:30.789Z"
+    },
+    {
+      "id": "usr_1791317190947_ns55wan",
+      "email": "google_1791317190892@chardiwari.test",
+      "name": "Google Traveler",
+      "passwordHash": null,
+      "provider": "google",
+      "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb",
+      "createdAt": "2026-10-06T20:06:30.947Z",
+      "updatedAt": "2026-10-06T20:06:30.947Z"
+    }
+  ],
+  "otps": [],
+  "rateLimits": {
+    "check_email:::1": {
+      "count": 2,
+      "firstAttemptAt": 1791317189625,
+      "blockedUntil": null
+    },
+    "otp_cooldown:testuser_1791317189461@chardiwari.test:signup": {
+      "count": 1,
+      "firstAttemptAt": 1791317189921,
+      "blockedUntil": null
+    },
+    "otp_hourly:testuser_1791317189461@chardiwari.test:signup": {
+      "count": 1,
+      "firstAttemptAt": 1791317189922,
+      "blockedUntil": null
+    },
+    "otp_cooldown:testuser_1791317189461@chardiwari.test:reset": {
+      "count": 1,
+      "firstAttemptAt": 1791317190476,
+      "blockedUntil": null
+    },
+    "otp_hourly:testuser_1791317189461@chardiwari.test:reset": {
+      "count": 1,
+      "firstAttemptAt": 1791317190477,
+      "blockedUntil": null
+    }
+  }
+}
