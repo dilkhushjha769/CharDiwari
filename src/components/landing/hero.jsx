@@ -17,7 +17,10 @@ export function Hero() {
         aria-hidden="true"
         className="bg-blueprint pointer-events-none absolute inset-0 -z-20 [mask-image:linear-gradient(to_bottom,black_55%,transparent)]"
       />
-      <HeroSkyline />
+      {/* Reads the search filters from the URL, so it needs its own boundary. */}
+      <Suspense fallback={null}>
+        <HeroSkyline />
+      </Suspense>
       <div className="mx-auto w-full max-w-6xl px-4 pt-14 pb-16 sm:px-6 md:pt-24 md:pb-28">
         <div className="relative">
           {cornerMarks.map((position) => (
