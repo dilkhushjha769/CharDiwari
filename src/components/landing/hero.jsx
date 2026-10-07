@@ -7,8 +7,8 @@ import { HeroSkyline } from "./hero-skyline"
 const headline = "Your next home, without the chakkar."
 const ACCENT_WORD = "chakkar."
 
-// Drawing registration marks at the corners of the hero content.
-const cornerMarks = ["-top-3 -left-3", "-top-3 -right-3", "-bottom-3 -left-3", "-bottom-3 -right-3"]
+// Drawing registration marks framing the left edge of the hero copy.
+const cornerMarks = ["-top-3 -left-3", "-bottom-3 -left-3"]
 
 export function Hero() {
   return (
@@ -23,7 +23,7 @@ export function Hero() {
       <Suspense fallback={null}>
         <HeroSkyline />
       </Suspense>
-      <div className="mx-auto w-full max-w-6xl px-4 pt-14 pb-16 sm:px-6 md:pt-24 md:pb-28">
+      <div className="mx-auto w-full max-w-6xl px-4 pt-8 pb-16 sm:px-6 md:pt-24 md:pb-28">
         <div className="relative">
           {cornerMarks.map((position) => (
             <Plus
@@ -32,9 +32,14 @@ export function Hero() {
               className={cn("absolute hidden size-3 text-muted-foreground/50 md:block", position)}
             />
           ))}
-          <p className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[0.16em] text-muted-foreground uppercase">
-            <span className="size-1.5 rounded-full bg-success" aria-hidden="true" />
-            Ahmedabad · Gandhinagar · RERA verified
+          {/* Two pieces that wrap cleanly on narrow phones; the green dot marks the
+              "verified" claim it belongs to. */}
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1.5 font-mono text-[11px] tracking-[0.1em] text-muted-foreground uppercase sm:tracking-[0.16em]">
+            <span>Ahmedabad · Gandhinagar</span>
+            <span className="inline-flex items-center gap-2">
+              <span className="size-1.5 rounded-full bg-success" aria-hidden="true" />
+              RERA verified
+            </span>
           </p>
           <h1 className="mt-5 max-w-3xl font-display text-display font-normal text-balance">
             {headline.split(" ").map((word, index) => (

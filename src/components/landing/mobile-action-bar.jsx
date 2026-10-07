@@ -1,5 +1,6 @@
 import { MessageCircle, Phone } from "lucide-react"
 import { site, whatsappLink } from "@/config/site"
+import { ActionBarShell } from "./action-bar-shell"
 import { EnquireButton } from "./enquiry"
 
 const secondaryClass =
@@ -8,7 +9,7 @@ const secondaryClass =
 // Thumb-reachable actions on phones. Hidden from md up, where the header has them.
 export function MobileActionBar() {
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/90 px-3 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] backdrop-blur-md md:hidden">
+    <ActionBarShell>
       <div className="flex gap-2">
         <a href={`tel:${site.phone.href}`} className={secondaryClass}>
           <Phone className="size-4" aria-hidden="true" />
@@ -27,6 +28,6 @@ export function MobileActionBar() {
           Enquire
         </EnquireButton>
       </div>
-    </div>
+    </ActionBarShell>
   )
 }
