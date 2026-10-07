@@ -1,14 +1,16 @@
 "use client"
 
-import { Command } from "cmdk"
-import { ArrowRight, Building2, Check, MapPin, Search } from "lucide-react"
+import { useAutoAnimate } from "@formkit/auto-animate/react"
+import { Command, defaultFilter } from "cmdk"
+import { ArrowRight, Building2, CornerDownLeft, MapPin, Search, SlidersHorizontal } from "lucide-react"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { localities, localityName } from "@/data/localities"
 import { projects } from "@/data/projects"
 import { formatCompactINR, formatPriceRange } from "@/lib/format"
+import { parseQuery } from "@/lib/parse-query"
 import {
   bhkOptions,
   budgetOptions,
@@ -19,6 +21,7 @@ import {
 import { cn } from "@/lib/utils"
 import { usePauseSmoothScroll, useScrollToSection } from "@/hooks/use-smooth-scroll"
 import { CountFlow } from "./flow-number"
+import { StatusTabs, StatusTabsFallback } from "./status-tabs"
 
 const bhkItems = [{ value: null, label: "Any BHK" }, ...bhkOptions]
 const budgetItems = [{ value: null, label: "Any budget" }, ...budgetOptions]
@@ -48,6 +51,26 @@ function useRotatingHint(paused) {
   return reduceMotion ? HINTS[0] : HINTS[index]
 }
 
+// The palette's placeholder shows what can be typed. A plain text swap, no
+// animation: the palette is keyboard-driven and opened often.
+const PALETTE_EXAMPLES = ["3 BHK in Thaltej under 1.2 Cr", "Ready to move in Gota", "2 BHK under 80 L"]
+
+function usePaletteExample(active) {
+  const [index, setIndex] = useState(0)
+  useEffect(() => {
+    if (!active) return
+    const timer = window.setInterval(() => setIndex((current) => (current + 1) % PALETTE_EXAMPLES.length), HINT_MS)
+    return () => window.clearInterval(timer)
+  }, [active])
+  return PALETTE_EXAMPLES[index]
+}
+
+// The pinned "Apply" item always passes cmdk's filter and ranks first; every
+// other item keeps cmdk's own matching.
+const APPLY_VALUE = "__apply-parsed-filters"
+const paletteFilter = (value, search, keywords) =>
+  value === APPLY_VALUE ? 1 : defaultFilter(value, search, keywords)
+
 // Below lg the capsule is a stacked card; from lg it's one rounded row.
 const capsuleClass =
   "grid w-full grid-cols-2 gap-1.5 rounded-2xl border border-border bg-background p-1.5 shadow-sm lg:flex lg:h-16 lg:max-w-4xl lg:items-center lg:gap-1 lg:rounded-full lg:p-2"
@@ -61,10 +84,20 @@ const divider = <span aria-hidden="true" className="hidden h-6 w-px shrink-0 bg-
 
 export function HeroSearch() {
   const [filters, setFilters] = useProjectFilters()
-  const [open, setOpen] = useState(false)
+  const [open, setOpenState] = useState(false)
+  const [search, setSearch] = useState("")
   const scrollToSection = useScrollToSection()
   const hint = useRotatingHint(open)
+  const example = usePaletteExample(open && search === "")
+  const parsed = useMemo(() => parseQuery(search), [search])
+  const [partsRef] = useAutoAnimate({ duration: 150 })
   usePauseSmoothScroll(open)
+
+  // The typed text is cleared whenever the palette closes, as before.
+  function setOpen(next) {
+    setOpenState(next)
+    if (!next) setSearch("")
+  }
 
   const matchCount = projects.filter((project) => matchesFilters(project, filters)).length
   const bhkChoices = withCurrent(bhkItems, filters.bhk, (bhk) => `${bhk} BHK`)
@@ -76,11 +109,12 @@ export function HeroSearch() {
       const shortcut = (event.key === "k" && (event.metaKey || event.ctrlKey)) || (event.key === "/" && !typing)
       if (!shortcut) return
       event.preventDefault()
-      setOpen((isOpen) => !isOpen)
+      setOpenState(!open)
+      if (open) setSearch("")
     }
     document.addEventListener("keydown", onKeyDown)
     return () => document.removeEventListener("keydown", onKeyDown)
-  }, [])
+  }, [open])
 
   function choose(nextFilters) {
     setFilters({ ...clearedFilters, ...nextFilters })
@@ -90,7 +124,8 @@ export function HeroSearch() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
+      <StatusTabs />
       <div className={capsuleClass}>
         <button
           type="button"
@@ -157,47 +192,26 @@ export function HeroSearch() {
           </SelectContent>
         </Select>
 
-        <div className="col-span-2 flex flex-wrap gap-1.5 lg:contents">
-          {/* A toggle that looks like one: a tick box and a brick tint, never the
-              solid brick reserved for the main action next to it. */}
-          <button
-            type="button"
-            aria-pressed={filters.ready}
-            onClick={() => setFilters({ ready: !filters.ready || null, project: null })}
-            className={cn(
-              segmentClass,
-              "group inline-flex shrink-0 items-center gap-2 border border-transparent bg-muted/60 px-3.5 active:scale-[0.97] aria-pressed:border-primary/40 aria-pressed:bg-accent lg:bg-transparent lg:hover:bg-accent/60"
-            )}
-          >
-            <span
-              aria-hidden="true"
-              className="flex size-4 items-center justify-center rounded-[5px] border border-input text-primary-foreground transition-colors duration-150 group-aria-pressed:border-primary group-aria-pressed:bg-primary"
-            >
-              <Check className="size-3 opacity-0 group-aria-pressed:opacity-100" strokeWidth={3} />
-            </span>
-            Ready to move
-          </button>
-
-          <Button
-            className="h-12 min-w-[9.5rem] flex-1 rounded-full px-5 text-sm lg:ml-1 lg:min-w-[10.5rem] lg:flex-none"
-            onClick={() => scrollToSection("projects")}
-          >
-            {matchCount === 0 ? (
-              "No matches yet"
-            ) : (
-              <>
-                Show <CountFlow value={matchCount} /> {matchCount === 1 ? "project" : "projects"}
-              </>
-            )}
-            <ArrowRight data-icon="inline-end" />
-          </Button>
-        </div>
+        <Button
+          className="col-span-2 h-12 rounded-full px-5 text-sm lg:ml-1 lg:min-w-[10.5rem]"
+          onClick={() => scrollToSection("projects")}
+        >
+          {matchCount === 0 ? (
+            "No matches yet"
+          ) : (
+            <>
+              Show <CountFlow value={matchCount} /> {matchCount === 1 ? "project" : "projects"}
+            </>
+          )}
+          <ArrowRight data-icon="inline-end" />
+        </Button>
       </div>
 
       <Command.Dialog
         open={open}
         onOpenChange={setOpen}
         label="Search areas and projects"
+        filter={paletteFilter}
         overlayClassName="fixed inset-0 z-50 bg-overlay"
         contentClassName="fixed top-[12vh] left-1/2 z-50 w-[min(560px,calc(100vw-2rem))] -translate-x-1/2 overflow-hidden rounded-2xl bg-popover text-popover-foreground shadow-2xl ring-1 ring-foreground/10"
       >
@@ -205,14 +219,46 @@ export function HeroSearch() {
           <Search className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
           <Command.Input
             autoFocus
-            placeholder="Try Thaltej, Gota or a project name"
+            value={search}
+            onValueChange={setSearch}
+            placeholder={`Try “${example}”`}
             className="h-14 w-full bg-transparent text-base outline-none placeholder:text-muted-foreground"
           />
         </div>
         <Command.List className="max-h-[min(380px,55vh)] overflow-y-auto overscroll-contain p-2">
-          <Command.Empty className="px-3 py-8 text-center text-sm text-muted-foreground">
-            No matches. Try another area, or ask us. We cover all of Ahmedabad.
-          </Command.Empty>
+          {/* cmdk counts only its own matches, so hide "No matches" while the
+              pinned Apply item is offering the parsed search. */}
+          {!parsed.hasFilters && (
+            <Command.Empty className="px-3 py-8 text-center text-sm text-muted-foreground">
+              No matches. Try another area, or ask us. We cover all of Ahmedabad.
+            </Command.Empty>
+          )}
+          {parsed.hasFilters && (
+            // Understood the typed search: apply all of it at once.
+            <Command.Group heading="Your search" className={groupClass} forceMount>
+              <Command.Item
+                value={APPLY_VALUE}
+                forceMount
+                onSelect={() => choose(parsed.filters)}
+                className={cn(itemClass, "items-start")}
+              >
+                <SlidersHorizontal className="mt-0.5 size-4 text-primary" aria-hidden="true" />
+                <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <span className="font-medium">
+                    Apply<span className="sr-only">: {parsed.parts.map((part) => part.label).join(", ")}</span>
+                  </span>
+                  <ul ref={partsRef} aria-hidden="true" className="flex flex-wrap gap-1">
+                    {parsed.parts.map((part) => (
+                      <li key={part.key} className="rounded-full bg-background px-2 py-0.5 text-xs ring-1 ring-border">
+                        {part.label}
+                      </li>
+                    ))}
+                  </ul>
+                </span>
+                <CornerDownLeft className="mt-0.5 size-4 text-muted-foreground" aria-hidden="true" />
+              </Command.Item>
+            </Command.Group>
+          )}
           <Command.Group heading="Areas" className={groupClass}>
             {localities.map((locality) => (
               <Command.Item
@@ -264,7 +310,8 @@ const itemClass =
 export function HeroSearchFallback() {
   const placeholder = cn(segmentClass, "flex items-center bg-muted/60 px-3.5 lg:bg-transparent")
   return (
-    <div className="flex flex-col gap-4" aria-hidden="true">
+    <div className="flex flex-col gap-3" aria-hidden="true">
+      <StatusTabsFallback />
       <div className={capsuleClass}>
         <div className={cn(segmentClass, "col-span-2 flex items-center gap-3 px-3.5 lg:min-w-0 lg:flex-1 lg:px-4")}>
           <Search className="size-5 shrink-0 text-muted-foreground" />
@@ -274,13 +321,7 @@ export function HeroSearchFallback() {
         <span className={cn(placeholder, "lg:min-w-[7.5rem]")}>Any BHK</span>
         {divider}
         <span className={cn(placeholder, "lg:min-w-[9.5rem]")}>Any budget</span>
-        <div className="col-span-2 flex flex-wrap gap-1.5 lg:contents">
-          <span className={cn(placeholder, "shrink-0 gap-2 border border-transparent")}>
-            <span className="size-4 rounded-[5px] border border-input" />
-            Ready to move
-          </span>
-          <span className="h-12 min-w-[9.5rem] flex-1 rounded-full bg-primary/90 lg:ml-1 lg:min-w-[10.5rem] lg:flex-none" />
-        </div>
+        <span className="col-span-2 h-12 rounded-full bg-primary/90 lg:ml-1 lg:min-w-[10.5rem]" />
       </div>
     </div>
   )

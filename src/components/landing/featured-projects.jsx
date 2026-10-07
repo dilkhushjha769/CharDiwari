@@ -3,12 +3,15 @@
 import { X } from "lucide-react"
 import { localityName } from "@/data/localities"
 import { projects } from "@/data/projects"
+import { useAutoAnimate } from "@formkit/auto-animate/react"
 import {
   bhkOptions,
   budgetOptions,
   clearedFilters,
+  currentStatus,
   hasActiveFilters,
   matchesFilters,
+  statusOptions,
   useProjectFilters,
 } from "@/lib/project-filters"
 import { formatCompactINR } from "@/lib/format"
@@ -27,31 +30,43 @@ function activeChips(filters) {
   if (filters.bhk) {
     chips.push({ key: "bhk", label: bhkOptions.find((option) => option.value === filters.bhk)?.label ?? `${filters.bhk} BHK` })
   }
-  if (filters.max) {
+  if (filters.min && filters.max) {
+    chips.push({ key: ["min", "max"], label: `${formatCompactINR(filters.min)} – ${formatCompactINR(filters.max)}` })
+  } else if (filters.max) {
     const preset = budgetOptions.find((option) => option.value === filters.max)
     chips.push({ key: "max", label: preset?.label ?? `Under ${formatCompactINR(filters.max)}` })
+  } else if (filters.min) {
+    chips.push({ key: "min", label: `From ${formatCompactINR(filters.min)}` })
   }
-  if (filters.ready) chips.push({ key: "ready", label: "Ready to move" })
+  const status = currentStatus(filters)
+  if (status) {
+    chips.push({ key: "status", label: statusOptions.find((option) => option.value === status)?.label ?? status })
+  }
   return chips
 }
+
+// Removing a chip clears every param it stands for.
+const clearing = (key) => Object.fromEntries([key].flat().map((name) => [name, null]))
 
 export function FeaturedProjects() {
   const [filters, setFilters] = useProjectFilters()
   const matches = projects.filter((project) => matchesFilters(project, filters))
   const filtered = hasActiveFilters(filters)
+  // Chips slide in and out as filters change (a list add/remove, so AutoAnimate).
+  const [chipsRef] = useAutoAnimate({ duration: 180 })
 
   return (
     <>
       {filtered && (
-        <div className="mb-6 flex flex-wrap items-center gap-2" aria-live="polite">
+        <div ref={chipsRef} className="mb-6 flex flex-wrap items-center gap-2" aria-live="polite">
           <span className="mr-1 text-sm text-muted-foreground">
             <CountFlow value={matches.length} /> of {projects.length} projects
           </span>
           {activeChips(filters).map((chip) => (
             <button
-              key={chip.key}
+              key={[chip.key].flat().join("-")}
               type="button"
-              onClick={() => setFilters({ [chip.key]: null })}
+              onClick={() => setFilters(clearing(chip.key))}
               className="inline-flex h-8 items-center gap-1.5 rounded-full bg-muted pr-2.5 pl-3 text-sm transition-[background-color,scale] duration-150 ease-out-strong hover:bg-accent active:scale-[0.97]"
               aria-label={`Remove filter: ${chip.label}`}
             >
