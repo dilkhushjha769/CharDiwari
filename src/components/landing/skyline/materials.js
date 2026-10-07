@@ -22,6 +22,7 @@ export function createUniforms() {
     uLitShare: { value: 0.1 },
     uFogNear: { value: 40 },
     uFogFar: { value: 66 },
+    uInkMode: { value: 0 }, // 1 = light theme's pen drawing, 0 = dark theme's model
   }
 }
 
@@ -32,6 +33,7 @@ const common = /* glsl */ `
   attribute float aTower;
   varying float vHighlight;
   varying float vDepth;
+  varying vec3 vWorld;
 
   // Ease-out quart: a fast start that settles softly, like the UI's ease-out-strong.
   float riseProgress() {
@@ -47,6 +49,7 @@ const common = /* glsl */ `
     vec3 p = position;
     p.y *= riseProgress();
     y = p.y;
+    vWorld = p; // the model matrix is identity
     vHighlight = towerHighlight();
     vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
     vDepth = -mvPosition.z;
@@ -66,10 +69,12 @@ const faces = {
   vertexShader: /* glsl */ `
     ${common}
     varying vec3 vNormal;
+    varying float vFacing;
     varying float vY;
     void main() {
       float y;
       vNormal = normal;
+      vFacing = (modelViewMatrix * vec4(normal, 0.0)).x; // > 0: the wall faces screen-right
       gl_Position = risenPosition(y);
       vY = y;
     }
@@ -84,11 +89,36 @@ const faces = {
     uniform float uSideShade;
     uniform float uRoofLift;
     uniform float uBrickTint;
+    uniform float uInkMode;
     varying vec3 vNormal;
+    varying vec3 vWorld;
+    varying float vFacing;
     varying float vY;
     varying float vHighlight;
     varying float vDepth;
+
+    // Diagonal pen hatching on the shaded walls (light comes from the left of the
+    // view, so one side of every block stays hatched as the camera orbits). The
+    // strokes are laid in world space, so they stay put on the wall.
+    float hatch() {
+      if (abs(vNormal.y) > 0.5) return 0.0; // roofs stay plain paper
+      float shaded = smoothstep(0.25, 0.45, vFacing);
+      if (shaded <= 0.0) return 0.0;
+      float along = abs(vNormal.x) > 0.5 ? vWorld.z : vWorld.x;
+      float t = (along + vWorld.y) / 0.18;
+      float d = abs(fract(t) - 0.5);
+      return shaded * smoothstep(0.42 - fwidth(t), 0.42, 0.5 - d); // 1 on a stroke, anti-aliased
+    }
+
     void main() {
+      if (uInkMode > 0.5) {
+        // A pen drawing: faces are paper, so they only hide the lines behind them.
+        vec3 pen = mix(uInk, uBrick, vHighlight);
+        float strokes = hatch() * 0.18 * (1.0 - fogAmount(vDepth));
+        gl_FragColor = vec4(mix(uFog, pen, strokes), 1.0);
+        #include <colorspace_fragment>
+        return;
+      }
       // A card massing model: lightest roofs, two shades of wall, and a soft
       // darkening where each block meets the ground.
       vec3 color = vNormal.y > 0.5
@@ -152,6 +182,7 @@ const windows = {
     uniform float uTime;
     uniform float uUnlitAlpha;
     uniform float uLitShare;
+    uniform float uInkMode;
     varying float vSeed;
     varying float vShow;
     varying float vHighlight;
@@ -167,8 +198,12 @@ const windows = {
       float phase = floor(uTime * 0.008 + vSeed * 17.0);
       float lit = step(hash(vSeed * 91.7 + phase * 7.13), mix(uLitShare, uLitShare * 2.5, vHighlight));
       vec3 litColor = mix(uWindow, uBrick, vHighlight * 0.35);
-      vec3 color = mix(uInk, litColor, lit);
-      float alpha = mix(uUnlitAlpha, 0.9, lit) * vShow * (1.0 - fogAmount(vDepth) * 0.8);
+      // In the pen drawing, matching towers' window marks are drawn in brick.
+      float penTint = vHighlight * uInkMode;
+      vec3 unlitColor = mix(uInk, uBrick, penTint);
+      float unlitAlpha = mix(uUnlitAlpha, uUnlitAlpha * 2.5, penTint);
+      vec3 color = mix(unlitColor, litColor, lit);
+      float alpha = mix(unlitAlpha, 0.9, lit) * vShow * (1.0 - fogAmount(vDepth) * 0.8);
       gl_FragColor = vec4(color, alpha);
       #include <colorspace_fragment>
     }

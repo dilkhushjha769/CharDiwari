@@ -195,7 +195,7 @@ export function createSkyline(container, { reduceMotion, matches }) {
       pointer.y = (event.clientY / window.innerHeight) * 2 - 1
     }
 
-    // ---- Theme: limestone card model by day, charcoal and chalk by night ----
+    // ---- Theme: a pen drawing on the paper by day, a charcoal and chalk model by night ----
     function applyTheme() {
       const dark = document.documentElement.classList.contains("dark")
       const ink = readThemeColor("--foreground")
@@ -209,9 +209,10 @@ export function createSkyline(container, { reduceMotion, matches }) {
       uniforms.uSideShade.value = dark ? 0.28 : 0.1
       uniforms.uRoofLift.value = dark ? 0.05 : 0
       uniforms.uBrickTint.value = dark ? 0.018 : 0.05
-      uniforms.uEdgeAlpha.value = dark ? 0.26 : 0.3
-      uniforms.uUnlitAlpha.value = dark ? 0.05 : 0.06
-      uniforms.uLitShare.value = dark ? 0.14 : 0.08
+      uniforms.uInkMode.value = dark ? 0 : 1
+      uniforms.uEdgeAlpha.value = dark ? 0.26 : 0.55
+      uniforms.uUnlitAlpha.value = dark ? 0.05 : 0.1
+      uniforms.uLitShare.value = dark ? 0.14 : 0 // no lit windows in the drawing
       ping.material.color.setHex(brick)
       container.dataset.palette = `${ink.toString(16)}/${brick.toString(16)}`
       if (!frame) render(performance.now()) // the loop is paused: show the change now
