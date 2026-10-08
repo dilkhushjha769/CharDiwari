@@ -15,6 +15,17 @@ export const urlOptions = {
   limitUrlUpdates: throttle(300),
 }
 
+// Switches the calculator tab from outside it (the header menu), keeping every
+// other param. Next.js syncs replaceState into useSearchParams, so the tabs
+// (nuqs, "?calc=") follow without a navigation.
+export function replaceCalculatorTab(tab) {
+  const params = new URLSearchParams(window.location.search)
+  if (tab === "emi") params.delete("calc")
+  else params.set("calc", tab)
+  const query = params.toString()
+  window.history.replaceState(null, "", query ? `?${query}` : window.location.pathname)
+}
+
 export const limits = {
   price: { min: 1000000, max: 100000000, step: 50000 },
   down: { min: 10, max: 50, step: 1 },

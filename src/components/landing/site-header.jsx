@@ -6,7 +6,7 @@ import { EnquireButton } from "./enquiry"
 import { ThemeToggle } from "@/components/providers/theme-toggle"
 import { HeaderShell } from "./header-shell"
 import { MobileMenu } from "./mobile-menu"
-import { NavLinks } from "./nav-links"
+import { NavMenu } from "./nav-menu"
 
 export const navLinks = [
   { href: "#projects", label: "Projects" },
@@ -46,9 +46,9 @@ export function Logo({ className }) {
 export function SiteHeader() {
   return (
     <HeaderShell>
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-6 px-4 sm:px-6 md:grid md:grid-cols-[1fr_auto_1fr]">
+      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-6 px-4 sm:px-6 md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
         <Logo className="justify-self-start" />
-        <NavLinks links={navLinks} />
+        <NavMenu />
         <div className="flex items-center gap-1 justify-self-end md:gap-2">
           <ThemeToggle className="hidden md:inline-flex" />
           <div className="hidden items-center gap-1 md:flex">
