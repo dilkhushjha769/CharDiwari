@@ -1,6 +1,8 @@
 "use client"
 
-import { Link2 } from "lucide-react"
+import { Check, Link2 } from "lucide-react"
+import { AnimatePresence, motion, useReducedMotion } from "motion/react"
+import { useEffect, useRef, useState } from "react"
 import { parseAsInteger, useQueryStates } from "nuqs"
 import { toast } from "sonner"
 import {
@@ -17,8 +19,9 @@ import { localityName } from "@/data/localities"
 import { projects } from "@/data/projects"
 import { loanSummary, repaymentSchedule } from "@/lib/calculators"
 import { formatCompactINR, formatINR } from "@/lib/format"
+import { cn } from "@/lib/utils"
 import { EnquireButton } from "../enquiry"
-import { RupeeFlow } from "../flow-number"
+import { CompactRupeeFlow, RupeeFlow } from "../flow-number"
 import { Donut, LegendDot } from "./donut"
 import { limits, loanParsers, urlOptions } from "./params"
 import { RangeField } from "./range-field"
@@ -30,6 +33,65 @@ const projectItems = [
     label: `${project.name}, ${localityName(project.locality)} · from ${formatCompactINR(project.priceMin)}`,
   })),
 ]
+
+const COPIED_MS = 1600
+const SWAP = { duration: 0.15, ease: [0.23, 1, 0.32, 1] } // --ease-out-strong
+// The icon crossfade; under reduced motion the scale is dropped (MotionConfig's
+// reducedMotion doesn't cover a raw `transform` value), the fade stays. The
+// settled state is the same either way, so server and client markup match.
+const iconStates = (reduce) => {
+  const hidden = { opacity: 0, filter: "blur(2px)", transform: reduce ? "scale(1)" : "scale(0.9)" }
+  return { initial: hidden, animate: { opacity: 1, filter: "blur(0px)", transform: "scale(1)" }, exit: hidden }
+}
+
+// Confirms right where the user clicked: the link icon morphs into a tick and
+// the label reads "Copied" for a moment. The accessible name stays "Copy link";
+// the result is announced through a polite live region instead.
+function CopyLinkButton() {
+  const [copied, setCopied] = useState(false)
+  const timer = useRef(0)
+  const reduceMotion = useReducedMotion()
+
+  useEffect(() => () => window.clearTimeout(timer.current), [])
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setCopied(true)
+      window.clearTimeout(timer.current)
+      timer.current = window.setTimeout(() => setCopied(false), COPIED_MS)
+    } catch {
+      toast.error("Couldn't copy the link", { description: "Copy it from the address bar instead." })
+    }
+  }
+
+  return (
+    <>
+      <Button variant="outline" size="lg" className="h-11" aria-label="Copy link" onClick={copyLink}>
+        <span className="relative inline-flex size-4 items-center justify-center" data-icon="inline-start" aria-hidden="true">
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.span
+              key={copied ? "check" : "link"}
+              className="inline-flex"
+              {...iconStates(reduceMotion)}
+              transition={SWAP}
+            >
+              {copied ? <Check className="size-4" /> : <Link2 className="size-4" />}
+            </motion.span>
+          </AnimatePresence>
+        </span>
+        {/* Both labels share one cell, so the button keeps the wider width. */}
+        <span className="inline-grid [&>*]:col-start-1 [&>*]:row-start-1" aria-hidden="true">
+          <span className={cn("transition-opacity duration-150 ease-out-strong", copied && "opacity-0")}>Copy link</span>
+          <span className={cn("transition-opacity duration-150 ease-out-strong", !copied && "opacity-0")}>Copied</span>
+        </span>
+      </Button>
+      <span className="sr-only" aria-live="polite">
+        {copied ? "Link copied" : ""}
+      </span>
+    </>
+  )
+}
 
 function formatDuration(months) {
   const years = Math.floor(months / 12)
@@ -60,15 +122,6 @@ export function EmiCalculator() {
 
   const stampDuty = price * purchaseCosts.stampDuty
   const registration = price * purchaseCosts.registration
-
-  async function copyLink() {
-    try {
-      await navigator.clipboard.writeText(window.location.href)
-      toast.success("Link copied", { description: "Anyone with it sees these exact numbers." })
-    } catch {
-      toast.error("Couldn't copy the link", { description: "Copy it from the address bar instead." })
-    }
-  }
 
   return (
     <div className="grid gap-4">
@@ -147,15 +200,15 @@ export function EmiCalculator() {
             <dl className="grid flex-1 gap-3 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <dt className="flex items-center gap-2"><LegendDot className="bg-primary" />Principal</dt>
-                <dd className="font-medium tabular-nums">{formatCompactINR(loan)}</dd>
+                <dd className="font-medium tabular-nums"><CompactRupeeFlow value={loan} /></dd>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <dt className="flex items-center gap-2"><LegendDot className="bg-chart-1" />Interest</dt>
-                <dd className="font-medium tabular-nums">{formatCompactINR(totalInterest)}</dd>
+                <dd className="font-medium tabular-nums"><CompactRupeeFlow value={totalInterest} /></dd>
               </div>
               <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
                 <dt>Total payable</dt>
-                <dd className="font-semibold tabular-nums">{formatCompactINR(totalPayable)}</dd>
+                <dd className="font-semibold tabular-nums"><CompactRupeeFlow value={totalPayable} /></dd>
               </div>
             </dl>
           </div>
@@ -169,10 +222,7 @@ export function EmiCalculator() {
             >
               Talk to a loan expert
             </EnquireButton>
-            <Button variant="outline" size="lg" className="h-11" onClick={copyLink}>
-              <Link2 data-icon="inline-start" />
-              Copy link
-            </Button>
+            <CopyLinkButton />
           </div>
         </div>
       </div>

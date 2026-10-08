@@ -1,8 +1,8 @@
 "use client"
 
-import { Menu } from "lucide-react"
 import { useState } from "react"
 import { Drawer } from "vaul"
+import { ThemeToggle } from "@/components/providers/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { site } from "@/config/site"
 import { usePauseSmoothScroll, useScrollToSection } from "@/hooks/use-smooth-scroll"
@@ -27,10 +27,13 @@ export function MobileMenu({ links }) {
   return (
     <Drawer.Root open={open} onOpenChange={setOpen}>
       <Drawer.Trigger
-        className="-mr-2 inline-flex size-10 items-center justify-center rounded-lg transition-transform duration-150 ease-out-strong active:scale-[0.97] md:hidden"
+        className="-mr-2.5 inline-flex size-11 items-center justify-center rounded-full outline-none transition-transform duration-150 ease-out-strong focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.97] md:hidden"
         aria-label="Open menu"
       >
-        <Menu className="size-5" />
+        {/* Two lines: lighter than a three-bar menu next to the serif wordmark. */}
+        <svg viewBox="0 0 24 24" aria-hidden="true" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
+          <path d="M4 9h16M4 15h16" />
+        </svg>
       </Drawer.Trigger>
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 z-50 bg-overlay" />
@@ -55,6 +58,10 @@ export function MobileMenu({ links }) {
               ))}
             </ul>
           </nav>
+          <div className="flex items-center justify-between border-t border-border py-2">
+            <span className="text-lg font-medium">Appearance</span>
+            <ThemeToggle className="size-11 rounded-full" />
+          </div>
           <Button
             variant="outline"
             size="lg"

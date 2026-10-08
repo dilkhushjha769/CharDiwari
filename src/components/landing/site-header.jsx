@@ -1,9 +1,12 @@
 import { Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { site } from "@/config/site"
+import { cn } from "@/lib/utils"
 import { EnquireButton } from "./enquiry"
 import { ThemeToggle } from "@/components/providers/theme-toggle"
+import { HeaderShell } from "./header-shell"
 import { MobileMenu } from "./mobile-menu"
+import { NavMenu } from "./nav-menu"
 
 export const navLinks = [
   { href: "#projects", label: "Projects" },
@@ -12,50 +15,67 @@ export const navLinks = [
   { href: "#faq", label: "FAQ" },
 ]
 
-export function Logo() {
+// A tall brick tower beside a shorter ink one: the skyline in miniature.
+function LogoMark({ className }) {
   return (
-    <a href="#top" className="text-lg font-semibold tracking-tight" aria-label={`${site.name} home`}>
-      Vital<span className="text-muted-foreground">Space</span>
+    <svg viewBox="0 0 20 20" aria-hidden="true" className={className}>
+      <rect x="3.5" y="7.5" width="6" height="11" rx="0.5" fill="none" className="stroke-foreground" strokeWidth="1.25" />
+      <rect x="10.5" y="1.5" width="6" height="17" rx="0.5" className="fill-primary" />
+    </svg>
+  )
+}
+
+export function Logo({ className }) {
+  return (
+    <a
+      href="#top"
+      aria-label={`${site.name} home`}
+      className={cn(
+        "inline-flex items-center gap-2 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+        className
+      )}
+    >
+      <LogoMark className="size-5 shrink-0" />
+      <span className="font-display text-[1.6rem] leading-none tracking-tight">
+        Vital<span className="italic">Space</span>
+      </span>
     </a>
   )
 }
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-6 px-4 sm:px-6">
-        <Logo />
-        <nav aria-label="Main" className="hidden md:block">
-          <ul className="flex items-center gap-1">
-            {navLinks.map((link) => (
-              <li key={link.href}>
-                <a
-                  href={link.href}
-                  className="rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <div className="flex items-center gap-1 md:gap-2">
-          <ThemeToggle />
-          <div className="hidden items-center gap-2 md:flex">
+    <HeaderShell>
+      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-6 px-4 sm:px-6 md:grid md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+        <Logo className="justify-self-start" />
+        <NavMenu />
+        <div className="flex items-center gap-1 justify-self-end md:gap-2">
+          <ThemeToggle className="hidden md:inline-flex" />
+          <div className="hidden items-center gap-1 md:flex">
             <Button
               variant="ghost"
-              className="h-9 px-3"
+              size="icon-lg"
+              className="rounded-full xl:hidden"
+              aria-label={`Call ${site.phone.display}`}
+              render={<a href={`tel:${site.phone.href}`} />}
+              nativeButton={false}
+            >
+              <Phone />
+            </Button>
+            <Button
+              variant="ghost"
+              className="hidden h-9 rounded-full px-3 xl:inline-flex"
               render={<a href={`tel:${site.phone.href}`} />}
               nativeButton={false}
             >
               <Phone data-icon="inline-start" />
               {site.phone.display}
             </Button>
-            <EnquireButton className="h-9 px-4">Talk to an expert</EnquireButton>
+            <EnquireButton className="h-9 rounded-full px-4">Talk to an expert</EnquireButton>
           </div>
           <MobileMenu links={navLinks} />
         </div>
       </div>
-    </header>
+    </HeaderShell>
   )
 }
