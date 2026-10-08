@@ -1,6 +1,6 @@
 # 004 — Rotate one accordion chevron and remove the ~100ms open delay
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 86fdbf1
 - **Severity**: MEDIUM (the delay) / LOW (the chevron)
 - **Category**: Purpose & frequency, easing
