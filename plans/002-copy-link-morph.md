@@ -1,6 +1,6 @@
 # 002 — "Copy link" confirms in place
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 86fdbf1
 - **Severity**: LOW
 - **Category**: Missed opportunities (feedback)

@@ -1,6 +1,8 @@
 "use client"
 
-import { Link2 } from "lucide-react"
+import { Check, Link2 } from "lucide-react"
+import { AnimatePresence, motion } from "motion/react"
+import { useEffect, useRef, useState } from "react"
 import { parseAsInteger, useQueryStates } from "nuqs"
 import { toast } from "sonner"
 import {
@@ -17,6 +19,7 @@ import { localityName } from "@/data/localities"
 import { projects } from "@/data/projects"
 import { loanSummary, repaymentSchedule } from "@/lib/calculators"
 import { formatCompactINR, formatINR } from "@/lib/format"
+import { cn } from "@/lib/utils"
 import { EnquireButton } from "../enquiry"
 import { RupeeFlow } from "../flow-number"
 import { Donut, LegendDot } from "./donut"
@@ -30,6 +33,59 @@ const projectItems = [
     label: `${project.name}, ${localityName(project.locality)} · from ${formatCompactINR(project.priceMin)}`,
   })),
 ]
+
+const COPIED_MS = 1600
+const SWAP = { duration: 0.15, ease: [0.23, 1, 0.32, 1] } // --ease-out-strong
+
+// Confirms right where the user clicked: the link icon morphs into a tick and
+// the label reads "Copied" for a moment. The accessible name stays "Copy link";
+// the result is announced through a polite live region instead.
+function CopyLinkButton() {
+  const [copied, setCopied] = useState(false)
+  const timer = useRef(0)
+
+  useEffect(() => () => window.clearTimeout(timer.current), [])
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      setCopied(true)
+      window.clearTimeout(timer.current)
+      timer.current = window.setTimeout(() => setCopied(false), COPIED_MS)
+    } catch {
+      toast.error("Couldn't copy the link", { description: "Copy it from the address bar instead." })
+    }
+  }
+
+  return (
+    <>
+      <Button variant="outline" size="lg" className="h-11" aria-label="Copy link" onClick={copyLink}>
+        <span className="relative inline-flex size-4 items-center justify-center" data-icon="inline-start" aria-hidden="true">
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.span
+              key={copied ? "check" : "link"}
+              className="inline-flex"
+              initial={{ opacity: 0, filter: "blur(2px)", transform: "scale(0.9)" }}
+              animate={{ opacity: 1, filter: "blur(0px)", transform: "scale(1)" }}
+              exit={{ opacity: 0, filter: "blur(2px)", transform: "scale(0.9)" }}
+              transition={SWAP}
+            >
+              {copied ? <Check className="size-4" /> : <Link2 className="size-4" />}
+            </motion.span>
+          </AnimatePresence>
+        </span>
+        {/* Both labels share one cell, so the button keeps the wider width. */}
+        <span className="inline-grid [&>*]:col-start-1 [&>*]:row-start-1" aria-hidden="true">
+          <span className={cn("transition-opacity duration-150 ease-out-strong", copied && "opacity-0")}>Copy link</span>
+          <span className={cn("transition-opacity duration-150 ease-out-strong", !copied && "opacity-0")}>Copied</span>
+        </span>
+      </Button>
+      <span className="sr-only" aria-live="polite">
+        {copied ? "Link copied" : ""}
+      </span>
+    </>
+  )
+}
 
 function formatDuration(months) {
   const years = Math.floor(months / 12)
@@ -60,15 +116,6 @@ export function EmiCalculator() {
 
   const stampDuty = price * purchaseCosts.stampDuty
   const registration = price * purchaseCosts.registration
-
-  async function copyLink() {
-    try {
-      await navigator.clipboard.writeText(window.location.href)
-      toast.success("Link copied", { description: "Anyone with it sees these exact numbers." })
-    } catch {
-      toast.error("Couldn't copy the link", { description: "Copy it from the address bar instead." })
-    }
-  }
 
   return (
     <div className="grid gap-4">
@@ -169,10 +216,7 @@ export function EmiCalculator() {
             >
               Talk to a loan expert
             </EnquireButton>
-            <Button variant="outline" size="lg" className="h-11" onClick={copyLink}>
-              <Link2 data-icon="inline-start" />
-              Copy link
-            </Button>
+            <CopyLinkButton />
           </div>
         </div>
       </div>
