@@ -1,6 +1,6 @@
 # 003 — Secondary calculator figures roll like the headline number
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 86fdbf1
 - **Severity**: LOW
 - **Category**: Cohesion & tokens

@@ -6,14 +6,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { areaUnits, convertArea } from "@/lib/calculators"
+import { AreaFlow } from "../flow-number"
 import { urlOptions } from "./params"
 
 const unitItems = areaUnits.map((unit) => ({ value: unit.id, label: unit.label }))
 
-function formatArea(value) {
-  if (!Number.isFinite(value)) return "–"
-  const digits = value !== 0 && Math.abs(value) < 1 ? 4 : 2
-  return new Intl.NumberFormat("en-IN", { maximumFractionDigits: digits }).format(value)
+// Results roll like the EMI figure; an empty or invalid size shows a dash.
+function AreaValue({ value }) {
+  return Number.isFinite(value) ? <AreaFlow value={value} /> : "–"
 }
 
 export function AreaConverter() {
@@ -75,7 +75,7 @@ export function AreaConverter() {
             <div key={item.id} className="flex items-baseline justify-between gap-4 border-b border-border py-3 last:border-0">
               <dt className="text-sm text-muted-foreground">{item.label}</dt>
               <dd className="font-semibold tabular-nums">
-                {formatArea(convertArea(size, unit, item.id))}{" "}
+                <AreaValue value={convertArea(size, unit, item.id)} />{" "}
                 <span className="text-sm font-normal text-muted-foreground">{item.short}</span>
               </dd>
             </div>

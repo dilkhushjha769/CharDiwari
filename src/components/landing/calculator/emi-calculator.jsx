@@ -21,7 +21,7 @@ import { loanSummary, repaymentSchedule } from "@/lib/calculators"
 import { formatCompactINR, formatINR } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { EnquireButton } from "../enquiry"
-import { RupeeFlow } from "../flow-number"
+import { CompactRupeeFlow, RupeeFlow } from "../flow-number"
 import { Donut, LegendDot } from "./donut"
 import { limits, loanParsers, urlOptions } from "./params"
 import { RangeField } from "./range-field"
@@ -194,15 +194,15 @@ export function EmiCalculator() {
             <dl className="grid flex-1 gap-3 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <dt className="flex items-center gap-2"><LegendDot className="bg-primary" />Principal</dt>
-                <dd className="font-medium tabular-nums">{formatCompactINR(loan)}</dd>
+                <dd className="font-medium tabular-nums"><CompactRupeeFlow value={loan} /></dd>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <dt className="flex items-center gap-2"><LegendDot className="bg-chart-1" />Interest</dt>
-                <dd className="font-medium tabular-nums">{formatCompactINR(totalInterest)}</dd>
+                <dd className="font-medium tabular-nums"><CompactRupeeFlow value={totalInterest} /></dd>
               </div>
               <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
                 <dt>Total payable</dt>
-                <dd className="font-semibold tabular-nums">{formatCompactINR(totalPayable)}</dd>
+                <dd className="font-semibold tabular-nums"><CompactRupeeFlow value={totalPayable} /></dd>
               </div>
             </dl>
           </div>

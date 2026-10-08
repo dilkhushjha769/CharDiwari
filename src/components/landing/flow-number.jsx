@@ -44,3 +44,19 @@ export function CompactRupeeFlow({ value, className }) {
 export function CountFlow({ value, className }) {
   return <NumberFlow value={value} transformTiming={timing} spinTiming={timing} className={className} />
 }
+
+// 1,800 · 0.0929. Same rounding as the area converter's text: four decimals
+// below 1, otherwise two. Pass finite values only.
+export function AreaFlow({ value, className }) {
+  const digits = value !== 0 && Math.abs(value) < 1 ? 4 : 2
+  return (
+    <NumberFlow
+      value={value}
+      locales="en-IN"
+      format={{ maximumFractionDigits: digits }}
+      transformTiming={timing}
+      spinTiming={timing}
+      className={className}
+    />
+  )
+}
