@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react"
 import { projects } from "@/data/projects"
-import { matchesFilters, useProjectFilters } from "@/lib/project-filters"
+import { hasActiveFilters, matchesFilters, useProjectFilters } from "@/lib/project-filters"
 
 // Decorative city model behind the hero: desktop only, loaded when the browser
 // is idle, and a still frame for reduced motion. Its 8 project towers glow
@@ -13,13 +13,15 @@ export function HeroSkyline() {
   const containerRef = useRef(null)
   const skylineRef = useRef(null)
   const [filters] = useProjectFilters()
-  // A string, so the effect below only runs when the set of matches changes.
-  const matchKey = projects.map((project) => (matchesFilters(project, filters) ? 1 : 0)).join(",")
+  // A string, so the effect below only runs when the matches (or whether any
+  // filter is on, which sets how strongly the light theme shows brick) change.
+  const flags = projects.map((project) => (matchesFilters(project, filters) ? 1 : 0)).join(",")
+  const matchKey = `${flags}|${hasActiveFilters(filters) ? 1 : 0}`
   const matchesRef = useRef(matchKey)
 
   useEffect(() => {
     matchesRef.current = matchKey
-    skylineRef.current?.setMatches(toFlags(matchKey))
+    skylineRef.current?.setMatches(...fromKey(matchKey))
   }, [matchKey])
 
   useEffect(() => {
@@ -37,7 +39,8 @@ export function HeroSkyline() {
         return // Chunk failed to load (offline, deploy in flight): no skyline.
       }
       if (cancelled) return
-      skylineRef.current = createSkyline(container, { reduceMotion, matches: toFlags(matchesRef.current) })
+      const [matches, filtered] = fromKey(matchesRef.current)
+      skylineRef.current = createSkyline(container, { reduceMotion, matches, filtered })
     }
 
     const idle = window.requestIdleCallback
@@ -62,6 +65,8 @@ export function HeroSkyline() {
   )
 }
 
-function toFlags(matchKey) {
-  return matchKey.split(",").map((flag) => flag === "1")
+// "1,0,1,…|1" -> [[true, false, true, …], true]
+function fromKey(matchKey) {
+  const [flags, filtered] = matchKey.split("|")
+  return [flags.split(",").map((flag) => flag === "1"), filtered === "1"]
 }

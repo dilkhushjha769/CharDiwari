@@ -93,6 +93,29 @@ function pushWindows(buffers, building, random) {
   }
 }
 
+// A building's ground shadow for any sun direction: the footprint, the
+// footprint moved along the shadow (aLift = 1), and each base edge swept
+// between the two. The shader decides how far "lifted" corners move.
+function pushShadow(shadow, building) {
+  const { x0, x1, z0, z1 } = bounds(building)
+  const corners = [[x0, z0], [x1, z0], [x1, z1], [x0, z1]]
+  const vertex = ([x, z], lift) => {
+    shadow.position.push(x, 0, z)
+    shadow.aLift.push(lift)
+    shadow.aHeight.push(building.height)
+    shadow.aDelay.push(building.delay)
+  }
+  const quad = (a, b, c, d) => [a, b, c, a, c, d].forEach(([corner, lift]) => vertex(corner, lift))
+  const [a, b, c, d] = corners
+  quad([a, 0], [b, 0], [c, 0], [d, 0])
+  quad([a, 1], [b, 1], [c, 1], [d, 1])
+  for (let i = 0; i < 4; i++) {
+    const from = corners[i]
+    const to = corners[(i + 1) % 4]
+    quad([from, 0], [to, 0], [to, 1], [from, 1])
+  }
+}
+
 function toGeometry(buffers, attributes) {
   const geometry = new BufferGeometry()
   geometry.setAttribute("position", new Float32BufferAttribute(buffers.position, 3))
@@ -106,14 +129,17 @@ export function buildGeometry(plan, random) {
   const faces = createBuffers()
   const edges = createBuffers()
   const windows = createBuffers()
+  const shadow = { position: [], aLift: [], aHeight: [], aDelay: [] }
   for (const building of plan.buildings) {
     pushFaces(faces, building)
     pushEdges(edges, building)
     pushWindows(windows, building, random)
+    pushShadow(shadow, building)
   }
   return {
     faces: toGeometry(faces, ["normal", "aDelay", "aTower"]),
     edges: toGeometry(edges, ["aDelay", "aSiteDelay", "aTower"]),
     windows: toGeometry(windows, ["aDelay", "aTower", "aSeed"]),
+    shadows: toGeometry(shadow, ["aLift", "aHeight", "aDelay"]),
   }
 }

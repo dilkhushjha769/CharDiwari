@@ -15,11 +15,18 @@ const VIEW_SHIFT = 1.25 // pushes the city right, away from the headline
 const PING_SECONDS = 2.4
 const PING_OPACITY = 0.35
 const HIGHLIGHT_EASE = 0.1 // seconds; a change settles in about 400ms
+// Light theme: brick cladding is soft while every tower matches (no filter)
+// and full once a filter singles some out.
+const BRICK_SOFT = 0.4
+const BRICK_FULL = 0.8
+// The sun, relative to the view: from the left, a little in front, and high.
+const SUN = { left: 1, front: 0.6, up: 1.9 }
 
-export function createSkyline(container, { reduceMotion, matches }) {
+export function createSkyline(container, { reduceMotion, matches, filtered }) {
   const canvas = document.createElement("canvas")
   // Ask for the context ourselves: three logs an error before throwing when it can't get one.
-  const gl = canvas.getContext("webgl2", { alpha: true, antialias: true, powerPreference: "low-power" })
+  // A stencil buffer lets overlapping ground shadows shade each pixel once.
+  const gl = canvas.getContext("webgl2", { alpha: true, antialias: true, stencil: true, powerPreference: "low-power" })
   if (!gl) return null
 
   const teardown = []
@@ -40,7 +47,7 @@ export function createSkyline(container, { reduceMotion, matches }) {
 
   try {
     let shaderFailed = false
-    renderer = new WebGLRenderer({ canvas, context: gl, antialias: true, alpha: true })
+    renderer = new WebGLRenderer({ canvas, context: gl, antialias: true, alpha: true, stencil: true })
     renderer.debug.onShaderError = () => {
       shaderFailed = true // replaces three's console.error; we just bow out
     }
@@ -68,18 +75,21 @@ export function createSkyline(container, { reduceMotion, matches }) {
     const facesMesh = new Mesh(geometry.faces, materials.faces)
     const windowsMesh = new Mesh(geometry.windows, materials.windows)
     const edgesLines = new LineSegments(geometry.edges, materials.edges)
+    const shadowsMesh = new Mesh(geometry.shadows, materials.shadows)
+    shadowsMesh.renderOrder = 0 // first of the transparent pass, before windows and edges
+    shadowsMesh.visible = false // light theme only; never drawn at night
     windowsMesh.renderOrder = 1
     edgesLines.renderOrder = 2
     ping.renderOrder = 3
     ping.position.y = 0.02
     ping.visible = false
     // The geometry is static: skip bounds checks and matrix updates every frame.
-    for (const object of [facesMesh, windowsMesh, edgesLines, ping]) {
+    for (const object of [facesMesh, shadowsMesh, windowsMesh, edgesLines, ping]) {
       object.frustumCulled = false
       object.matrixAutoUpdate = false
       object.updateMatrix()
     }
-    scene.add(facesMesh, windowsMesh, edgesLines, ping)
+    scene.add(facesMesh, shadowsMesh, windowsMesh, edgesLines, ping)
 
     // ---- Search link: towers that match the filters glow brick ----
     const highlight = uniforms.uHighlight.value
@@ -87,14 +97,17 @@ export function createSkyline(container, { reduceMotion, matches }) {
     let matching = []
     let pingSlot = -1
     let pingTower = -1
+    let brickTarget = BRICK_SOFT
 
-    function setMatches(flags) {
+    function setMatches(flags, filtered = false) {
       if (disposed) return
       for (let i = 0; i < target.length; i++) target[i] = flags?.[i] ? 1 : 0
       matching = target.flatMap((on, i) => (on ? [i] : []))
+      brickTarget = filtered ? BRICK_FULL : BRICK_SOFT
       container.dataset.highlight = target.join(",")
       if (!frame) {
         highlight.splice(0, highlight.length, ...target) // nothing animating: show it now
+        uniforms.uBrickStrength.value = brickTarget
         render(performance.now())
       }
     }
@@ -160,12 +173,19 @@ export function createSkyline(container, { reduceMotion, matches }) {
         view.scroll += (scrolled - view.scroll) * follow
         const settle = 1 - Math.exp(-dt / HIGHLIGHT_EASE)
         for (let i = 0; i < highlight.length; i++) highlight[i] += (target[i] - highlight[i]) * settle
+        uniforms.uBrickStrength.value += (brickTarget - uniforms.uBrickStrength.value) * settle
       }
       uniforms.uIntro.value = reduceMotion ? INTRO_SECONDS + 1 : seconds
       uniforms.uTime.value = reduceMotion ? 0 : seconds
       updatePing(seconds)
 
       const orbit = angle + view.x * 0.18
+      // Keep the sun fixed relative to the view, so one visible side of each
+      // block is lit and its shadow falls to the right as the camera orbits.
+      const [sin, cos] = [Math.sin(orbit), Math.cos(orbit)]
+      uniforms.uSunDir.value
+        .set(-cos * SUN.left + sin * SUN.front, SUN.up, sin * SUN.left + cos * SUN.front)
+        .normalize()
       camera.position.set(
         Math.sin(orbit) * ORBIT_RADIUS,
         CAMERA_HEIGHT + view.y * 2 + view.scroll * 6,
@@ -195,7 +215,7 @@ export function createSkyline(container, { reduceMotion, matches }) {
       pointer.y = (event.clientY / window.innerHeight) * 2 - 1
     }
 
-    // ---- Theme: a pen drawing on the paper by day, a charcoal and chalk model by night ----
+    // ---- Theme: a sunlit model by day, a charcoal and chalk model by night ----
     function applyTheme() {
       const dark = document.documentElement.classList.contains("dark")
       const ink = readThemeColor("--foreground")
@@ -206,13 +226,15 @@ export function createSkyline(container, { reduceMotion, matches }) {
       uniforms.uWindow.value.setHex(readThemeColor("--window"))
       uniforms.uFog.value.setHex(readThemeColor("--background"))
       uniforms.uShadow.value.setHex(dark ? 0x000000 : ink)
-      uniforms.uSideShade.value = dark ? 0.28 : 0.1
+      uniforms.uSideShade.value = dark ? 0.28 : 0.36
       uniforms.uRoofLift.value = dark ? 0.05 : 0
       uniforms.uBrickTint.value = dark ? 0.018 : 0.05
-      uniforms.uInkMode.value = dark ? 0 : 1
-      uniforms.uEdgeAlpha.value = dark ? 0.26 : 0.55
-      uniforms.uUnlitAlpha.value = dark ? 0.05 : 0.1
-      uniforms.uLitShare.value = dark ? 0.14 : 0 // no lit windows in the drawing
+      uniforms.uDayMode.value = dark ? 0 : 1
+      uniforms.uEdgeAlpha.value = dark ? 0.26 : 0.25
+      uniforms.uUnlitAlpha.value = dark ? 0.05 : 0.2
+      uniforms.uLitShare.value = dark ? 0.14 : 0 // by day the windows stay still
+      uniforms.uShadowAlpha.value = 0.14
+      shadowsMesh.visible = !dark
       ping.material.color.setHex(brick)
       container.dataset.palette = `${ink.toString(16)}/${brick.toString(16)}`
       if (!frame) render(performance.now()) // the loop is paused: show the change now
@@ -239,7 +261,7 @@ export function createSkyline(container, { reduceMotion, matches }) {
 
     // First frame off-screen, so a broken shader never shows.
     resize()
-    setMatches(matches)
+    setMatches(matches, filtered)
     applyTheme()
     if (shaderFailed || disposed) {
       dispose()
