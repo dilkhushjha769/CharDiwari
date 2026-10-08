@@ -37,10 +37,11 @@ const projectItems = [
 const COPIED_MS = 1600
 const SWAP = { duration: 0.15, ease: [0.23, 1, 0.32, 1] } // --ease-out-strong
 // The icon crossfade; under reduced motion the scale is dropped (MotionConfig's
-// reducedMotion doesn't cover a raw `transform` value), the fade stays.
+// reducedMotion doesn't cover a raw `transform` value), the fade stays. The
+// settled state is the same either way, so server and client markup match.
 const iconStates = (reduce) => {
-  const hidden = { opacity: 0, filter: "blur(2px)", ...(reduce ? {} : { transform: "scale(0.9)" }) }
-  return { initial: hidden, animate: { opacity: 1, filter: "blur(0px)", ...(reduce ? {} : { transform: "scale(1)" }) }, exit: hidden }
+  const hidden = { opacity: 0, filter: "blur(2px)", transform: reduce ? "scale(1)" : "scale(0.9)" }
+  return { initial: hidden, animate: { opacity: 1, filter: "blur(0px)", transform: "scale(1)" }, exit: hidden }
 }
 
 // Confirms right where the user clicked: the link icon morphs into a tick and
