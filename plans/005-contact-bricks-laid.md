@@ -1,6 +1,6 @@
 # 005 — Lay the contact band's brick courses once
 
-- **Status**: TODO
+- **Status**: DONE
 - **Commit**: 86fdbf1
 - **Severity**: LOW
 - **Category**: Missed opportunities (rare delight)
