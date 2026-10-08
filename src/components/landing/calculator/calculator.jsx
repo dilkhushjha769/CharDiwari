@@ -1,7 +1,7 @@
 "use client"
 
 import { parseAsStringLiteral, useQueryState } from "nuqs"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AffordabilityCalculator } from "./affordability-calculator"
 import { AreaConverter } from "./area-converter"
 import { EmiCalculator } from "./emi-calculator"
@@ -28,6 +28,7 @@ export function Calculator() {
             {item.label}
           </TabsTrigger>
         ))}
+        <TabsIndicator />
       </TabsList>
       <TabsContent value="emi">
         <EmiCalculator />
