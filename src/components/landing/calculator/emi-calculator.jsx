@@ -1,7 +1,7 @@
 "use client"
 
 import { Check, Link2 } from "lucide-react"
-import { AnimatePresence, motion } from "motion/react"
+import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 import { useEffect, useRef, useState } from "react"
 import { parseAsInteger, useQueryStates } from "nuqs"
 import { toast } from "sonner"
@@ -36,6 +36,12 @@ const projectItems = [
 
 const COPIED_MS = 1600
 const SWAP = { duration: 0.15, ease: [0.23, 1, 0.32, 1] } // --ease-out-strong
+// The icon crossfade; under reduced motion the scale is dropped (MotionConfig's
+// reducedMotion doesn't cover a raw `transform` value), the fade stays.
+const iconStates = (reduce) => {
+  const hidden = { opacity: 0, filter: "blur(2px)", ...(reduce ? {} : { transform: "scale(0.9)" }) }
+  return { initial: hidden, animate: { opacity: 1, filter: "blur(0px)", ...(reduce ? {} : { transform: "scale(1)" }) }, exit: hidden }
+}
 
 // Confirms right where the user clicked: the link icon morphs into a tick and
 // the label reads "Copied" for a moment. The accessible name stays "Copy link";
@@ -43,6 +49,7 @@ const SWAP = { duration: 0.15, ease: [0.23, 1, 0.32, 1] } // --ease-out-strong
 function CopyLinkButton() {
   const [copied, setCopied] = useState(false)
   const timer = useRef(0)
+  const reduceMotion = useReducedMotion()
 
   useEffect(() => () => window.clearTimeout(timer.current), [])
 
@@ -65,9 +72,7 @@ function CopyLinkButton() {
             <motion.span
               key={copied ? "check" : "link"}
               className="inline-flex"
-              initial={{ opacity: 0, filter: "blur(2px)", transform: "scale(0.9)" }}
-              animate={{ opacity: 1, filter: "blur(0px)", transform: "scale(1)" }}
-              exit={{ opacity: 0, filter: "blur(2px)", transform: "scale(0.9)" }}
+              {...iconStates(reduceMotion)}
               transition={SWAP}
             >
               {copied ? <Check className="size-4" /> : <Link2 className="size-4" />}

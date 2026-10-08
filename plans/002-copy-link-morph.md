@@ -46,6 +46,8 @@ async function copyLink() {
 - A `<span className="sr-only" aria-live="polite">` is rendered **empty on mount** and holds "Link copied" while `copied` is true.
 - Remove the success toast and keep the error toast exactly as it is.
 
+> **Correction after implementing:** `MotionConfig reducedMotion="user"` does **not** cover a raw `transform` value, so the scale is dropped explicitly under reduced motion (`useReducedMotion`), keeping the opacity and blur crossfade. The step below that relies on MotionConfig is superseded by this.
+
 ## Repo conventions to follow
 
 - The same `AnimatePresence` + `motion.span` + blur pattern as the rotating hint in `src/components/landing/hero-search.jsx` (the `<span aria-hidden="true" className="relative ...">` holding `AnimatePresence mode="popLayout"`).
