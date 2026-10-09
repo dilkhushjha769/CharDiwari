@@ -3,6 +3,9 @@
 import { parseAsBoolean, parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from "nuqs"
 import { useCallback } from "react"
 import { projects } from "@/data/projects"
+import { currentStatus, matchesFilters } from "@/lib/filter-match"
+
+export { currentStatus, matchesFilters }
 
 export const statusOptions = [
   { value: "ready", label: "Ready to move" },
@@ -43,11 +46,6 @@ export function useProjectFilters() {
   return [filters, setProjectFilters]
 }
 
-// The status in effect, including the old ?ready=true alias.
-export function currentStatus(filters) {
-  return filters.status ?? (filters.ready ? "ready" : null)
-}
-
 export const bhkOptions = [
   { value: 2, label: "2 BHK" },
   { value: 3, label: "3 BHK" },
@@ -61,22 +59,6 @@ export const budgetOptions = [
   { value: 30000000, label: "Under ₹3 Cr" },
   { value: 50000000, label: "Under ₹5 Cr" },
 ]
-
-export function matchesFilters(project, filters) {
-  if (filters.project) return project.id === filters.project
-  if (filters.area && project.locality !== filters.area) return false
-  if (filters.bhk) {
-    const fits = filters.bhk >= 5
-      ? project.bhk.some((bhk) => bhk >= 5)
-      : project.bhk.includes(filters.bhk)
-    if (!fits) return false
-  }
-  if (filters.max && project.priceMin > filters.max) return false
-  if (filters.min && project.priceMax < filters.min) return false
-  const status = currentStatus(filters)
-  if (status && project.status !== status) return false
-  return true
-}
 
 export function hasActiveFilters(filters) {
   return Boolean(
