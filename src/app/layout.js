@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif, Tiro_Devanagari_Hindi } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { SmoothScroll } from "@/components/providers/smooth-scroll";
 import { ThemedToaster, ThemeProvider } from "@/components/providers/theme-provider";
@@ -20,6 +20,15 @@ const instrumentSerif = Instrument_Serif({
   weight: "400",
   style: ["normal", "italic"],
   subsets: ["latin"],
+});
+
+// Instrument Serif has no Devanagari; this picks up Hindi words in display
+// text (the hero's "चक्कर") with a serif and a true italic that match it.
+const tiroDevanagari = Tiro_Devanagari_Hindi({
+  variable: "--font-tiro-devanagari",
+  weight: "400",
+  style: ["normal", "italic"],
+  subsets: ["devanagari"],
 });
 
 const title = "VitalSpace | Verified Properties in Ahmedabad & Gandhinagar";
@@ -69,7 +78,7 @@ export default function RootLayout({ children }) {
     <html
       lang="en-IN"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} ${tiroDevanagari.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <script
