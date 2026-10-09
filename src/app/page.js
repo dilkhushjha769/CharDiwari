@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { BudgetScaleSection } from "@/components/landing/budget-scale-section";
 import { Calculator, CalculatorFallback } from "@/components/landing/calculator/calculator";
 import { ContactCta } from "@/components/landing/contact-cta";
 import { EnquiryProvider } from "@/components/landing/enquiry";
@@ -15,7 +16,6 @@ import { Reveal } from "@/components/landing/reveal";
 import { SectionHeading } from "@/components/landing/section-heading";
 import { SiteFooter } from "@/components/landing/site-footer";
 import { SiteHeader } from "@/components/landing/site-header";
-import { TrustStrip } from "@/components/landing/trust-strip";
 
 export default function Home() {
   return (
@@ -23,7 +23,7 @@ export default function Home() {
       <SiteHeader />
       <main className="flex-1">
         <Hero />
-        <TrustStrip />
+        <BudgetScaleSection />
 
         <section id="projects" className="py-16 md:py-24">
           <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">

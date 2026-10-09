@@ -21,13 +21,6 @@ export const site = {
     number: "AG/GJ/AHMEDABAD/AHMEDABAD CITY/AUDA/AA00842/160429R2",
     portal: "https://gujrera.gujarat.gov.in/",
   },
-  // confirm: marketing figures as published on vitalspace.in.
-  stats: [
-    { value: "13+", label: "years in Ahmedabad real estate" },
-    { value: "10,000+", label: "families helped" },
-    { value: "4.9★", label: "from 800+ reviews" },
-    { value: "100+", label: "property experts" },
-  ],
 }
 
 // Indicative Gujarat purchase costs, as a fraction of the property price.
