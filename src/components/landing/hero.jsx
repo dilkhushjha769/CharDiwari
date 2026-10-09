@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils"
 import { HeroBackdrop } from "./hero-backdrop"
 import { HeroSearch, HeroSearchFallback } from "./hero-search"
 
-const headline = "Your next home, without the chakkar."
-const ACCENT_WORD = "chakkar."
+const headline = "Your next home, without the चक्कर."
+const ACCENT_WORD = "चक्कर."
 
 // Drawing registration marks framing the left edge of the hero copy.
 const cornerMarks = ["-top-3 -left-3", "-bottom-3 -left-3"]
@@ -42,6 +42,7 @@ export function Hero() {
             {headline.split(" ").map((word, index) => (
               <Fragment key={index}>
                 <span
+                  lang={word === ACCENT_WORD ? "hi" : undefined}
                   className={cn("hero-word", word === ACCENT_WORD && "text-primary italic")}
                   style={{ "--i": index }}
                 >
