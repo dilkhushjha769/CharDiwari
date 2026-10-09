@@ -127,8 +127,14 @@ function LocalityPlan({ id, name, rate, budget, onSelect }) {
         <span aria-hidden="true" className="mt-1 block font-mono text-[11px] text-muted-foreground tabular-nums">
           {formatINR(roundTo(rate, 100))}/sq ft
         </span>
-        <span aria-hidden="true" className="mt-auto block pt-1 text-xs text-muted-foreground">
-          {inBudget}
+        <span aria-hidden="true" className="mt-auto block pt-1 text-xs text-muted-foreground tabular-nums">
+          {count === 0 ? (
+            inBudget
+          ) : (
+            <>
+              <CountFlow value={count} /> {count === 1 ? "project" : "projects"} in budget
+            </>
+          )}
         </span>
       </button>
     </li>
