@@ -173,6 +173,12 @@ html {
   scroll-padding-top: 5rem;
 }
 
+/* Project pages: each section's own scroll-margin clears the header and the
+   section nav exactly, so the page-wide padding would double it. */
+html:has([data-project-page]) {
+  scroll-padding-top: 0;
+}
+
 /* Graph paper, drawn with the --grid token. Mask the element to fade its edges. */
 @utility bg-blueprint {
   background-image:

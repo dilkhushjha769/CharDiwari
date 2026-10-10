@@ -7,7 +7,11 @@ const secondaryClass =
   "flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-background text-sm font-medium transition-transform duration-150 ease-out-strong active:scale-[0.97]"
 
 // Thumb-reachable actions on phones. Hidden from md up, where the header has them.
-export function MobileActionBar() {
+// A project page passes its own topic and message.
+export function MobileActionBar({
+  topic = "Help finding a home",
+  message = `Hi ${site.name}, I'm looking for a home.`,
+}) {
   return (
     <ActionBarShell>
       <div className="flex gap-2">
@@ -16,7 +20,7 @@ export function MobileActionBar() {
           Call
         </a>
         <a
-          href={whatsappLink(`Hi ${site.name}, I'm looking for a home.`)}
+          href={whatsappLink(message)}
           target="_blank"
           rel="noreferrer"
           className={secondaryClass}
@@ -24,7 +28,7 @@ export function MobileActionBar() {
           <MessageCircle className="size-4" aria-hidden="true" />
           WhatsApp
         </a>
-        <EnquireButton size="lg" className="h-12 flex-[1.4] rounded-xl text-sm" topic="Help finding a home">
+        <EnquireButton size="lg" className="h-12 flex-[1.4] rounded-xl text-sm" topic={topic}>
           Enquire
         </EnquireButton>
       </div>

@@ -99,11 +99,12 @@ function formatDuration(months) {
   return [years && `${years} yr`, rest && `${rest} mo`].filter(Boolean).join(" ") || "0 mo"
 }
 
-export function EmiCalculator() {
+// defaultPrice lets a project page start from that project's price.
+export function EmiCalculator({ defaultPrice = 12500000 }) {
   const [state, setState] = useQueryStates(
     {
       ...loanParsers,
-      price: parseAsInteger.withDefault(12500000),
+      price: parseAsInteger.withDefault(defaultPrice),
       extra: parseAsInteger.withDefault(0),
     },
     urlOptions

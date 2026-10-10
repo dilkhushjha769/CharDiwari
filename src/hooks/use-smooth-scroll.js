@@ -1,17 +1,24 @@
 "use client"
 
 import { useLenis } from "lenis/react"
+import { useRouter } from "next/navigation"
 import { useCallback, useEffect } from "react"
 
 // The sticky header gap comes from `scroll-padding-top` on <html> (globals.css).
 // Lenis and native scrolling both honour it, so no offset is needed here.
+// Off the home page (a project page), the section lives on the home page: go
+// there, carrying the query (filters, calculator tab) set just before.
 export function useScrollToSection() {
   const lenis = useLenis()
+  const router = useRouter()
 
   return useCallback(
     (id) => {
       const target = document.getElementById(id)
-      if (!target) return
+      if (!target) {
+        if (window.location.pathname !== "/") router.push(`/${window.location.search}#${id}`)
+        return
+      }
       if (lenis) {
         lenis.scrollTo(target)
       } else {
@@ -19,7 +26,7 @@ export function useScrollToSection() {
         target.scrollIntoView({ block: "start" })
       }
     },
-    [lenis]
+    [lenis, router]
   )
 }
 
