@@ -25,11 +25,15 @@ import {
   X,
   RotateCcw,
   Check,
+  Navigation,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import EMICalculator from '@/components/EMICalculator';
+import { useUserLocation } from '@/lib/useUserLocation';
 
 export default function HomePage() {
+  const { userLocation, locationLoading, refreshGpsLocation } = useUserLocation();
+
   // Search & Filter State
   const [searchMode, setSearchMode] = useState('buy'); // 'buy' | 'rent' | 'plots'
   const [selectedCity, setSelectedCity] = useState('Ahmedabad');
@@ -496,6 +500,34 @@ export default function HomePage() {
         </div>
 
         <div className="max-w-5xl mx-auto flex flex-col items-center text-center relative z-10">
+          {/* Live Auto-detected Location Pill */}
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 sm:px-4.5 sm:py-2 rounded-full bg-white/95 backdrop-blur-md border border-stone-200/90 shadow-xs text-xs sm:text-sm text-stone-700 mb-4 sm:mb-5 transition-all hover:border-stone-300">
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <MapPin className="w-3.5 h-3.5 text-stone-800 shrink-0" />
+            {locationLoading ? (
+              <span className="text-stone-400 font-medium animate-pulse">Detecting your location...</span>
+            ) : userLocation ? (
+              <div className="flex items-center gap-1.5 truncate">
+                <span className="text-stone-400 font-normal">Your Location:</span>
+                <span className="font-semibold text-stone-900">{userLocation.display}</span>
+              </div>
+            ) : (
+              <span className="text-stone-800 font-semibold">Ahmedabad, Gujarat</span>
+            )}
+            <button
+              type="button"
+              onClick={refreshGpsLocation}
+              title="Pinpoint live GPS location"
+              className="ml-1 p-1 rounded-full text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition cursor-pointer shrink-0"
+              aria-label="Refresh GPS location"
+            >
+              <Navigation className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
           {/* Hero Headline */}
           <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-serif text-stone-900 tracking-tight leading-[1.15] mb-3 sm:mb-4 max-w-4xl break-words">
             #DhundteRehJaoge <br />
@@ -535,6 +567,12 @@ export default function HomePage() {
                 {/* City Menu */}
                 {activeDropdown === 'city' && (
                   <div className="absolute left-0 top-full mt-2 w-full sm:w-60 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                    {userLocation?.display && (
+                      <div className="mx-2 mb-1.5 px-2.5 py-1.5 rounded-xl bg-stone-50 border border-stone-200/80 flex items-center justify-between text-[11px]">
+                        <span className="text-stone-500">Live Location:</span>
+                        <span className="font-semibold text-stone-900 truncate max-w-[110px]">{userLocation.display}</span>
+                      </div>
+                    )}
                     <div className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-stone-400 flex items-center justify-between">
                       <span>Select City</span>
                       <span>Listings</span>
