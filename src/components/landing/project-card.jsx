@@ -1,6 +1,8 @@
 import { BadgeCheck } from "lucide-react"
+import Link from "next/link"
 import { localityName } from "@/data/localities"
 import { formatPriceRange, formatRange, formatNumber } from "@/lib/format"
+import { projectHref } from "@/lib/project-url"
 import { EnquireButton } from "./enquiry"
 import { ProjectArt } from "./project-art"
 
@@ -12,7 +14,7 @@ export function ProjectCard({ project, sheet }) {
   const carpet = `${formatNumber(project.carpetSqft[0])}–${formatNumber(project.carpetSqft[1])} sq ft`
 
   return (
-    <article className="flex h-full flex-col rounded-2xl border border-border bg-card p-2.5">
+    <article className="relative flex h-full flex-col rounded-2xl border border-border bg-card p-2.5 transition-[border-color] duration-150 ease-out-strong has-[a[data-card-link]:hover]:border-primary/40">
       <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-border/70">
         <ProjectArt seed={project.id} />
         <span className="absolute top-3 left-3 rounded-full border border-border/70 bg-background/90 px-2.5 py-1 text-xs font-medium backdrop-blur">
@@ -38,7 +40,16 @@ export function ProjectCard({ project, sheet }) {
 
       <div className="flex flex-1 flex-col gap-4 px-2 pt-3 pb-1.5">
         <div>
-          <h3 className="font-display text-[1.65rem] leading-tight font-normal">{project.name}</h3>
+          {/* The name's link stretches over the whole card; Enquire sits above it. */}
+          <h3 className="font-display text-[1.65rem] leading-tight font-normal">
+            <Link
+              href={projectHref(project)}
+              data-card-link
+              className="rounded-sm outline-none after:absolute after:inset-0 after:rounded-2xl focus-visible:after:ring-3 focus-visible:after:ring-ring/50"
+            >
+              {project.name}
+            </Link>
+          </h3>
           <p className="text-sm text-muted-foreground">
             {area} · {project.developer}
           </p>
@@ -66,7 +77,7 @@ export function ProjectCard({ project, sheet }) {
         <EnquireButton
           variant="outline"
           size="lg"
-          className="mt-auto h-11 w-full"
+          className="relative z-10 mt-auto h-11 w-full"
           topic={`${project.name}, ${area}`}
           message={`I'd like to know more about ${project.name} (${price}).`}
         >
