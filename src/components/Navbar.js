@@ -210,7 +210,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setActiveMenu(activeMenu === 'buy' ? null : 'buy')}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer ${activeMenu === 'buy'
+                  className={`press flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer ${activeMenu === 'buy'
                     ? 'bg-stone-100 text-stone-900 font-semibold'
                     : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
                     }`}
@@ -223,7 +223,7 @@ export default function Navbar() {
                 </button>
 
                 {activeMenu === 'buy' && (
-                  <div className="absolute left-0 top-full pt-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute left-0 top-full pt-2 z-50 animate-popover origin-top-left">
                     <div className="w-[450px] bg-white rounded-2xl border border-stone-200/90 shadow-2xl p-3.5">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-stone-400 px-2.5 py-1 mb-1">
                         Select Property Type
@@ -282,7 +282,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setActiveMenu(activeMenu === 'rent' ? null : 'rent')}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer ${activeMenu === 'rent'
+                  className={`press flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer ${activeMenu === 'rent'
                     ? 'bg-stone-100 text-stone-900 font-semibold'
                     : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
                     }`}
@@ -295,7 +295,7 @@ export default function Navbar() {
                 </button>
 
                 {activeMenu === 'rent' && (
-                  <div className="absolute left-0 top-full pt-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute left-0 top-full pt-2 z-50 animate-popover origin-top-left">
                     <div className="w-[340px] bg-white rounded-2xl border border-stone-200/90 shadow-2xl p-3.5">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-stone-400 px-2.5 py-1 mb-1">
                         Rental Homes
@@ -347,7 +347,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setActiveMenu(activeMenu === 'sell' ? null : 'sell')}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer ${activeMenu === 'sell'
+                  className={`press flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer ${activeMenu === 'sell'
                     ? 'bg-stone-100 text-stone-900 font-semibold'
                     : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
                     }`}
@@ -360,7 +360,7 @@ export default function Navbar() {
                 </button>
 
                 {activeMenu === 'sell' && (
-                  <div className="absolute left-0 top-full pt-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute left-0 top-full pt-2 z-50 animate-popover origin-top-left">
                     <div className="w-[360px] bg-white rounded-2xl border border-stone-200/90 shadow-2xl p-3.5">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-stone-400 px-2.5 py-1 mb-1">
                         Seller Services
@@ -421,7 +421,7 @@ export default function Navbar() {
                 <a
                   href="#emi-calculator"
                   onClick={() => setActiveMenu(null)}
-                  className="relative flex items-center px-3.5 py-2 rounded-xl text-sm font-medium text-stone-600 hover:text-stone-900 hover:bg-stone-50 transition-all duration-150 cursor-pointer"
+                  className="press relative flex items-center px-3.5 py-2 rounded-xl text-sm font-medium text-stone-600 hover:text-stone-900 hover:bg-stone-50 transition-all duration-150 cursor-pointer"
                 >
                   <span>EMI Calculator</span>
                 </a>
@@ -433,7 +433,7 @@ export default function Navbar() {
           <div className="hidden sm:flex items-center gap-2.5">
             <Link
               href="/profile"
-              className="group text-sm font-medium text-white bg-stone-900 hover:bg-black transition-all px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm"
+              className="press group text-sm font-medium text-white bg-stone-900 hover:bg-black transition-all px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm"
             >
               <span>Post Property</span>
               <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
@@ -442,7 +442,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setExpertModalOpen(true)}
-              className="group flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium text-stone-700 hover:text-stone-950 bg-stone-50 hover:bg-stone-100 border border-stone-200/90 hover:border-stone-300 transition-all cursor-pointer shadow-2xs"
+              className="press group flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium text-stone-700 hover:text-stone-950 bg-stone-50 hover:bg-stone-100 border border-stone-200/90 hover:border-stone-300 transition-all cursor-pointer shadow-2xs"
               title="Talk directly with our property experts"
             >
               <Phone className="w-3.5 h-3.5 text-stone-500 group-hover:text-stone-900 transition-colors" />
@@ -455,7 +455,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-100 transition cursor-pointer border border-stone-200/80 bg-stone-50/60"
+                  className="press flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-100 transition cursor-pointer border border-stone-200/80 bg-stone-50/60"
                   aria-label="User Profile"
                 >
                   <div className="w-6 h-6 rounded-full bg-stone-900 text-white flex items-center justify-center text-xs font-semibold overflow-hidden shrink-0">
@@ -470,7 +470,7 @@ export default function Navbar() {
                 </button>
 
                 {profileDropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl border border-stone-200 shadow-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl border border-stone-200 shadow-xl p-2 z-50 animate-popover origin-top-right">
                     <div className="px-3 py-2 border-b border-stone-100">
                       <p className="text-xs font-bold text-stone-900 truncate">{user.name}</p>
                       <p className="text-[11px] text-stone-500 truncate">{user.email}</p>
@@ -509,7 +509,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href={`/auth?redirect=${encodeURIComponent(currentUrl)}`}
-                className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors px-3.5 py-2 rounded-xl hover:bg-stone-100/80"
+                className="press text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors px-3.5 py-2 rounded-xl hover:bg-stone-100/80"
               >
                 Sign In
               </Link>
@@ -520,7 +520,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
+            className="press lg:hidden p-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
             aria-label="Toggle Navigation Menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -694,7 +694,7 @@ export default function Navbar() {
                     setMobileMenuOpen(false);
                     setExpertModalOpen(true);
                   }}
-                  className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium rounded-xl border border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-900 transition shadow-2xs cursor-pointer"
+                  className="press w-full flex items-center justify-center gap-2 py-3 text-sm font-medium rounded-xl border border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-900 transition shadow-2xs cursor-pointer"
                 >
                   <Phone className="w-4 h-4 text-stone-700" />
                   <span>Call Us</span>
@@ -719,7 +719,7 @@ export default function Navbar() {
                       <Link
                         href="/profile"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block py-2.5 text-center text-xs font-semibold rounded-xl bg-stone-900 text-white hover:bg-black transition"
+                        className="press block py-2.5 text-center text-xs font-semibold rounded-xl bg-stone-900 text-white hover:bg-black transition"
                       >
                         Profile
                       </Link>
@@ -729,7 +729,7 @@ export default function Navbar() {
                           handleSignOut();
                           setMobileMenuOpen(false);
                         }}
-                        className="block py-2.5 text-center text-xs font-semibold rounded-xl border border-stone-200 text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                        className="press block py-2.5 text-center text-xs font-semibold rounded-xl border border-stone-200 text-rose-600 hover:bg-rose-50 transition cursor-pointer"
                       >
                         Sign Out
                       </button>
@@ -740,14 +740,14 @@ export default function Navbar() {
                     <Link
                       href={`/auth?redirect=${encodeURIComponent(currentUrl)}`}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block py-2.5 text-center text-sm font-medium rounded-xl border border-stone-200 text-stone-900 hover:bg-stone-50 transition"
+                      className="press block py-2.5 text-center text-sm font-medium rounded-xl border border-stone-200 text-stone-900 hover:bg-stone-50 transition"
                     >
                       Sign In
                     </Link>
                     <Link
                       href="/profile"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block py-2.5 text-center text-sm font-medium rounded-xl border border-stone-200 bg-stone-100 text-stone-900 hover:bg-stone-200 transition"
+                      className="press block py-2.5 text-center text-sm font-medium rounded-xl border border-stone-200 bg-stone-100 text-stone-900 hover:bg-stone-200 transition"
                     >
                       Post Property
                     </Link>
@@ -794,7 +794,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setExpertModalOpen(false)}
-                className="p-2 -mr-1 -mt-1 rounded-full text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
+                className="press p-2 -mr-1 -mt-1 rounded-full text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
                 aria-label="Close modal"
               >
                 <X className="w-4 h-4" />
@@ -804,7 +804,7 @@ export default function Navbar() {
             {/* Direct Dial Hero Card */}
             <a
               href="tel:+919876543210"
-              className="group flex items-center justify-between p-4 rounded-2xl bg-stone-900 text-white hover:bg-black transition-all shadow-sm"
+              className="press group flex items-center justify-between p-4 rounded-2xl bg-stone-900 text-white hover:bg-black transition-all shadow-sm"
             >
               <div className="flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
@@ -850,7 +850,7 @@ export default function Navbar() {
                         setSelectedTiming(slot.id);
                         setCustomTiming('');
                       }}
-                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                      className={`press p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
                         isSelected
                           ? 'border-stone-900 bg-stone-900 text-white shadow-xs'
                           : 'border-stone-200 bg-white hover:bg-stone-50 text-stone-700'
@@ -889,7 +889,7 @@ export default function Navbar() {
                   window.open(url, '_blank');
                   setExpertModalOpen(false);
                 }}
-                className="w-full py-3 rounded-xl border border-stone-300 hover:border-stone-900 hover:bg-stone-50 text-stone-900 text-xs font-semibold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                className="press w-full py-3 rounded-xl border border-stone-300 hover:border-stone-900 hover:bg-stone-50 text-stone-900 text-xs font-semibold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
                   <circle cx="12" cy="12" r="11.5" fill="#25D366" />

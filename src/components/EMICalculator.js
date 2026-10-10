@@ -148,7 +148,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
             <button
               type="button"
               onClick={() => setActiveTab('emi')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+              className={`press flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 activeTab === 'emi'
                   ? 'bg-white text-stone-900 shadow-2xs'
                   : 'text-stone-600 hover:text-stone-900'
@@ -161,7 +161,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
             <button
               type="button"
               onClick={() => setActiveTab('land')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+              className={`press flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 activeTab === 'land'
                   ? 'bg-white text-stone-900 shadow-2xs'
                   : 'text-stone-600 hover:text-stone-900'
@@ -174,7 +174,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
             <button
               type="button"
               onClick={() => setActiveTab('budget')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+              className={`press flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 activeTab === 'budget'
                   ? 'bg-white text-stone-900 shadow-2xs'
                   : 'text-stone-600 hover:text-stone-900'
@@ -193,7 +193,8 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
             {/* ================================================================ */}
             {/* LEFT COLUMN: SIMPLE CONTROLS (lg:col-span-7)                      */}
             {/* ================================================================ */}
-            <div className="lg:col-span-7 space-y-5">
+            {/* Keyed on the tab: switching remounts the panel and its content clears in (globals.css .tab-swap). */}
+            <div key={`controls-${activeTab}`} className="tab-swap lg:col-span-7 space-y-5">
 
               {/* 1. EMI Controls */}
               {activeTab === 'emi' && (
@@ -296,7 +297,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                       type="button"
                       onClick={swapLandUnits}
                       title="Swap units"
-                      className="h-[42px] w-[42px] flex-shrink-0 flex items-center justify-center rounded-xl bg-stone-100 hover:bg-stone-200 border border-stone-200 text-stone-700 cursor-pointer shadow-xs transition"
+                      className="press h-[42px] w-[42px] flex-shrink-0 flex items-center justify-center rounded-xl bg-stone-100 hover:bg-stone-200 border border-stone-200 text-stone-700 cursor-pointer shadow-xs transition"
                     >
                       <ArrowLeftRight className="w-4 h-4" />
                     </button>
@@ -389,7 +390,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
             {/* RIGHT COLUMN: SIGNATURE RESULT CARD (lg:col-span-5)              */}
             {/* ================================================================ */}
             <div className="lg:col-span-5 w-full">
-              <div className="p-5 sm:p-6 rounded-2xl bg-stone-900 text-white shadow-lg">
+              <div key={`result-${activeTab}`} className="tab-swap p-5 sm:p-6 rounded-2xl bg-stone-900 text-white shadow-lg">
 
                 {/* TAB 1 RESULT: EMI */}
                 {activeTab === 'emi' && (
@@ -422,7 +423,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                     <div className="mt-4">
                       <Link
                         href="/profile"
-                        className="w-full py-2.5 px-3 rounded-xl bg-white text-stone-900 text-xs font-semibold text-center hover:bg-stone-100 transition flex items-center justify-center gap-1.5 shadow-sm"
+                        className="press w-full py-2.5 px-3 rounded-xl bg-white text-stone-900 text-xs font-semibold text-center hover:bg-stone-100 transition flex items-center justify-center gap-1.5 shadow-sm"
                       >
                         <span>Check Loan Eligibility</span>
                         <ArrowRight className="w-3.5 h-3.5" />
@@ -452,7 +453,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                     <div className="mt-6 pt-4 border-t border-stone-800">
                       <Link
                         href="/#collection"
-                        className="w-full py-2.5 px-3 rounded-xl bg-white text-stone-900 text-xs font-semibold text-center hover:bg-stone-100 transition flex items-center justify-center gap-1.5 shadow-sm"
+                        className="press w-full py-2.5 px-3 rounded-xl bg-white text-stone-900 text-xs font-semibold text-center hover:bg-stone-100 transition flex items-center justify-center gap-1.5 shadow-sm"
                       >
                         <span>Browse Verified Plots</span>
                         <ArrowRight className="w-3.5 h-3.5" />
@@ -494,7 +495,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                     <div className="mt-4">
                       <Link
                         href="/#collection"
-                        className="w-full py-2.5 px-3 rounded-xl bg-white text-stone-900 text-xs font-semibold text-center hover:bg-stone-100 transition flex items-center justify-center gap-1.5 shadow-sm"
+                        className="press w-full py-2.5 px-3 rounded-xl bg-white text-stone-900 text-xs font-semibold text-center hover:bg-stone-100 transition flex items-center justify-center gap-1.5 shadow-sm"
                       >
                         <span>Browse Homes in this Budget</span>
                         <ArrowRight className="w-3.5 h-3.5" />

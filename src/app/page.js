@@ -28,6 +28,7 @@ import Navbar from '@/components/Navbar';
 import EMICalculator from '@/components/EMICalculator';
 import PropertyCard from '@/components/PropertyCard';
 import Footer from '@/components/Footer';
+import Reveal from '@/components/Reveal';
 import { useUserLocation } from '@/lib/useUserLocation';
 import { properties } from '@/data/properties';
 
@@ -361,7 +362,7 @@ export default function HomePage() {
 
         <div className="max-w-5xl mx-auto flex flex-col items-center text-center relative z-10">
           {/* Live Auto-detected Location Pill */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-stone-200/90 shadow-xs text-[11px] sm:text-xs text-stone-700 mb-3 sm:mb-4 transition-all hover:border-stone-300">
+          <div style={{ "--i": 0 }} className="hero-enter inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-stone-200/90 shadow-xs text-[11px] sm:text-xs text-stone-700 mb-3 sm:mb-4 transition-all hover:border-stone-300">
             <span className="relative flex h-2 w-2 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -389,19 +390,20 @@ export default function HomePage() {
           </div>
 
           {/* Hero Headline */}
-          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-stone-900 tracking-tight leading-tight sm:leading-[1.15] mb-2 sm:mb-3 max-w-4xl">
+          <h1 style={{ "--i": 1 }} className="hero-enter text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-stone-900 tracking-tight leading-tight sm:leading-[1.15] mb-2 sm:mb-3 max-w-4xl">
             #DhundteRehJaoge
           </h1>
 
           {/* Hero Subtitle with Balanced Mobile Typography */}
-          <p className="text-xs sm:text-base md:text-lg text-stone-700 sm:text-stone-600 font-normal max-w-xs sm:max-w-xl mx-auto mb-5 sm:mb-7 leading-relaxed tracking-normal">
+          <p style={{ "--i": 2 }} className="hero-enter text-xs sm:text-base md:text-lg text-stone-700 sm:text-stone-600 font-normal max-w-xs sm:max-w-xl mx-auto mb-5 sm:mb-7 leading-relaxed tracking-normal">
             Discover 100+ curated villas, plots, and apartments across Alibaug, Ahmedabad & Gurugram.
           </p>
 
           {/* Master Search & Filter Console Card */}
           <div
             ref={searchContainerRef}
-            className="w-full max-w-4xl bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-4 border border-stone-200/90 shadow-2xl shadow-stone-900/5 text-left transition-all relative z-40 ring-1 ring-stone-900/5"
+            style={{ "--i": 3 }}
+            className="hero-enter w-full max-w-4xl bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-4 border border-stone-200/90 shadow-2xl shadow-stone-900/5 text-left transition-all relative z-40 ring-1 ring-stone-900/5"
           >
             {/* TOP ROW: City Selector + Vertical Divider + Search Input */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center pb-3 border-b border-stone-100 gap-2 sm:gap-0 relative">
@@ -410,7 +412,7 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={() => toggleDropdown('city')}
-                  className={`flex items-center justify-between gap-2.5 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer w-full sm:w-auto bg-stone-50/80 sm:bg-transparent ${activeDropdown === 'city'
+                  className={`press flex items-center justify-between gap-2.5 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer w-full sm:w-auto bg-stone-50/80 sm:bg-transparent ${activeDropdown === 'city'
                       ? 'bg-stone-100 text-stone-900 ring-1 ring-stone-300'
                       : 'text-stone-800 hover:bg-stone-100/70 sm:hover:bg-stone-50'
                     }`}
@@ -427,7 +429,7 @@ export default function HomePage() {
 
                 {/* City Menu */}
                 {activeDropdown === 'city' && (
-                  <div className="absolute left-0 top-full mt-2 w-full sm:w-60 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute left-0 top-full mt-2 w-full sm:w-60 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-popover origin-top-left">
                     {userLocation?.display && (
                       <div className="mx-2 mb-1.5 px-2.5 py-1.5 rounded-xl bg-stone-50 border border-stone-200/80 flex items-center justify-between text-[11px]">
                         <span className="text-stone-500">Live Location:</span>
@@ -505,7 +507,7 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={handleSearchSubmit}
-                  className="px-3.5 sm:px-5 py-2 rounded-xl sm:rounded-full bg-stone-900 hover:bg-black text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-md hover:shadow-lg active:scale-[0.98] shrink-0"
+                  className="press px-3.5 sm:px-5 py-2 rounded-xl sm:rounded-full bg-stone-900 hover:bg-black text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-md hover:shadow-lg active:scale-[0.98] shrink-0"
                 >
                   <span>Search</span>
                   <span className="px-1.5 py-0.5 rounded-full bg-white/20 text-[11px] font-mono font-medium">
@@ -515,7 +517,7 @@ export default function HomePage() {
 
                 {/* Instant Autocomplete & Suggestions Dropdown */}
                 {isSearchFocused && (
-                  <div className="absolute left-0 right-0 sm:right-auto top-full mt-3 w-full sm:w-[480px] max-h-80 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute left-0 right-0 sm:right-auto top-full mt-3 w-full sm:w-[480px] max-h-80 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl p-3 z-50 animate-popover origin-top-left">
                     <div className="text-[10px] uppercase font-bold tracking-wider text-stone-400 px-2 py-1 mb-1">
                       {searchQuery.trim()
                         ? 'Matching Homes & Builders'
@@ -581,7 +583,7 @@ export default function HomePage() {
                       <button
                         type="button"
                         onClick={() => toggleDropdown('location')}
-                        className="px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        className="press px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                       >
                         <Compass className="w-3.5 h-3.5" />
                         <span>{selectedLocation}</span>
@@ -607,7 +609,7 @@ export default function HomePage() {
                     </div>
 
                     {activeDropdown === 'location' && (
-                      <div className="absolute left-0 top-full mt-2 w-64 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="absolute left-0 top-full mt-2 w-64 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-popover origin-top-left">
                         <div className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-stone-400 flex items-center justify-between">
                           <span>Popular Areas</span>
                           <span>Listings</span>
@@ -658,7 +660,7 @@ export default function HomePage() {
                       <button
                         type="button"
                         onClick={() => toggleDropdown('bhk')}
-                        className="px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        className="press px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                       >
                         <Bed className="w-3.5 h-3.5" />
                         <span>{selectedBhk}</span>
@@ -683,7 +685,7 @@ export default function HomePage() {
                     </div>
 
                     {activeDropdown === 'bhk' && (
-                      <div className="absolute left-0 top-full mt-2 w-52 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="absolute left-0 top-full mt-2 w-52 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-popover origin-top-left">
                         <div className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-stone-400 flex items-center justify-between">
                           <span>Bedrooms</span>
                           <span>Listings</span>
@@ -733,7 +735,7 @@ export default function HomePage() {
                       <button
                         type="button"
                         onClick={() => toggleDropdown('budget')}
-                        className="px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        className="press px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                       >
                         <Landmark className="w-3.5 h-3.5" />
                         <span>{selectedBudget}</span>
@@ -759,7 +761,7 @@ export default function HomePage() {
                     </div>
 
                     {activeDropdown === 'budget' && (
-                      <div className="absolute left-0 top-full mt-2 w-56 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="absolute left-0 top-full mt-2 w-56 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-popover origin-top-left">
                         <div className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-stone-400">
                           Price Range
                         </div>
@@ -802,7 +804,7 @@ export default function HomePage() {
                       <button
                         type="button"
                         onClick={() => toggleDropdown('possession')}
-                        className="px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        className="press px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                       >
                         <Key className="w-3.5 h-3.5" />
                         <span>{selectedPossession}</span>
@@ -828,7 +830,7 @@ export default function HomePage() {
                     </div>
 
                     {activeDropdown === 'possession' && (
-                      <div className="absolute left-0 sm:left-0 top-full mt-2 w-56 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="absolute left-0 sm:left-0 top-full mt-2 w-56 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-popover origin-top-left">
                         <div className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-stone-400 flex items-center justify-between">
                           <span>Possession Timeline</span>
                           <span>Listings</span>
@@ -880,7 +882,7 @@ export default function HomePage() {
                       <button
                         type="button"
                         onClick={() => toggleDropdown('type')}
-                        className="px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        className="press px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                       >
                         <Home className="w-3.5 h-3.5" />
                         <span>{selectedType}</span>
@@ -906,7 +908,7 @@ export default function HomePage() {
                     </div>
 
                     {activeDropdown === 'type' && (
-                      <div className="absolute right-0 top-full mt-2 w-60 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="absolute right-0 top-full mt-2 w-60 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-popover origin-top-right">
                         <div className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-stone-400 flex items-center justify-between">
                           <span>Property Type</span>
                           <span>Listings</span>
@@ -949,7 +951,7 @@ export default function HomePage() {
                     <button
                       type="button"
                       onClick={() => toggleDropdown('more')}
-                      className={`px-2.5 sm:px-3 py-1.5 rounded-xl sm:rounded-full text-xs font-medium border transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${activeDropdown === 'more'
+                      className={`press px-2.5 sm:px-3 py-1.5 rounded-xl sm:rounded-full text-xs font-medium border transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${activeDropdown === 'more'
                           ? 'bg-stone-100 text-stone-900 border-stone-300'
                           : 'bg-white text-stone-700 border-stone-200/90 hover:bg-stone-50 hover:border-stone-300'
                         }`}
@@ -959,7 +961,7 @@ export default function HomePage() {
                     </button>
 
                     {activeDropdown === 'more' && (
-                      <div className="absolute right-0 top-full mt-2 w-64 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="absolute right-0 top-full mt-2 w-64 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl p-3 z-50 animate-popover origin-top-right">
                         <div className="text-[10px] uppercase font-bold tracking-wider text-stone-400 mb-2">
                           Popular Features
                         </div>
@@ -997,7 +999,7 @@ export default function HomePage() {
                   <button
                     type="button"
                     onClick={resetAllFilters}
-                    className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-rose-600 hover:text-rose-800 hover:bg-rose-50 transition-all cursor-pointer ml-auto"
+                    className="press flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-rose-600 hover:text-rose-800 hover:bg-rose-50 transition-all cursor-pointer ml-auto"
                   >
                     <RotateCcw className="w-3.5 h-3.5 text-rose-500" />
                     <span>Reset All</span>
@@ -1165,7 +1167,7 @@ export default function HomePage() {
             <button
               type="button"
               onClick={resetAllFilters}
-              className="px-5 py-2.5 rounded-full bg-stone-900 text-white text-xs font-semibold hover:bg-black transition-all cursor-pointer inline-flex items-center gap-2"
+              className="press px-5 py-2.5 rounded-full bg-stone-900 text-white text-xs font-semibold hover:bg-black transition-all cursor-pointer inline-flex items-center gap-2"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Reset All Filters</span>
@@ -1176,6 +1178,7 @@ export default function HomePage() {
 
       {/* Seller & Property Listing Banner (Unified Responsive Layout) */}
       <section className="py-10 sm:py-16 px-4 sm:px-6 bg-white border-t border-stone-200/60">
+        <Reveal>
         <div className="max-w-6xl mx-auto">
           
           <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-stone-200/80 bg-[#edf6ee] min-h-[220px] sm:min-h-[320px] md:min-h-[360px] flex items-center shadow-xs">
@@ -1200,7 +1203,7 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
                 <Link
                   href="/profile"
-                  className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-4 py-2 sm:px-6 sm:py-3 rounded-xl bg-stone-900 hover:bg-black text-white text-[11px] sm:text-sm font-semibold transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer"
+                  className="press inline-flex items-center justify-center gap-1.5 sm:gap-2 px-4 py-2 sm:px-6 sm:py-3 rounded-xl bg-stone-900 hover:bg-black text-white text-[11px] sm:text-sm font-semibold transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   <span>Post Property, It&apos;s Free</span>
                   <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -1210,7 +1213,7 @@ export default function HomePage() {
                   href="https://wa.me/919876543210?text=Hi%2C%20I%20want%20to%20list%20my%20property%20on%20Dwarkesh"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-xl bg-white hover:bg-emerald-50 text-stone-900 border border-stone-300 hover:border-emerald-500 shadow-xs hover:shadow transition-all text-[11px] sm:text-sm font-semibold whitespace-nowrap shrink-0 cursor-pointer"
+                  className="press inline-flex items-center gap-2 px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-xl bg-white hover:bg-emerald-50 text-stone-900 border border-stone-300 hover:border-emerald-500 shadow-xs hover:shadow transition-all text-[11px] sm:text-sm font-semibold whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   <span className="w-5 h-5 sm:w-5.5 sm:h-5.5 flex items-center justify-center shrink-0">
                     <svg className="w-5 h-5 sm:w-5.5 sm:h-5.5 shrink-0" viewBox="0 0 24 24" fill="none">
@@ -1229,6 +1232,7 @@ export default function HomePage() {
           </div>
 
         </div>
+        </Reveal>
       </section>
 
       {/* Dedicated Interactive Home Loan EMI Calculator Section */}
@@ -1236,6 +1240,7 @@ export default function HomePage() {
 
       {/* Find Your Perfect Property Promotional Banner */}
       <section className="pb-12 sm:pb-16 px-4 sm:px-6 max-w-6xl mx-auto w-full">
+        <Reveal>
         <Link
           href="/#collection"
           className="group block relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-xs hover:shadow-md transition-all duration-300 border border-stone-200/70 bg-white"
@@ -1246,21 +1251,23 @@ export default function HomePage() {
             className="w-full h-auto object-cover rounded-2xl sm:rounded-3xl group-hover:scale-[1.01] transition-transform duration-500"
           />
         </Link>
+        </Reveal>
       </section>
 
       {/* Clean Callout Section with Background Image */}
       <section className="py-20 px-4 sm:px-6 max-w-5xl mx-auto w-full">
+        <Reveal>
         <div className="rounded-3xl text-white p-10 sm:p-16 text-center relative overflow-hidden shadow-2xl border border-stone-800/20 min-h-[340px] sm:min-h-[380px] flex flex-col justify-center items-center">
           {/* Background Image */}
           <img
             src="/cta-banner-bg.png"
             alt="Dwarkesh Luxury Properties and Residences"
-            className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
+            className="reveal-photo absolute inset-0 w-full h-full object-cover object-[center_35%]"
           />
 
           {/* Balanced Luxury Overlay: Keeps the bright sky, buildings, and garden visible */}
-          <div className="absolute inset-0 bg-stone-950/50" />
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-950/85 via-stone-950/40 to-stone-950/30" />
+          <div className="absolute inset-0 bg-stone-950/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/30 to-stone-950/15" />
           <div className="absolute inset-0 bg-gradient-to-r from-stone-950/40 via-transparent to-stone-950/40" />
 
           {/* Content */}
@@ -1273,19 +1280,20 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 relative z-10 w-full sm:w-auto">
             <Link
               href="/auth"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white text-stone-900 text-sm font-semibold hover:bg-stone-100 transition shadow-xl flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.99] duration-200"
+              className="press w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white text-stone-900 text-sm font-semibold hover:bg-stone-100 transition shadow-xl flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.99] duration-200"
             >
               <span>Get Started</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/profile"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl border border-white/50 bg-stone-950/60 backdrop-blur-md text-white text-sm font-medium hover:bg-white/20 hover:border-white transition text-center cursor-pointer hover:scale-[1.02] active:scale-[0.99] duration-200 shadow-xl"
+              className="press w-full sm:w-auto px-8 py-3.5 rounded-xl border border-white/50 bg-stone-950/60 backdrop-blur-md text-white text-sm font-medium hover:bg-white/20 hover:border-white transition text-center cursor-pointer hover:scale-[1.02] active:scale-[0.99] duration-200 shadow-xl"
             >
               <span>Post Your Property</span>
             </Link>
           </div>
         </div>
+        </Reveal>
       </section>
 
       {/* Clean Premium Footer */}
