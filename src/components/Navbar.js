@@ -35,13 +35,10 @@ import {
   Clock,
   User,
   LogOut,
-  Navigation,
 } from 'lucide-react';
 import { getSupabaseClient } from '@/lib/supabase/client';
-import { useUserLocation } from '@/lib/useUserLocation';
 
 export default function Navbar() {
-  const { userLocation, locationLoading } = useUserLocation();
   const [activeMenu, setActiveMenu] = useState(null); // 'buy' | 'rent' | 'sell' | 'pg' | 'emi' | null
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileAccordion, setMobileAccordion] = useState(null);
@@ -434,25 +431,6 @@ export default function Navbar() {
 
           {/* Right Action Buttons */}
           <div className="hidden sm:flex items-center gap-2.5">
-            {/* Auto-detected Live Location Indicator */}
-            <div
-              className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-50 border border-stone-200/80 text-stone-700 text-xs font-medium"
-              title={userLocation?.display ? `Auto-detected location: ${userLocation.display}` : 'Detecting your location...'}
-            >
-              <span className="relative flex h-2 w-2 shrink-0">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <MapPin className="w-3.5 h-3.5 text-stone-600 shrink-0" />
-              {locationLoading ? (
-                <span className="text-stone-400 animate-pulse text-[11px]">Locating...</span>
-              ) : (
-                <span className="font-semibold text-stone-900 truncate max-w-[120px] text-[11px]">
-                  {userLocation?.city || 'India'}
-                </span>
-              )}
-            </div>
-
             <Link
               href="/profile"
               className="group text-sm font-medium text-white bg-stone-900 hover:bg-black transition-all px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm"
@@ -569,21 +547,6 @@ export default function Navbar() {
           />
           <div className="lg:hidden relative z-50 bg-white border-b border-stone-200 px-6 py-6 animate-fade-in shadow-2xl max-h-[85vh] overflow-y-auto">
             <div className="space-y-4">
-              {/* Mobile Auto-detected Live Location Indicator */}
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-stone-50 border border-stone-200/80 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="relative flex h-2 w-2 shrink-0">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  <MapPin className="w-3.5 h-3.5 text-stone-700 shrink-0" />
-                  <span className="text-stone-500">Location:</span>
-                  <span className="font-semibold text-stone-900 truncate">
-                    {locationLoading ? 'Detecting...' : userLocation?.display || 'India'}
-                  </span>
-                </div>
-              </div>
-
               {/* 1. Mobile Buy Accordion */}
               <div className="border-b border-stone-100 pb-3">
                 <button
