@@ -137,6 +137,103 @@ body {
   animation: otpBounce 0.18s ease-in-out;
 }
 
+/* ─── Motion system ─────────────────────────────────────────────────────
+   One curve for everything, the site's own: cubic-bezier(0.16, 1, 0.3, 1).
+   Only transform and opacity animate (plus a 2px blur on tab swaps). */
+
+/* Dropdowns and menus grow from their trigger corner (set origin-top-left /
+   origin-top-right on the element). Closing stays instant. */
+@keyframes popoverIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+}
+.animate-popover {
+  animation: popoverIn 160ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* Press feedback for buttons and button-like links. Unlayered, so it also
+   replaces a utility's transition-all with the exact properties. */
+.press {
+  transition-property: scale, transform, background-color, border-color, color, box-shadow, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.press:active {
+  scale: 0.97;
+}
+
+/* Hero: settles in once on first load, 50ms apart (--i is the order). */
+@keyframes heroIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.hero-enter {
+  animation: heroIn 400ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 50ms);
+}
+
+/* Promo banners: revealed once when scrolled into view (see Reveal.js).
+   Only banners below the fold at load are hidden first, so nothing flashes. */
+@keyframes revealIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+@keyframes photoSettle {
+  from {
+    transform: scale(1.06);
+  }
+}
+[data-reveal="pending"] {
+  opacity: 0;
+}
+[data-reveal="in"] {
+  animation: revealIn 600ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+[data-reveal="in"] .reveal-photo {
+  animation: photoSettle 1200ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* Calculator tabs: the new panel's content clears in (the card itself stays). */
+@keyframes tabIn {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+  }
+}
+.tab-swap > * {
+  animation: tabIn 180ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* Reduced motion: keep the fades that explain what changed, drop the movement. */
+@keyframes fadeOnly {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-popover {
+    animation: fadeOnly 120ms ease backwards;
+  }
+  .hero-enter {
+    animation: fadeOnly 300ms ease backwards;
+  }
+  [data-reveal="in"] {
+    animation: fadeOnly 300ms ease backwards;
+  }
+  [data-reveal="in"] .reveal-photo {
+    animation: none;
+  }
+  .tab-swap > * {
+    animation: fadeOnly 150ms ease backwards;
+  }
+}
+
 /* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
