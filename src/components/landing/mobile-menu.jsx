@@ -49,7 +49,7 @@ export function MobileMenu({ links }) {
                 <li key={link.href}>
                   <a
                     href={link.href}
-                    onClick={(event) => goTo(event, link.href.slice(1))}
+                    onClick={(event) => goTo(event, link.href.split("#")[1])}
                     className="flex py-4 text-lg font-medium active:opacity-60"
                   >
                     {link.label}

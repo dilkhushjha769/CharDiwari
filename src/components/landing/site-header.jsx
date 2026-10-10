@@ -1,4 +1,5 @@
 import { Phone } from "lucide-react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { site } from "@/config/site"
 import { cn } from "@/lib/utils"
@@ -9,10 +10,10 @@ import { MobileMenu } from "./mobile-menu"
 import { NavMenu } from "./nav-menu"
 
 export const navLinks = [
-  { href: "#projects", label: "Projects" },
-  { href: "#localities", label: "Localities" },
-  { href: "#calculator", label: "EMI calculator" },
-  { href: "#faq", label: "FAQ" },
+  { href: "/#projects", label: "Projects" },
+  { href: "/#localities", label: "Localities" },
+  { href: "/#calculator", label: "EMI calculator" },
+  { href: "/#faq", label: "FAQ" },
 ]
 
 // A tall brick tower beside a shorter ink one: the skyline in miniature.
@@ -27,8 +28,8 @@ function LogoMark({ className }) {
 
 export function Logo({ className }) {
   return (
-    <a
-      href="#top"
+    <Link
+      href="/#top"
       aria-label={`${site.name} home`}
       className={cn(
         "inline-flex items-center gap-2 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
@@ -39,7 +40,7 @@ export function Logo({ className }) {
       <span className="font-display text-[1.6rem] leading-none tracking-tight">
         Vital<span className="italic">Space</span>
       </span>
-    </a>
+    </Link>
   )
 }
 

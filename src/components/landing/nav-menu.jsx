@@ -94,7 +94,7 @@ export function NavMenu() {
             </NavigationMenu.Item>
           ))}
           <NavigationMenu.Item className="relative">
-            <NavigationMenu.Link href="#faq" className={triggerClass} data-current={active === sections.faq}>
+            <NavigationMenu.Link href="/#faq" onClick={(event) => go(event, { section: "faq" })} className={triggerClass} data-current={active === sections.faq}>
               FAQ
             </NavigationMenu.Link>
             {underline("faq")}
@@ -148,7 +148,7 @@ function MenuPanel({ menu, onGo }) {
       <div className="flex items-center justify-between gap-4 border-t border-border py-4 text-sm">
         <p className="text-muted-foreground">{footer.note}</p>
         <NavigationMenu.Link
-          href={`#${footer.link.section}`}
+          href={`/#${footer.link.section}`}
           closeOnClick
           onClick={(event) => onGo(event, footer.link)}
           className="group/footer inline-flex shrink-0 items-center gap-1.5 rounded-full px-2 py-1 font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
@@ -197,7 +197,7 @@ function MenuItem({ item, onGo }) {
     )
   }
   return (
-    <NavigationMenu.Link href={`#${item.section}`} closeOnClick onClick={(event) => onGo(event, item)} className={className}>
+    <NavigationMenu.Link href={`/#${item.section}`} closeOnClick onClick={(event) => onGo(event, item)} className={className}>
       {content}
     </NavigationMenu.Link>
   )
