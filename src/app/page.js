@@ -6,15 +6,12 @@ import {
   ArrowRight,
   MapPin,
   Bed,
-  Bath,
-  Maximize2,
   Search,
   SlidersHorizontal,
   ShieldCheck,
   Sparkles,
   Compass,
   CheckCircle2,
-  Heart,
   ArrowUpRight,
   Building2,
   Home,
@@ -29,7 +26,10 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import EMICalculator from '@/components/EMICalculator';
+import PropertyCard from '@/components/PropertyCard';
+import Footer from '@/components/Footer';
 import { useUserLocation } from '@/lib/useUserLocation';
+import { properties } from '@/data/properties';
 
 export default function HomePage() {
   const { userLocation, locationLoading, refreshGpsLocation } = useUserLocation();
@@ -125,146 +125,6 @@ export default function HomePage() {
     'Private Plot / Land',
   ];
 
-  const properties = [
-    {
-      id: 1,
-      tag: 'Available',
-      badge: 'Verified Property',
-      title: 'The Courtyard Villa',
-      location: 'Golf Course Extension, Gurugram',
-      city: 'Gurugram',
-      type: 'Luxury Villa & Estate',
-      possession: 'Ready to Move',
-      builder: 'Studio Lotus',
-      price: '₹4.80 Cr',
-      priceNum: 4.8,
-      rentPrice: '₹2.80 Lakh/mo',
-      rentPriceNum: 2.8,
-      mode: 'both',
-      beds: '4 Beds',
-      baths: '5 Baths',
-      area: '4,800 sq.ft',
-      image:
-        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-      description:
-        'Spacious home with an open courtyard, natural stone walls, wooden finish, and a private swimming pool.',
-    },
-    {
-      id: 2,
-      tag: 'New Listing',
-      badge: 'Hillside Home',
-      title: 'The Mountain Villa',
-      location: 'Pine Ridge, Kasauli Hills',
-      city: 'Kasauli Hills',
-      type: 'Luxury Villa & Estate',
-      possession: 'Ready to Move',
-      builder: 'Morphogenesis',
-      price: '₹6.20 Cr',
-      priceNum: 6.2,
-      rentPrice: '₹3.60 Lakh/mo',
-      rentPriceNum: 3.6,
-      mode: 'both',
-      beds: '5 Beds',
-      baths: '6 Baths',
-      area: '6,200 sq.ft',
-      image:
-        'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
-      description:
-        'Modern hill-view villa overlooking the Himalayan valley with a warm indoor sun deck.',
-    },
-    {
-      id: 3,
-      tag: 'Available',
-      badge: 'Coastal Home',
-      title: 'The Garden Villa',
-      location: 'Awas Beach Road, Alibaug',
-      city: 'Alibaug',
-      type: 'Luxury Villa & Estate',
-      possession: 'Ready to Move',
-      builder: 'Samira Habitats',
-      price: '₹5.40 Cr',
-      priceNum: 5.4,
-      rentPrice: '₹3.10 Lakh/mo',
-      rentPriceNum: 3.1,
-      mode: 'both',
-      beds: '4 Beds',
-      baths: '4 Baths',
-      area: '5,400 sq.ft',
-      image:
-        'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80',
-      description:
-        'Eco-friendly modern home surrounded by peaceful coconut groves and green gardens.',
-    },
-    {
-      id: 4,
-      tag: 'Exclusive',
-      badge: 'Modern Heritage',
-      title: 'The Courtyard Apartment',
-      location: 'Bodakdev, Ahmedabad',
-      city: 'Ahmedabad',
-      type: 'Architectural Apartment',
-      possession: 'Ready to Move',
-      builder: 'HCP Design & Project Management',
-      price: '₹3.90 Cr',
-      priceNum: 3.9,
-      rentPrice: '₹1.90 Lakh/mo',
-      rentPriceNum: 1.9,
-      mode: 'both',
-      beds: '4 Beds',
-      baths: '4 Baths',
-      area: '4,200 sq.ft',
-      image:
-        'https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=1200&q=80',
-      description:
-        'Modern designer apartment with clay lattice screens and a landscaped courtyard garden.',
-    },
-    {
-      id: 5,
-      tag: 'New Listing',
-      badge: 'Sea-View Penthouse',
-      title: 'The Horizon Penthouse',
-      location: 'Worli Sea Face, Mumbai',
-      city: 'Mumbai',
-      type: 'Penthouse / Sky Villa',
-      possession: 'Under Construction',
-      builder: 'Hafeez Contractor',
-      price: '₹14.50 Cr',
-      priceNum: 14.5,
-      rentPrice: '₹7.50 Lakh/mo',
-      rentPriceNum: 7.5,
-      mode: 'both',
-      beds: '5 Beds',
-      baths: '6 Baths',
-      area: '6,800 sq.ft',
-      image:
-        'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1200&q=80',
-      description:
-        'Luxury sea-view penthouse with high ceilings, private outdoor deck, and Italian marble floors.',
-    },
-    {
-      id: 6,
-      tag: 'Available',
-      badge: 'Goa Heritage Villa',
-      title: 'The Palm Villa',
-      location: 'Assagao, North Goa',
-      city: 'Goa',
-      type: 'Luxury Villa & Estate',
-      possession: 'Ready to Move',
-      builder: 'Tarun Tahiliani Homes',
-      price: '₹7.20 Cr',
-      priceNum: 7.2,
-      rentPrice: '₹4.20 Lakh/mo',
-      rentPriceNum: 4.2,
-      mode: 'both',
-      beds: '4 Beds',
-      baths: '5 Baths',
-      area: '5,600 sq.ft',
-      image:
-        'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=80',
-      description:
-        'Restored classic Portuguese-style villa with natural stone walls, private swimming pool, and fruit gardens.',
-    },
-  ];
 
   // Search suggestions dataset
   const searchSuggestions = [
@@ -1286,82 +1146,11 @@ export default function HomePage() {
         {filteredProperties.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {filteredProperties.map((property) => (
-              <div
+              <PropertyCard
                 key={property.id}
-                className="group bg-white rounded-3xl border border-stone-200/90 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
-              >
-                <div>
-                  {/* Property Image with Badge */}
-                  <div className="relative aspect-4/3 w-full overflow-hidden bg-stone-100">
-                    <img
-                      src={property.image}
-                      alt={property.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute top-4 left-4 flex gap-2">
-                      <span className="px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-xs font-semibold text-stone-900 shadow-sm">
-                        {property.badge}
-                      </span>
-                      <span className="px-2.5 py-1 rounded-full bg-emerald-700 text-white text-xs font-medium shadow-sm">
-                        {property.tag}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-stone-700 hover:text-rose-600 hover:bg-white transition-colors shadow-sm cursor-pointer"
-                      aria-label="Save Property"
-                    >
-                      <Heart className="w-4 h-4" />
-                    </button>
-                    <div className="absolute bottom-4 left-4">
-                      <span className="px-3.5 py-1.5 rounded-xl bg-stone-900/90 backdrop-blur-md text-white font-serif font-bold text-lg shadow-sm">
-                        {searchMode === 'rent' ? property.rentPrice : property.price}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Details */}
-                  <div className="p-6">
-                    <div className="flex items-center gap-1.5 text-xs text-stone-500 mb-2">
-                      <MapPin className="w-3.5 h-3.5 text-stone-400" />
-                      <span>{property.location}</span>
-                    </div>
-                    <h3 className="text-xl font-semibold text-stone-900 mb-2 group-hover:text-stone-700 transition-colors">
-                      {property.title}
-                    </h3>
-                    <p className="text-xs text-stone-600 font-normal leading-relaxed mb-6">
-                      {property.description}
-                    </p>
-
-                    {/* Bed, Bath, Sqft specs */}
-                    <div className="flex items-center justify-between pt-4 border-t border-stone-100 text-xs font-medium text-stone-600">
-                      <div className="flex items-center gap-1.5">
-                        <Bed className="w-4 h-4 text-stone-400" />
-                        <span>{property.beds}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Bath className="w-4 h-4 text-stone-400" />
-                        <span>{property.baths}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Maximize2 className="w-4 h-4 text-stone-400" />
-                        <span>{property.area}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card Footer Button */}
-                <div className="p-6 pt-0">
-                  <Link
-                    href="/auth"
-                    className="w-full py-3 rounded-xl bg-stone-50 hover:bg-stone-900 hover:text-white text-stone-900 text-xs font-semibold transition-all flex items-center justify-center gap-2 border border-stone-200/80 group-hover:border-transparent"
-                  >
-                    <span>View Property Details</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
+                property={property}
+                price={searchMode === 'rent' ? property.rentPrice : property.price}
+              />
             ))}
           </div>
         ) : (
@@ -1500,44 +1289,7 @@ export default function HomePage() {
       </section>
 
       {/* Clean Premium Footer */}
-      <footer className="border-t border-stone-200/80 py-12 bg-white text-sm text-stone-600">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <img
-              src="/dwarkesh-logo-transparent.png"
-              alt="Dwarkesh Real Estate Group"
-              className="h-8 w-auto max-w-[50px] object-contain drop-shadow-xs"
-            />
-            <div className="flex flex-col">
-              <span className="font-serif font-bold tracking-[0.14em] text-stone-900 text-sm uppercase leading-none">
-                Dwarkesh
-              </span>
-              <span className="text-[9px] font-semibold tracking-[0.20em] text-stone-500 uppercase font-sans mt-0.5">
-                Real Estate Group
-              </span>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-8 text-stone-600">
-            <a href="#collection" className="hover:text-stone-900 transition">
-              Buy Homes
-            </a>
-            <a href="#collection" className="hover:text-stone-900 transition">
-              Rentals
-            </a>
-            <a href="#emi-calculator" className="hover:text-stone-900 transition">
-              EMI Calculator
-            </a>
-            <Link href="/auth" className="hover:text-stone-900 transition">
-              Sign In
-            </Link>
-            <Link href="/profile" className="hover:text-stone-900 transition">
-              My Profile
-            </Link>
-            <span className="text-stone-400">© 2026 Dwarkesh</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
