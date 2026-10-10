@@ -26,6 +26,7 @@ import { SectionNav } from "@/components/project/section-nav";
 import { site } from "@/config/site";
 import { localityName } from "@/data/localities";
 import { SAMPLE_DATA } from "@/data/project-details";
+import { projectPhotos } from "@/data/sample-photos";
 import { projects } from "@/data/projects";
 import { formatPriceRange, formatRange } from "@/lib/format";
 import { findProject, projectDetail, projectHref, similarProjects } from "@/lib/project-url";
@@ -84,6 +85,7 @@ function ProjectSkeleton() {
       <div className="mx-auto w-full max-w-6xl px-4 pb-28 sm:px-6 md:pb-20">
         <div className="h-4 w-64 max-w-full pt-6 pb-4" />
         <div className="mt-10 aspect-[16/10] rounded-2xl bg-muted lg:aspect-[2/1]" />
+        <div className="mt-2 h-[3.5rem] sm:h-[4.25rem]" />
         <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <div>
             <div className="h-3 w-40 rounded bg-muted" />
@@ -184,7 +186,7 @@ async function ProjectContent({ params }) {
             </ol>
           </nav>
 
-          <ProjectGallery project={project} />
+          <ProjectGallery project={project} photos={projectPhotos(project, detail)} sample={SAMPLE_DATA} />
 
           <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
             <div className="min-w-0">
