@@ -233,35 +233,35 @@ export default function Navbar() {
                           icon={<Home className="w-4 h-4" />}
                           title="Villas & Estates"
                           description="Gated private homes"
-                          href="#collection"
+                          href="/#collection"
                           onClick={() => setActiveMenu(null)}
                         />
                         <DropdownItem
                           icon={<Building className="w-4 h-4" />}
                           title="Apartments"
                           description="3 & 4 BHK luxury flats"
-                          href="#collection"
+                          href="/#collection"
                           onClick={() => setActiveMenu(null)}
                         />
                         <DropdownItem
                           icon={<Building2 className="w-4 h-4" />}
                           title="Penthouses"
                           description="Skyline duplex homes"
-                          href="#collection"
+                          href="/#collection"
                           onClick={() => setActiveMenu(null)}
                         />
                         <DropdownItem
                           icon={<Compass className="w-4 h-4" />}
                           title="Plots & Land"
                           description="Gated parcels to build"
-                          href="#collection"
+                          href="/#collection"
                           onClick={() => setActiveMenu(null)}
                         />
                       </div>
                       <div className="mt-2 pt-2.5 border-t border-stone-100 flex items-center justify-between px-2.5 text-[11px] text-stone-500">
                         <span>100+ Verified Homes</span>
                         <Link
-                          href="#collection"
+                          href="/#collection"
                           onClick={() => setActiveMenu(null)}
                           className="text-stone-900 font-semibold hover:underline inline-flex items-center gap-1"
                         >
@@ -305,28 +305,28 @@ export default function Navbar() {
                           icon={<Building className="w-4 h-4" />}
                           title="Furnished Apartments"
                           description="Designer 2, 3 & 4 BHK flats"
-                          href="#collection"
+                          href="/#collection"
                           onClick={() => setActiveMenu(null)}
                         />
                         <DropdownItem
                           icon={<Home className="w-4 h-4" />}
                           title="Luxury Villas"
                           description="Private homes with gardens"
-                          href="#collection"
+                          href="/#collection"
                           onClick={() => setActiveMenu(null)}
                         />
                         <DropdownItem
                           icon={<Building2 className="w-4 h-4" />}
                           title="Penthouses & Duplexes"
                           description="Top floor city skyline views"
-                          href="#collection"
+                          href="/#collection"
                           onClick={() => setActiveMenu(null)}
                         />
                       </div>
                       <div className="mt-2 pt-2.5 border-t border-stone-100 flex items-center justify-between px-2.5 text-[11px] text-stone-500">
                         <span>Zero Brokerage Options</span>
                         <Link
-                          href="#collection"
+                          href="/#collection"
                           onClick={() => setActiveMenu(null)}
                           className="text-stone-900 font-semibold hover:underline inline-flex items-center gap-1"
                         >
@@ -562,28 +562,28 @@ export default function Navbar() {
                 {mobileAccordion === 'buy' && (
                   <div className="pl-3 pt-2 space-y-2 text-xs text-stone-600">
                     <Link
-                      href="#collection"
+                      href="/#collection"
                       onClick={() => setMobileMenuOpen(false)}
                       className="block py-1 hover:text-stone-900"
                     >
                       • Villas & Estates
                     </Link>
                     <Link
-                      href="#collection"
+                      href="/#collection"
                       onClick={() => setMobileMenuOpen(false)}
                       className="block py-1 hover:text-stone-900"
                     >
                       • Apartments
                     </Link>
                     <Link
-                      href="#collection"
+                      href="/#collection"
                       onClick={() => setMobileMenuOpen(false)}
                       className="block py-1 hover:text-stone-900"
                     >
                       • Penthouses
                     </Link>
                     <Link
-                      href="#collection"
+                      href="/#collection"
                       onClick={() => setMobileMenuOpen(false)}
                       className="block py-1 hover:text-stone-900"
                     >
@@ -608,21 +608,21 @@ export default function Navbar() {
                 {mobileAccordion === 'rent' && (
                   <div className="pl-3 pt-2 space-y-2 text-xs text-stone-600">
                     <Link
-                      href="#collection"
+                      href="/#collection"
                       onClick={() => setMobileMenuOpen(false)}
                       className="block py-1 hover:text-stone-900"
                     >
                       • Furnished Apartments
                     </Link>
                     <Link
-                      href="#collection"
+                      href="/#collection"
                       onClick={() => setMobileMenuOpen(false)}
                       className="block py-1 hover:text-stone-900"
                     >
                       • Luxury Villas
                     </Link>
                     <Link
-                      href="#collection"
+                      href="/#collection"
                       onClick={() => setMobileMenuOpen(false)}
                       className="block py-1 hover:text-stone-900"
                     >
