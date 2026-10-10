@@ -18,11 +18,12 @@ const LAND_UNITS = [
   { id: 'acre', name: 'Acres', short: 'Acre', toSqft: 43560 },
 ];
 
-export default function EMICalculator() {
+// initialLoanAmount lets a property page start from that property's loan.
+export default function EMICalculator({ initialLoanAmount = 5000000 }) {
   const [activeTab, setActiveTab] = useState('emi'); // 'emi' | 'land' | 'budget'
 
   // 1. EMI State
-  const [loanAmount, setLoanAmount] = useState(5000000); // ₹50 Lakh
+  const [loanAmount, setLoanAmount] = useState(initialLoanAmount); // ₹50 Lakh by default
   const [interestRate, setInterestRate] = useState(8.5); // 8.5%
   const [tenureYears, setTenureYears] = useState(20); // 20 years
 
