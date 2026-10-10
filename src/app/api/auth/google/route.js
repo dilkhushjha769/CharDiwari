@@ -61,7 +61,7 @@ export async function POST(request) {
         avatarUrl: user.avatarUrl,
         provider: user.provider,
       },
-      redirectTo: '/dashboard',
+      redirectTo: '/',
     });
 
     setSessionCookie(response, token);

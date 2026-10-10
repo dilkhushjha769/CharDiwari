@@ -6,7 +6,8 @@ export async function GET(request) {
   const code       = searchParams.get('code');
   const token_hash = searchParams.get('token_hash');
   const type       = searchParams.get('type') || 'signup';
-  const next       = searchParams.get('next') ?? '/dashboard';
+  const rawNext    = searchParams.get('next');
+  const next       = (rawNext && rawNext !== '/dashboard' && rawNext !== '/auth') ? rawNext : '/';
   // Supabase sometimes returns ?error= & ?error_description= directly
   const oauthError = searchParams.get('error');
   const oauthDesc  = searchParams.get('error_description');
@@ -64,7 +65,7 @@ export async function GET(request) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Entering Sanctuary • CharDiwari</title>
+  <title>Signing In • Dwarkesh</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -103,8 +104,8 @@ export async function GET(request) {
 <body>
   <div class="card">
     <div class="spinner"></div>
-    <h1>Entering Sanctuary</h1>
-    <p>Confirming your authentication session, please wait...</p>
+    <h1>Signing In</h1>
+    <p>Confirming your session, please wait...</p>
   </div>
   <script>
     (function() {

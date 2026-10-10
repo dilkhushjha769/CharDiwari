@@ -106,9 +106,9 @@ function OtpBoxes({ digits, setDigits, onComplete, shaking }) {
 const devLog = (message, meta) => {
   if (process.env.NODE_ENV !== 'production') {
     if (meta) {
-      console.log(`[CharDiwari Auth] ${message}`, meta);
+      console.log(`[Dwarkesh Auth] ${message}`, meta);
     } else {
-      console.log(`[CharDiwari Auth] ${message}`);
+      console.log(`[Dwarkesh Auth] ${message}`);
     }
   }
 };
@@ -171,7 +171,8 @@ const parseRetryAfterSeconds = (error, defaultSeconds = 60) => {
 function AuthContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectPath = searchParams?.get('redirect') || '/dashboard';
+  const redirectParam = searchParams?.get('redirect');
+  const redirectPath = (redirectParam && redirectParam !== '/dashboard' && redirectParam !== '/auth') ? redirectParam : '/';
   const urlError    = searchParams?.get('error') || '';
 
   // ── Screens: 'HOME' | 'EMAIL_PASS' | 'PHONE' | 'OTP' | 'SIGNUP' | 'FORGOT' | 'EMAIL_SENT'
@@ -455,7 +456,7 @@ function AuthContent() {
       }
       recordRegisteredEmail(cleanEmail);
       devLog('Auth request completed: signin');
-      setSuccess('Welcome back! Redirecting to dashboard...');
+      setSuccess('Welcome back! Logging in...');
       setTimeout(() => router.push(redirectPath), 500);
     } finally {
       isBusyRef.current = false;
@@ -527,7 +528,7 @@ function AuthContent() {
         if (typeof document !== 'undefined') {
           document.cookie = 'chardiwari_session=true; path=/; max-age=604800; SameSite=Lax';
         }
-        setSuccess('Account created! Entering sanctuary dashboard...');
+        setSuccess('Account created! Welcome to Dwarkesh...');
         setTimeout(() => router.push(redirectPath), 600);
       } else {
         devLog('Auth request completed: signup (verification email sent)');
@@ -670,7 +671,7 @@ function AuthContent() {
 
       recordRegisteredEmail(email.trim());
       devLog('Auth request completed: verify_otp');
-      setSuccess('Verified! Entering sanctuary...');
+      setSuccess('Verified! Logging in...');
       setTimeout(() => router.push(redirectPath), 700);
     } finally {
       isBusyRef.current = false;
@@ -740,18 +741,20 @@ function AuthContent() {
       {/* Top bar */}
       <header className="border-b border-zinc-200/80 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg border border-black/15 bg-black flex items-center justify-center group-hover:scale-105 transition">
-              <div className="w-3.5 h-3.5 border border-white grid grid-cols-2 p-0.5 gap-0.5">
-                <div className="bg-white" />
-                <div className="border border-white/50" />
-                <div className="border border-white/50" />
-                <div className="bg-white" />
-              </div>
+          <Link href="/" className="flex items-center gap-3 group">
+            <img
+              src="/dwarkesh-logo-transparent.png"
+              alt="Dwarkesh Real Estate Group"
+              className="h-8 w-auto max-w-[50px] object-contain transition-transform group-hover:scale-105 drop-shadow-xs"
+            />
+            <div className="flex flex-col">
+              <span className="font-serif font-bold tracking-[0.14em] text-black text-sm uppercase leading-none">
+                Dwarkesh
+              </span>
+              <span className="text-[9px] font-semibold tracking-[0.20em] text-zinc-500 uppercase font-sans mt-0.5">
+                Real Estate Group
+              </span>
             </div>
-            <span className="text-sm font-semibold tracking-widest uppercase text-black font-mono">
-              CharDiwari
-            </span>
           </Link>
 
           <div className="flex items-center">
@@ -772,10 +775,10 @@ function AuthContent() {
               {/* Title */}
               <div className="mb-7 text-center">
                 <h1 className="text-[28px] font-bold tracking-tight text-black mb-1">
-                  Sign in to CharDiwari
+                  Sign in to Dwarkesh
                 </h1>
                 <p className="text-sm text-zinc-500 font-light">
-                  Architecture &amp; private sanctuary portal
+                  Find &amp; manage your dream home
                 </p>
               </div>
 
@@ -1008,7 +1011,7 @@ function AuthContent() {
               </button>
 
               <h1 className="text-[26px] font-bold tracking-tight text-black mb-1">Create your account</h1>
-              <p className="text-sm text-zinc-500 mb-6">Join the CharDiwari sanctuary portal.</p>
+              <p className="text-sm text-zinc-500 mb-6">Join Dwarkesh today.</p>
 
               {error && <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-100 text-[13px] text-red-600">{error}</div>}
               {success && <div className="mb-4 p-3 rounded-xl bg-green-50 border border-green-100 text-[13px] text-green-700">{success}</div>}
@@ -1157,7 +1160,7 @@ function AuthContent() {
                   Click the link to activate your account
                 </p>
                 <p className="text-zinc-500">
-                  Clicking the confirmation link will activate your account and bring you directly to your private sanctuary dashboard.
+                  Clicking the confirmation link will activate your account and log you in.
                 </p>
               </div>
 
@@ -1197,7 +1200,7 @@ function AuthContent() {
                         if (typeof document !== 'undefined') {
                           document.cookie = 'chardiwari_session=true; path=/; max-age=604800; SameSite=Lax';
                         }
-                        setSuccess('Verified! Entering sanctuary...');
+                        setSuccess('Verified! Logging in...');
                         setTimeout(() => router.push(redirectPath), 500);
                         return;
                       }
@@ -1360,7 +1363,7 @@ function AuthContent() {
 
       {/* Bottom brand footer */}
       <footer className="py-6 text-center text-xs font-mono text-zinc-400 border-t border-zinc-200/60 bg-white">
-        © 2026 CharDiwari Homes • चारदीवारी Architectural Sanctuary
+        © 2026 Dwarkesh Real Estate Group • Verified Properties
       </footer>
     </div>
   );
@@ -1370,7 +1373,7 @@ export default function AuthPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-white flex items-center justify-center text-zinc-400 text-xs font-mono">
-        Loading sanctuary portal...
+        Loading Dwarkesh...
       </div>
     }>
       <AuthContent />
