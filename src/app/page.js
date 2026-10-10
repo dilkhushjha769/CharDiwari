@@ -492,12 +492,11 @@ export default function HomePage() {
           <img
             src="/hero-header-bg.png"
             alt="Dwarkesh Properties Header"
-            className="w-full h-full object-cover object-[80%_center] sm:object-right opacity-90 sm:opacity-100"
+            className="w-full h-full object-cover object-[80%_center] sm:object-right"
           />
-          {/* Multi-layer adaptive overlay: High legibility on mobile, atmospheric on desktop */}
-          <div className="absolute inset-0 bg-white/75 sm:bg-white/40" />
-          <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-white/85 to-white/95 sm:bg-gradient-to-r sm:from-white/90 sm:via-white/50 sm:to-white/10" />
-          <div className="absolute inset-x-0 bottom-0 h-16 sm:h-20 bg-gradient-to-t from-white via-white/70 to-transparent" />
+          {/* Subtle gradient overlay to keep architectural image fully visible on mobile & desktop */}
+          <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/40 to-transparent sm:from-white/85 sm:via-white/40 sm:to-white/10" />
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white via-white/70 to-transparent" />
         </div>
 
         <div className="max-w-5xl mx-auto flex flex-col items-center text-center relative z-10">
@@ -530,13 +529,13 @@ export default function HomePage() {
           </div>
 
           {/* Hero Headline */}
-          <h1 className="text-2xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-stone-900 tracking-tight leading-tight sm:leading-[1.15] mb-2 sm:mb-3 max-w-4xl">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-stone-900 tracking-tight leading-tight sm:leading-[1.15] mb-2 sm:mb-3 max-w-4xl">
             #DhundteRehJaoge
           </h1>
 
           {/* Hero Subtitle with Balanced Mobile Typography */}
-          <p className="text-[13px] sm:text-base md:text-lg text-stone-700 sm:text-stone-600 font-normal max-w-md sm:max-w-xl mx-auto mb-5 sm:mb-7 leading-snug sm:leading-relaxed px-3 text-balance">
-            Discover 100+ curated villas, plots, and apartments in Alibaug, Ahmedabad, Gurugram.
+          <p className="text-xs sm:text-base md:text-lg text-stone-700 sm:text-stone-600 font-normal max-w-xs sm:max-w-xl mx-auto mb-5 sm:mb-7 leading-relaxed tracking-normal">
+            Discover 100+ curated villas, plots, and apartments across Alibaug, Ahmedabad & Gurugram.
           </p>
 
           {/* Master Search & Filter Console Card */}
