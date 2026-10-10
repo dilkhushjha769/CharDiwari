@@ -1420,28 +1420,39 @@ export default function HomePage() {
         </Link>
       </section>
 
-      {/* Clean Callout Section */}
-      <section className="py-20 px-6 max-w-5xl mx-auto w-full">
-        <div className="rounded-3xl bg-stone-900 text-white p-10 sm:p-16 text-center relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 w-80 h-80 bg-stone-800/50 rounded-full blur-3xl pointer-events-none" />
+      {/* Clean Callout Section with Background Image */}
+      <section className="py-20 px-4 sm:px-6 max-w-5xl mx-auto w-full">
+        <div className="rounded-3xl text-white p-10 sm:p-16 text-center relative overflow-hidden shadow-2xl border border-stone-800/20 min-h-[340px] sm:min-h-[380px] flex flex-col justify-center items-center">
+          {/* Background Image */}
+          <img
+            src="/cta-banner-bg.png"
+            alt="Dwarkesh Luxury Properties and Residences"
+            className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
+          />
 
-          <h2 className="text-3xl sm:text-5xl font-serif text-white mb-4 relative z-10">
+          {/* Balanced Luxury Overlay: Keeps the bright sky, buildings, and garden visible */}
+          <div className="absolute inset-0 bg-stone-950/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-stone-950/85 via-stone-950/40 to-stone-950/30" />
+          <div className="absolute inset-0 bg-gradient-to-r from-stone-950/40 via-transparent to-stone-950/40" />
+
+          {/* Content */}
+          <h2 className="text-3xl sm:text-5xl font-serif font-medium text-white mb-4 relative z-10 drop-shadow-[0_3px_12px_rgba(0,0,0,0.85)] tracking-tight">
             Find or sell your dream home.
           </h2>
-          <p className="text-base sm:text-lg text-stone-300 max-w-xl mx-auto mb-8 font-light relative z-10">
+          <p className="text-base sm:text-lg text-white/95 max-w-xl mx-auto mb-8 font-light relative z-10 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-relaxed">
             Sign in to view verified prices, detailed floor plans, and book free home visits.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 relative z-10">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 relative z-10 w-full sm:w-auto">
             <Link
               href="/auth"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white text-stone-900 text-sm font-semibold hover:bg-stone-100 transition shadow-sm flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white text-stone-900 text-sm font-semibold hover:bg-stone-100 transition shadow-xl flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.99] duration-200"
             >
               <span>Get Started</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/profile"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl border border-stone-700 text-white text-sm font-medium hover:bg-stone-800 transition text-center"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-xl border border-white/50 bg-stone-950/60 backdrop-blur-md text-white text-sm font-medium hover:bg-white/20 hover:border-white transition text-center cursor-pointer hover:scale-[1.02] active:scale-[0.99] duration-200 shadow-xl"
             >
               <span>Post Your Property</span>
             </Link>
