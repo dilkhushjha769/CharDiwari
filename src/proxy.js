@@ -9,8 +9,13 @@ export async function proxy(request) {
   const hasLegacyToken = request.cookies.has('chardiwari_session') && Boolean(request.cookies.get('chardiwari_session')?.value);
   const isAuthenticated = hasSupabaseSession || hasLegacyToken;
 
-  // Protect /dashboard routes: redirect unauthenticated users to /auth
+  // Redirect /dashboard to /profile
   if (pathname.startsWith('/dashboard')) {
+    return NextResponse.redirect(new URL('/profile', request.url));
+  }
+
+  // Protect /profile routes: redirect unauthenticated users to /auth with redirect param
+  if (pathname.startsWith('/profile')) {
     if (!isAuthenticated) {
       const authUrl = new URL('/auth', request.url);
       authUrl.searchParams.set('redirect', pathname);
@@ -18,10 +23,12 @@ export async function proxy(request) {
     }
   }
 
-  // Prevent authenticated users from visiting /auth if already logged in
+  // Prevent authenticated users from visiting /auth: return them to where they came from or home
   if (pathname === '/auth') {
     if (isAuthenticated) {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      const redirect = request.nextUrl.searchParams.get('redirect');
+      const target = (redirect && redirect !== '/dashboard' && redirect !== '/auth') ? redirect : '/';
+      return NextResponse.redirect(new URL(target, request.url));
     }
   }
 
@@ -29,5 +36,5 @@ export async function proxy(request) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/auth'],
+  matcher: ['/profile/:path*', '/dashboard/:path*', '/auth'],
 };

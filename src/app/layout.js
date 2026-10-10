@@ -12,8 +12,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "CharDiwari — Architecture, Sanctuary & Living",
-  description: "Monolithic luxury architecture and private residential sanctuaries. Powered by Supabase.",
+  title: "Dwarkesh — Real Estate Group",
+  description: "Buy, sell, rent, and invest in verified luxury homes, apartments, and modern villas across India.",
 };
 
 export default function RootLayout({ children }) {

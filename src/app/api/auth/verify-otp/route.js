@@ -105,7 +105,7 @@ export async function POST(request) {
       const response = NextResponse.json({
         success: true,
         message: 'Email verified successfully. Creating account...',
-        redirectTo: '/dashboard',
+        redirectTo: '/',
         user: {
           id: user.id,
           email: user.email,

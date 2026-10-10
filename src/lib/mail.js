@@ -39,8 +39,8 @@ export async function sendOtpEmail({ email, otp, type = 'signup' }) {
   const normalizedEmail = email.toLowerCase().trim();
   const subject =
     type === 'signup'
-      ? 'Welcome to CharDiwari - Verify Your Email'
-      : 'CharDiwari - Reset Your Password Verification Code';
+      ? 'Welcome to Dwarkesh - Verify Your Email'
+      : 'Dwarkesh - Reset Your Password Verification Code';
 
   // Store in dev log for testing and dev tools
   devOtpLog.set(normalizedEmail, {
@@ -51,7 +51,7 @@ export async function sendOtpEmail({ email, otp, type = 'signup' }) {
 
   // Log clearly to server terminal
   console.log(`\n======================================================`);
-  console.log(`📧 [CharDiwari Mail Dispatcher]`);
+  console.log(`📧 [Dwarkesh Mail Dispatcher]`);
   console.log(`To: ${normalizedEmail}`);
   console.log(`Subject: ${subject}`);
   console.log(`Your 6-Digit OTP Code: [ ${otp} ]`);
