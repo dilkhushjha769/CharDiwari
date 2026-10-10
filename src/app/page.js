@@ -25,97 +25,14 @@ import {
   X,
   RotateCcw,
   Check,
-  Navigation,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import EMICalculator from '@/components/EMICalculator';
-
-// ─── Location & Hub Geo Resolution ─────────────────────────────────────────────
-const SUPPORTED_HUBS = [
-  {
-    name: 'Ahmedabad',
-    lat: 23.0225,
-    lon: 72.5714,
-    keywords: ['ahmedabad', 'gujarat', 'gandhinagar', 'surat', 'vadodara', 'rajkot', 'anand', 'bhavnagar'],
-  },
-  {
-    name: 'Gurugram',
-    lat: 28.4595,
-    lon: 77.0266,
-    keywords: ['gurugram', 'gurgaon', 'delhi', 'ncr', 'noida', 'haryana', 'faridabad', 'ghaziabad'],
-  },
-  {
-    name: 'Mumbai',
-    lat: 19.076,
-    lon: 72.8777,
-    keywords: ['mumbai', 'bombay', 'thane', 'navi mumbai', 'pune', 'maharashtra', 'nashik', 'karjat'],
-  },
-  {
-    name: 'Goa',
-    lat: 15.2993,
-    lon: 74.124,
-    keywords: ['goa', 'panaji', 'assagao', 'north goa', 'south goa', 'calangute', 'margao', 'mapusa'],
-  },
-  {
-    name: 'Alibaug',
-    lat: 18.6414,
-    lon: 72.8722,
-    keywords: ['alibaug', 'alibag', 'raigad', 'mandwa', 'awas', 'kihim'],
-  },
-  {
-    name: 'Kasauli Hills',
-    lat: 30.9013,
-    lon: 76.9649,
-    keywords: ['kasauli', 'himachal', 'chandigarh', 'punjab', 'mohali', 'panchkula', 'shimla', 'ludhiana', 'patiala', 'jalandhar', 'amritsar', 'solan', 'kalka'],
-  },
-];
-
-function getDistanceKm(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-function resolveNearestHub(cityName, stateName, lat, lon) {
-  const combined = `${cityName || ''} ${stateName || ''}`.toLowerCase();
-  for (const hub of SUPPORTED_HUBS) {
-    if (hub.keywords.some((kw) => combined.includes(kw))) {
-      return hub.name;
-    }
-  }
-  if (lat && lon) {
-    let nearest = SUPPORTED_HUBS[0];
-    let minDistance = Infinity;
-    for (const hub of SUPPORTED_HUBS) {
-      const dist = getDistanceKm(lat, lon, hub.lat, hub.lon);
-      if (dist < minDistance) {
-        minDistance = dist;
-        nearest = hub;
-      }
-    }
-    return nearest.name;
-  }
-  return 'Ahmedabad';
-}
 
 export default function HomePage() {
   // Search & Filter State
   const [searchMode, setSearchMode] = useState('buy'); // 'buy' | 'rent' | 'plots'
   const [selectedCity, setSelectedCity] = useState('Ahmedabad');
-  const [userLocation, setUserLocation] = useState({
-    detectedPlace: '',
-    hubCity: 'Ahmedabad',
-    isDetecting: true,
-    source: null,
-  });
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState('Locations');
@@ -126,133 +43,6 @@ export default function HomePage() {
   const [activeDropdown, setActiveDropdown] = useState(null);
 
   const searchContainerRef = useRef(null);
-
-  // Auto-detect User Location on mount (IP + GPS)
-  useEffect(() => {
-    let isMounted = true;
-
-    async function detectUserLocation() {
-      // 1. Instant non-blocking IP Geocode
-      try {
-        const res = await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client');
-        if (res.ok) {
-          const data = await res.json();
-          if (!isMounted) return;
-          const detectedCity = data.city || data.locality || data.principalSubdivision || '';
-          const detectedState = data.principalSubdivision || data.countryName || '';
-          const hub = resolveNearestHub(detectedCity, detectedState, data.latitude, data.longitude);
-          const placeStr = detectedCity
-            ? `${detectedCity}${detectedState ? ', ' + detectedState : ''}`
-            : hub;
-
-          setUserLocation({
-            detectedPlace: placeStr,
-            hubCity: hub,
-            isDetecting: false,
-            source: 'ip',
-          });
-          setSelectedCity(hub);
-        }
-      } catch (err) {
-        if (!isMounted) return;
-        setUserLocation((prev) => ({
-          ...prev,
-          detectedPlace: 'Ahmedabad, Gujarat',
-          hubCity: 'Ahmedabad',
-          isDetecting: false,
-          source: 'default',
-        }));
-      }
-
-      // 2. High-Precision Browser GPS if available
-      if (typeof navigator !== 'undefined' && navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            if (!isMounted) return;
-            const { latitude, longitude } = pos.coords;
-            try {
-              const res = await fetch(
-                `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
-              );
-              if (res.ok) {
-                const data = await res.json();
-                const city = data.city || data.locality || data.principalSubdivision || '';
-                const state = data.principalSubdivision || '';
-                const hub = resolveNearestHub(city, state, latitude, longitude);
-                setUserLocation({
-                  detectedPlace: `${city || hub}${state ? ', ' + state : ''}`,
-                  hubCity: hub,
-                  isDetecting: false,
-                  source: 'gps',
-                });
-                setSelectedCity(hub);
-              }
-            } catch {
-              const hub = resolveNearestHub('', '', latitude, longitude);
-              setUserLocation((prev) => ({
-                ...prev,
-                hubCity: hub,
-                isDetecting: false,
-                source: 'gps',
-              }));
-              setSelectedCity(hub);
-            }
-          },
-          () => {
-            // Dismissed or blocked: smoothly retain IP result
-          },
-          { timeout: 7000, maximumAge: 300000 }
-        );
-      }
-    }
-
-    detectUserLocation();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const handleRefreshLocation = () => {
-    if (typeof navigator !== 'undefined' && navigator.geolocation) {
-      setUserLocation((prev) => ({ ...prev, isDetecting: true }));
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const { latitude, longitude } = pos.coords;
-          try {
-            const res = await fetch(
-              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
-            );
-            if (res.ok) {
-              const data = await res.json();
-              const city = data.city || data.locality || data.principalSubdivision || '';
-              const state = data.principalSubdivision || '';
-              const hub = resolveNearestHub(city, state, latitude, longitude);
-              setUserLocation({
-                detectedPlace: `${city || hub}${state ? ', ' + state : ''}`,
-                hubCity: hub,
-                isDetecting: false,
-                source: 'gps',
-              });
-              setSelectedCity(hub);
-            }
-          } catch {
-            const hub = resolveNearestHub('', '', latitude, longitude);
-            setUserLocation((prev) => ({
-              ...prev,
-              hubCity: hub,
-              isDetecting: false,
-              source: 'gps',
-            }));
-            setSelectedCity(hub);
-          }
-        },
-        () => {
-          setUserLocation((prev) => ({ ...prev, isDetecting: false }));
-        },
-        { timeout: 8000 }
-      );
-    }
-  };
 
   // Close open popovers when clicking outside
   useEffect(() => {
@@ -288,14 +78,11 @@ export default function HomePage() {
     'All Locations',
     'Bodakdev',
     'SG Highway',
-    'Sanand',
-    'Rancharda',
     'Golf Course Extension',
     'Awas Beach Road',
     'Pine Ridge',
     'Worli Sea Face',
     'Assagao',
-    'Karjat Foothills',
   ];
 
   const bhkList = ['All BHK', '2 BHK', '3 BHK', '4 BHK', '5+ BHK'];
@@ -472,167 +259,6 @@ export default function HomePage() {
         'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=80',
       description:
         'Restored classic Portuguese-style villa with natural stone walls, private swimming pool, and fruit gardens.',
-    },
-    {
-      id: 7,
-      tag: 'Verified Plot',
-      badge: 'RERA Approved',
-      title: 'Sanand Greenfield Villa Plot',
-      location: 'Sanand Ext., Ahmedabad',
-      city: 'Ahmedabad',
-      type: 'Private Plot / Land',
-      possession: 'Immediate Registry',
-      builder: 'Arvind SmartSpaces',
-      price: '₹1.85 Cr',
-      priceNum: 1.85,
-      rentPrice: 'N/A',
-      rentPriceNum: 0,
-      mode: 'buy',
-      beds: '1,200 Sq.Yd',
-      baths: 'Clear Title (RERA)',
-      area: '10,800 sq.ft (1,200 Gaj)',
-      image:
-        'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80',
-      description:
-        'Gated premium villa plot with 40-ft avenue trees, underground electricity & water lines, immediate title deed registry.',
-    },
-    {
-      id: 8,
-      tag: 'Lakefront Land',
-      badge: 'Collector Approved',
-      title: 'Rancharda Lakeview Estate Land',
-      location: 'Rancharda, Ahmedabad',
-      city: 'Ahmedabad',
-      type: 'Private Plot / Land',
-      possession: 'Ready to Move',
-      builder: 'Goyal & Co Developers',
-      price: '₹3.40 Cr',
-      priceNum: 3.4,
-      rentPrice: 'N/A',
-      rentPriceNum: 0,
-      mode: 'buy',
-      beds: '2,000 Sq.Yd',
-      baths: 'Freehold NA Land',
-      area: '18,000 sq.ft (2,000 Gaj)',
-      image:
-        'https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?auto=format&fit=crop&w=1200&q=80',
-      description:
-        'Serene private land overlooking natural lake waters. Perfect for grand country villa and fruit orchard with boundary wall.',
-    },
-    {
-      id: 9,
-      tag: 'Prime Location',
-      badge: 'Freehold Land',
-      title: 'Aravalli Greens Residential Plot',
-      location: 'Golf Course Extension, Gurugram',
-      city: 'Gurugram',
-      type: 'Private Plot / Land',
-      possession: 'Immediate Registry',
-      builder: 'DLF City Plots',
-      price: '₹4.20 Cr',
-      priceNum: 4.2,
-      rentPrice: 'N/A',
-      rentPriceNum: 0,
-      mode: 'buy',
-      beds: '500 Sq.Yd',
-      baths: 'Clear Title (RERA)',
-      area: '4,500 sq.ft (500 Gaj)',
-      image:
-        'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=1200&q=80',
-      description:
-        'Exclusive gated freehold plot facing the Aravalli biodiversity corridor with 24/7 security and underground piped services.',
-    },
-    {
-      id: 10,
-      tag: 'Hillside Land',
-      badge: 'Valley View',
-      title: 'Pine Ridge Valley View Land',
-      location: 'Pine Ridge, Kasauli Hills',
-      city: 'Kasauli Hills',
-      type: 'Private Plot / Land',
-      possession: 'Immediate Registry',
-      builder: 'Himachal Estates',
-      price: '₹2.75 Cr',
-      priceNum: 2.75,
-      rentPrice: 'N/A',
-      rentPriceNum: 0,
-      mode: 'buy',
-      beds: '650 Sq.Yd',
-      baths: 'Clear Title Freehold',
-      area: '5,850 sq.ft (650 Gaj)',
-      image:
-        'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80',
-      description:
-        'Scenic terraced hillside land surrounded by pine forest canopy. Offers 180-degree unobstructed views of Himalayan peaks.',
-    },
-    {
-      id: 11,
-      tag: 'Rare Land',
-      badge: 'Sanad Approved',
-      title: 'Assagao Portuguese Orchard Land',
-      location: 'Assagao, North Goa',
-      city: 'Goa',
-      type: 'Private Plot / Land',
-      possession: 'Ready to Move',
-      builder: 'Acron Developers',
-      price: '₹3.80 Cr',
-      priceNum: 3.8,
-      rentPrice: 'N/A',
-      rentPriceNum: 0,
-      mode: 'buy',
-      beds: '950 Sq.M',
-      baths: 'Sanad Settlement',
-      area: '10,225 sq.ft (950 Sq.M)',
-      image:
-        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
-      description:
-        'Rare settlement-zoned Portuguese estate land dotted with ancient mango trees in the trendiest lane of Assagao village.',
-    },
-    {
-      id: 12,
-      tag: 'Waterfront',
-      badge: 'Beachside Zone',
-      title: 'Awas Coastal Meadow Plot',
-      location: 'Awas Beach Road, Alibaug',
-      city: 'Alibaug',
-      type: 'Private Plot / Land',
-      possession: 'Immediate Registry',
-      builder: 'Samira Habitats',
-      price: '₹3.20 Cr',
-      priceNum: 3.2,
-      rentPrice: 'N/A',
-      rentPriceNum: 0,
-      mode: 'buy',
-      beds: '1.0 Acre',
-      baths: 'Clear 7/12 Title',
-      area: '43,560 sq.ft (1 Acre)',
-      image:
-        'https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?auto=format&fit=crop&w=1200&q=80',
-      description:
-        'Prime flat coastal acre within walking distance of Awas beach. Complete boundary fence with sweet groundwater aquifer.',
-    },
-    {
-      id: 13,
-      tag: 'Scenic Land',
-      badge: 'Collector NA',
-      title: 'Karjat Foothills Valley Land',
-      location: 'Karjat Foothills, Mumbai',
-      city: 'Mumbai',
-      type: 'Private Plot / Land',
-      possession: 'Ready to Move',
-      builder: 'Godrej Countryside',
-      price: '₹1.40 Cr',
-      priceNum: 1.4,
-      rentPrice: 'N/A',
-      rentPriceNum: 0,
-      mode: 'buy',
-      beds: '800 Sq.Yd',
-      baths: 'Collector NA Approved',
-      area: '7,200 sq.ft (800 Gaj)',
-      image:
-        'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=80',
-      description:
-        'Lush riverside weekend home plot nestled in the Western Ghats mountain shadows. 90-min drive from BKC Mumbai via expressway.',
     },
   ];
 
@@ -818,21 +444,8 @@ export default function HomePage() {
     return true;
   });
 
-  // Recommended plots tailored to user's detected/selected city
-  const recommendedPlots = properties.filter((p) => {
-    const isPlot = p.type === 'Private Plot / Land';
-    if (!isPlot) return false;
-    if (selectedCity === 'All Cities') return true;
-    return p.city.toLowerCase() === selectedCity.toLowerCase();
-  });
-
-  const plotsToShow =
-    recommendedPlots.length > 0
-      ? recommendedPlots
-      : properties.filter((p) => p.type === 'Private Plot / Land');
-
   const hasActiveFilters =
-    (selectedCity !== (userLocation.hubCity || 'Ahmedabad') && selectedCity !== 'All Cities') ||
+    (selectedCity !== 'Ahmedabad' && selectedCity !== 'All Cities') ||
     searchQuery.trim() !== '' ||
     (selectedLocation !== 'Locations' && selectedLocation !== 'All Locations') ||
     (selectedBhk !== 'BHK' && selectedBhk !== 'All BHK') ||
@@ -842,7 +455,7 @@ export default function HomePage() {
     (selectedType !== 'Property Type' && selectedType !== 'All Types');
 
   const resetAllFilters = () => {
-    setSelectedCity(userLocation.hubCity || 'Ahmedabad');
+    setSelectedCity('All Cities');
     setSearchQuery('');
     setSelectedLocation('Locations');
     setSelectedBhk('BHK');
@@ -888,29 +501,9 @@ export default function HomePage() {
             #DhundteRehJaoge <br />
           </h1>
 
-          <p className="text-base sm:text-lg md:text-xl text-stone-600 font-normal max-w-2xl mb-4 sm:mb-5 leading-relaxed px-2">
+          <p className="text-base sm:text-lg md:text-xl text-stone-600 font-normal max-w-2xl mb-5 sm:mb-7 leading-relaxed px-2">
             Discover 100+ curated villas, plots, and apartments in Alibaug, Ahmedabad, Gurugram.
           </p>
-
-          {/* Location Detection Pill */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-stone-200/90 text-xs font-medium text-stone-800 mb-4 sm:mb-5 shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span className="text-stone-500">Your Location:</span>
-            <span className="font-semibold text-stone-900">
-              {userLocation.detectedPlace || selectedCity}
-            </span>
-            <span className="text-stone-300">|</span>
-            <span className="text-emerald-700 font-medium">Plots Recommended in {selectedCity}</span>
-            <button
-              type="button"
-              onClick={handleRefreshLocation}
-              title="Refresh GPS location"
-              className="text-stone-500 hover:text-stone-900 transition flex items-center gap-1 ml-1 cursor-pointer"
-            >
-              <RotateCcw className={`w-3 h-3 ${userLocation.isDetecting ? 'animate-spin' : ''}`} />
-              <span className="text-[11px] underline">GPS</span>
-            </button>
-          </div>
 
           {/* Master Search & Filter Console Card */}
           <div
@@ -1618,137 +1211,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Recommended Plots by User Location Section */}
-      <section className="pt-6 pb-8 sm:pb-12 px-4 sm:px-6 max-w-7xl mx-auto w-full">
-        <div className="bg-gradient-to-br from-[#f8faf8] via-white to-[#f4f7f4] border border-emerald-900/10 rounded-3xl p-6 sm:p-8 md:p-10 shadow-xs relative overflow-hidden">
-          {/* Subtle architectural backdrop vignette */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-100/30 rounded-full blur-3xl pointer-events-none" />
-
-          {/* Section Header */}
-          <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between mb-6 sm:mb-8 gap-4 border-b border-stone-200/70 pb-5">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100/90 text-emerald-900 text-xs font-semibold mb-2 shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-                <span>Default Location Plot Recommendation</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-serif text-stone-900 tracking-tight">
-                Recommended Plots in {selectedCity}
-              </h2>
-              <p className="text-xs sm:text-sm text-stone-500 mt-1">
-                Showing verified residential &amp; villa plots tailored for{' '}
-                <span className="font-semibold text-stone-800">
-                  {userLocation.detectedPlace || selectedCity}
-                </span>{' '}
-                with clear titles &amp; immediate registry.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2.5">
-              <a
-                href="#emi-calculator"
-                className="px-3.5 py-2 rounded-xl bg-white border border-stone-300 hover:border-stone-900 text-stone-800 text-xs font-semibold transition flex items-center gap-1.5 shadow-2xs"
-              >
-                <Maximize2 className="w-3.5 h-3.5 text-stone-600" />
-                <span>Calculate Land Units</span>
-              </a>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedType('Private Plot / Land');
-                  const el = document.getElementById('collection');
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="px-3.5 py-2 rounded-xl bg-stone-900 hover:bg-black text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
-              >
-                <span>All {selectedCity} Plots ({plotsToShow.length})</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Plots Grid */}
-          <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {plotsToShow.slice(0, 3).map((plot) => (
-              <div
-                key={plot.id}
-                className="group bg-white rounded-2xl border border-stone-200/90 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="relative aspect-16/10 w-full overflow-hidden bg-stone-100">
-                    <img
-                      src={plot.image}
-                      alt={plot.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                    <div className="absolute top-3 left-3 flex gap-1.5">
-                      <span className="px-2.5 py-0.5 rounded-full bg-white/95 backdrop-blur-md text-[11px] font-semibold text-stone-900 shadow-xs">
-                        {plot.badge}
-                      </span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-700 text-white text-[11px] font-medium shadow-xs">
-                        {plot.tag}
-                      </span>
-                    </div>
-                    <div className="absolute bottom-3 left-3">
-                      <span className="px-3 py-1 rounded-lg bg-stone-900/90 backdrop-blur-md text-white font-serif font-bold text-base shadow-sm">
-                        {plot.price}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-5">
-                    <div className="flex items-center gap-1.5 text-xs text-stone-500 mb-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                      <span className="truncate">{plot.location}</span>
-                    </div>
-                    <h3 className="text-base sm:text-lg font-semibold text-stone-900 mb-1.5 group-hover:text-stone-700 transition-colors">
-                      {plot.title}
-                    </h3>
-                    <p className="text-xs text-stone-600 line-clamp-2 leading-relaxed mb-4">
-                      {plot.description}
-                    </p>
-
-                    <div className="grid grid-cols-3 gap-2 py-2.5 px-3 rounded-xl bg-stone-50 border border-stone-100 text-[11px]">
-                      <div>
-                        <span className="text-stone-400 block text-[10px]">Plot Size</span>
-                        <span className="font-semibold text-stone-900">{plot.beds}</span>
-                      </div>
-                      <div>
-                        <span className="text-stone-400 block text-[10px]">Title</span>
-                        <span className="font-semibold text-emerald-800">{plot.baths}</span>
-                      </div>
-                      <div>
-                        <span className="text-stone-400 block text-[10px]">Total Area</span>
-                        <span className="font-semibold text-stone-900">{plot.area}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-5 pt-0 flex gap-2">
-                  <a
-                    href={`https://wa.me/919876543210?text=${encodeURIComponent(
-                      `Hello Dwarkesh, I am interested in verified plot: "${plot.title}" at ${plot.location} (Price: ${plot.price}). Please share brochure and site visit details.`
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition flex items-center justify-center gap-1.5 shadow-2xs"
-                  >
-                    <span>Inquire on WhatsApp</span>
-                  </a>
-                  <a
-                    href="#emi-calculator"
-                    title="Calculate in land converter"
-                    className="px-3 py-2.5 rounded-xl border border-stone-300 hover:border-stone-900 text-stone-700 text-xs font-semibold transition flex items-center justify-center cursor-pointer"
-                  >
-                    <Maximize2 className="w-3.5 h-3.5" />
-                  </a>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Curated Properties Section */}
       <section id="collection" className="pt-2 sm:pt-6 pb-16 sm:pb-20 px-4 sm:px-6 max-w-7xl mx-auto w-full">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4">
@@ -1832,39 +1294,20 @@ export default function HomePage() {
                       {property.description}
                     </p>
 
-                    {/* Bed, Bath, Sqft specs or Land specs */}
+                    {/* Bed, Bath, Sqft specs */}
                     <div className="flex items-center justify-between pt-4 border-t border-stone-100 text-xs font-medium text-stone-600">
-                      {property.type === 'Private Plot / Land' ? (
-                        <>
-                          <div className="flex items-center gap-1.5" title="Plot Area">
-                            <Compass className="w-4 h-4 text-emerald-600" />
-                            <span>{property.plotArea || property.area}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5" title="Title Status">
-                            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                            <span>{property.titleStatus || 'Clear Title'}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5" title="Zoning">
-                            <Landmark className="w-4 h-4 text-emerald-600" />
-                            <span>{property.zoning || 'NA Approved'}</span>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="flex items-center gap-1.5">
-                            <Bed className="w-4 h-4 text-stone-400" />
-                            <span>{property.beds}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <Bath className="w-4 h-4 text-stone-400" />
-                            <span>{property.baths}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <Maximize2 className="w-4 h-4 text-stone-400" />
-                            <span>{property.area}</span>
-                          </div>
-                        </>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        <Bed className="w-4 h-4 text-stone-400" />
+                        <span>{property.beds}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Bath className="w-4 h-4 text-stone-400" />
+                        <span>{property.baths}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Maximize2 className="w-4 h-4 text-stone-400" />
+                        <span>{property.area}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
