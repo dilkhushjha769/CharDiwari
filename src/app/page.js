@@ -486,22 +486,23 @@ export default function HomePage() {
       <Navbar />
 
       {/* Hero Header Section */}
-      <section className="relative z-10 pt-10 sm:pt-16 pb-12 sm:pb-16 px-4 sm:px-6 overflow-visible bg-stone-50/20">
+      <section className="relative z-10 pt-6 sm:pt-16 pb-10 sm:pb-16 px-4 sm:px-6 overflow-visible bg-stone-50/20">
         {/* Header Background Image with Architectural Vista */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
           <img
             src="/hero-header-bg.png"
             alt="Dwarkesh Properties Header"
-            className="w-full h-full object-cover object-[80%_center] sm:object-right"
+            className="w-full h-full object-cover object-[80%_center] sm:object-right opacity-90 sm:opacity-100"
           />
-          {/* Soft gradient overlay for text readability while keeping the image vibrant */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/40 to-white/10" />
-          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white via-white/70 to-transparent" />
+          {/* Multi-layer adaptive overlay: High legibility on mobile, atmospheric on desktop */}
+          <div className="absolute inset-0 bg-white/75 sm:bg-white/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-white/85 to-white/95 sm:bg-gradient-to-r sm:from-white/90 sm:via-white/50 sm:to-white/10" />
+          <div className="absolute inset-x-0 bottom-0 h-16 sm:h-20 bg-gradient-to-t from-white via-white/70 to-transparent" />
         </div>
 
         <div className="max-w-5xl mx-auto flex flex-col items-center text-center relative z-10">
           {/* Live Auto-detected Location Pill */}
-          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 sm:px-4.5 sm:py-2 rounded-full bg-white/95 backdrop-blur-md border border-stone-200/90 shadow-xs text-xs sm:text-sm text-stone-700 mb-4 sm:mb-5 transition-all hover:border-stone-300">
+          <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-stone-200/90 shadow-xs text-[11px] sm:text-xs text-stone-700 mb-3 sm:mb-4 transition-all hover:border-stone-300">
             <span className="relative flex h-2 w-2 shrink-0">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -510,9 +511,9 @@ export default function HomePage() {
             {locationLoading ? (
               <span className="text-stone-400 font-medium animate-pulse">Detecting your location...</span>
             ) : userLocation ? (
-              <div className="flex items-center gap-1.5 truncate">
-                <span className="text-stone-400 font-normal">Your Location:</span>
-                <span className="font-semibold text-stone-900">{userLocation.display}</span>
+              <div className="flex items-center gap-1 truncate max-w-[210px] sm:max-w-none">
+                <span className="text-stone-400 font-normal">Location:</span>
+                <span className="font-semibold text-stone-900 truncate">{userLocation.display}</span>
               </div>
             ) : (
               <span className="text-stone-800 font-semibold">Ahmedabad, Gujarat</span>
@@ -521,19 +522,20 @@ export default function HomePage() {
               type="button"
               onClick={refreshGpsLocation}
               title="Pinpoint live GPS location"
-              className="ml-1 p-1 rounded-full text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition cursor-pointer shrink-0"
+              className="ml-0.5 p-0.5 rounded-full text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition cursor-pointer shrink-0"
               aria-label="Refresh GPS location"
             >
-              <Navigation className="w-3.5 h-3.5" />
+              <Navigation className="w-3 h-3" />
             </button>
           </div>
 
           {/* Hero Headline */}
-          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-serif text-stone-900 tracking-tight leading-[1.15] mb-3 sm:mb-4 max-w-4xl break-words">
-            #DhundteRehJaoge <br />
+          <h1 className="text-2xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-stone-900 tracking-tight leading-tight sm:leading-[1.15] mb-2 sm:mb-3 max-w-4xl">
+            #DhundteRehJaoge
           </h1>
 
-          <p className="text-base sm:text-lg md:text-xl text-stone-600 font-normal max-w-2xl mb-5 sm:mb-7 leading-relaxed px-2">
+          {/* Hero Subtitle with Balanced Mobile Typography */}
+          <p className="text-[13px] sm:text-base md:text-lg text-stone-700 sm:text-stone-600 font-normal max-w-md sm:max-w-xl mx-auto mb-5 sm:mb-7 leading-snug sm:leading-relaxed px-3 text-balance">
             Discover 100+ curated villas, plots, and apartments in Alibaug, Ahmedabad, Gurugram.
           </p>
 
