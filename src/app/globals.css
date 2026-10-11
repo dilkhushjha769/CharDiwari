@@ -429,6 +429,13 @@ input[type="range"]:focus-visible {
     opacity: 0;
   }
 }
+
+/* Modal backdrops only fade: scaling a full-screen blurred layer would
+   uncover the page at its edges and is costly to paint. The dialog itself
+   scales in with .animate-fade-in. */
+.animate-scrim-in {
+  animation: fadeOnly 150ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
 @media (prefers-reduced-motion: reduce) {
   .enter-down,
   .enter-scale {
