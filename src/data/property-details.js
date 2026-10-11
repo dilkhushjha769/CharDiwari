@@ -3,7 +3,9 @@
 // details arrive. A missing field simply hides its section.
 //
 // Map fields: coordinates are the LOCALITY centre (locationPrecision
-// 'approximate'), never a specific building. viewerDefault picks the first
+// 'approximate'), never a specific building, taken from OpenStreetMap
+// (Nominatim): the locality's place centre, or for a road address such as
+// Golf Course Extension, a point on that road. Every point is on land. viewerDefault picks the first
 // mode of the neighbourhood viewer ('3d' or 'map'). streetView is filled in by
 // a one-off check against the Street View metadata endpoint once there's an
 // API key; commuteClaims holds the builder's advertised times, e.g.
@@ -12,7 +14,7 @@
 export const propertyDetails = {
   'the-courtyard-villa': {
     // Locality centre, not the building (sample).
-    coordinates: { lat: 28.406, lng: 77.093 },
+    coordinates: { lat: 28.409, lng: 77.0658 },
     locationPrecision: 'approximate',
     viewerDefault: '3d',
     streetView: false,
@@ -29,7 +31,7 @@ export const propertyDetails = {
   },
   'the-mountain-villa': {
     // Locality centre, not the building (sample).
-    coordinates: { lat: 30.901, lng: 76.965 },
+    coordinates: { lat: 30.8999, lng: 76.962 },
     locationPrecision: 'approximate',
     viewerDefault: 'map',
     streetView: false,
@@ -45,7 +47,7 @@ export const propertyDetails = {
   },
   'the-garden-villa': {
     // Locality centre, not the building (sample).
-    coordinates: { lat: 18.744, lng: 72.868 },
+    coordinates: { lat: 18.7682, lng: 72.8708 },
     locationPrecision: 'approximate',
     viewerDefault: 'map',
     streetView: false,
@@ -61,7 +63,7 @@ export const propertyDetails = {
   },
   'the-courtyard-apartment': {
     // Locality centre, not the building (sample).
-    coordinates: { lat: 23.039, lng: 72.511 },
+    coordinates: { lat: 23.0446, lng: 72.5173 },
     locationPrecision: 'approximate',
     viewerDefault: '3d',
     streetView: false,
@@ -78,7 +80,7 @@ export const propertyDetails = {
   },
   'the-horizon-penthouse': {
     // Locality centre, not the building (sample).
-    coordinates: { lat: 19.0105, lng: 72.8145 },
+    coordinates: { lat: 19.0117, lng: 72.8179 },
     locationPrecision: 'approximate',
     viewerDefault: '3d',
     streetView: false,
@@ -94,7 +96,7 @@ export const propertyDetails = {
   },
   'the-palm-villa': {
     // Locality centre, not the building (sample).
-    coordinates: { lat: 15.596, lng: 73.766 },
+    coordinates: { lat: 15.5981, lng: 73.7722 },
     locationPrecision: 'approximate',
     viewerDefault: 'map',
     streetView: false,
