@@ -28,22 +28,60 @@ import Navbar from '@/components/Navbar';
 import EMICalculator from '@/components/EMICalculator';
 import PropertyCard from '@/components/PropertyCard';
 import Footer from '@/components/Footer';
+import SearchAutocomplete from '@/components/SearchAutocomplete';
 import { useUserLocation } from '@/lib/useUserLocation';
 import { properties } from '@/data/properties';
+import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
+  const router = useRouter();
   const { userLocation, locationLoading, refreshGpsLocation } = useUserLocation();
 
-  // Search & Filter State
-  const [searchMode, setSearchMode] = useState('buy'); // 'buy' | 'rent' | 'plots'
-  const [selectedCity, setSelectedCity] = useState('Ahmedabad');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  // Search & Filter State initialized from URL query params or defaults
+  const [searchMode, setSearchMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const mode = new URLSearchParams(window.location.search).get('mode');
+      if (mode && ['buy', 'rent', 'plots'].includes(mode)) return mode;
+    }
+    return 'buy';
+  });
+
+  const [selectedCity, setSelectedCity] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const city = new URLSearchParams(window.location.search).get('city');
+      if (city) return city;
+    }
+    return 'All Cities';
+  });
+
+  const [searchQuery, setSearchQuery] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return new URLSearchParams(window.location.search).get('q') || '';
+    }
+    return '';
+  });
+
   const [selectedLocation, setSelectedLocation] = useState('Locations');
-  const [selectedBhk, setSelectedBhk] = useState('BHK');
+
+  const [selectedBhk, setSelectedBhk] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const bhk = new URLSearchParams(window.location.search).get('bhk');
+      if (bhk) return bhk;
+    }
+    return 'BHK';
+  });
+
   const [selectedBudget, setSelectedBudget] = useState('Budget');
   const [selectedPossession, setSelectedPossession] = useState('Possession');
-  const [selectedType, setSelectedType] = useState('Property Type');
+
+  const [selectedType, setSelectedType] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const type = new URLSearchParams(window.location.search).get('type');
+      if (type) return type;
+    }
+    return 'Property Type';
+  });
+
   const [activeDropdown, setActiveDropdown] = useState(null);
 
   const searchContainerRef = useRef(null);
@@ -56,7 +94,6 @@ export default function HomePage() {
         !searchContainerRef.current.contains(event.target)
       ) {
         setActiveDropdown(null);
-        setIsSearchFocused(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -64,7 +101,6 @@ export default function HomePage() {
   }, []);
 
   const toggleDropdown = (name) => {
-    setIsSearchFocused(false);
     setActiveDropdown((prev) => (prev === name ? null : name));
   };
 
@@ -76,6 +112,7 @@ export default function HomePage() {
     'Kasauli Hills',
     'Mumbai',
     'Goa',
+    'Ludhiana',
   ];
 
   const locationsList = [
@@ -87,6 +124,7 @@ export default function HomePage() {
     'Pine Ridge',
     'Worli Sea Face',
     'Assagao',
+    'Sarabha Nagar',
   ];
 
   const bhkList = ['All BHK', '2 BHK', '3 BHK', '4 BHK', '5+ BHK'];
@@ -124,61 +162,6 @@ export default function HomePage() {
     'Penthouse / Sky Villa',
     'Private Plot / Land',
   ];
-
-
-  // Search suggestions dataset
-  const searchSuggestions = [
-    {
-      type: 'residence',
-      title: 'The Courtyard Apartment',
-      subtitle: 'Bodakdev, Ahmedabad',
-      badge: 'Luxury Apartment',
-    },
-    {
-      type: 'residence',
-      title: 'The Courtyard Villa',
-      subtitle: 'Golf Course Extension, Gurugram',
-      badge: 'Luxury Villa',
-    },
-    {
-      type: 'residence',
-      title: 'The Horizon Penthouse',
-      subtitle: 'Worli Sea Face, Mumbai',
-      badge: 'Penthouse',
-    },
-    {
-      type: 'residence',
-      title: 'The Palm Villa',
-      subtitle: 'Assagao, North Goa',
-      badge: 'Heritage Villa',
-    },
-    {
-      type: 'builder',
-      title: 'HCP Design & Architecture',
-      subtitle: 'Ahmedabad Masterplanners',
-      badge: 'Architect',
-    },
-    {
-      type: 'builder',
-      title: 'Studio Lotus',
-      subtitle: 'Eco-Friendly Luxury Homes',
-      badge: 'Architect',
-    },
-    {
-      type: 'builder',
-      title: 'Samira Habitats',
-      subtitle: 'Coastal Alibaug Villas',
-      badge: 'Curated Builder',
-    },
-  ];
-
-  const filteredSuggestions = searchQuery.trim()
-    ? searchSuggestions.filter(
-      (s) =>
-        s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.subtitle.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    : searchSuggestions.slice(0, 5);
 
   // Helper to count available properties per filter value
   const getListingCount = (type, val) => {
@@ -227,6 +210,9 @@ export default function HomePage() {
         prop.title.toLowerCase().includes(q) ||
         prop.location.toLowerCase().includes(q) ||
         prop.city.toLowerCase().includes(q) ||
+        prop.type.toLowerCase().includes(q) ||
+        (prop.bhk && prop.bhk.toLowerCase().includes(q)) ||
+        (prop.beds && prop.beds.toLowerCase().includes(q)) ||
         prop.description.toLowerCase().includes(q) ||
         (prop.builder && prop.builder.toLowerCase().includes(q));
       if (!match) return false;
@@ -327,17 +313,37 @@ export default function HomePage() {
     setSelectedPossession('Possession');
     setSelectedType('Property Type');
     setActiveDropdown(null);
-    setIsSearchFocused(false);
   };
 
-  const handleSearchSubmit = (e) => {
-    if (e) e.preventDefault();
+  const handleSearchSubmit = (customQuery) => {
     setActiveDropdown(null);
-    setIsSearchFocused(false);
-    const element = document.getElementById('collection');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    const queryToUse = typeof customQuery === 'string' ? customQuery.trim() : searchQuery.trim();
+    if (queryToUse) {
+      setSearchQuery(queryToUse);
     }
+
+    const params = new URLSearchParams();
+    if (queryToUse) params.set('q', queryToUse);
+    if (selectedCity && selectedCity !== 'All Cities') params.set('city', selectedCity);
+    if (searchMode && searchMode !== 'buy') params.set('mode', searchMode);
+    if (selectedLocation && selectedLocation !== 'Locations' && selectedLocation !== 'All Locations') {
+      params.set('location', selectedLocation);
+    }
+    if (selectedType && selectedType !== 'Property Type' && selectedType !== 'All Types') {
+      params.set('type', selectedType);
+    }
+    if (selectedBhk && selectedBhk !== 'BHK' && selectedBhk !== 'All BHK') {
+      params.set('bhk', selectedBhk);
+    }
+    if (selectedBudget && selectedBudget !== 'Budget' && selectedBudget !== 'Any Budget') {
+      params.set('budget', selectedBudget);
+    }
+    if (selectedPossession && selectedPossession !== 'Possession' && selectedPossession !== 'All Possession') {
+      params.set('possession', selectedPossession);
+    }
+
+    const searchUrl = `/search${params.toString() ? `?${params.toString()}` : ''}`;
+    router.push(searchUrl);
   };
 
   return (
@@ -473,93 +479,48 @@ export default function HomePage() {
               <div className="hidden sm:block w-px h-6 bg-stone-200 mx-2" />
               <div className="sm:hidden h-px bg-stone-100 w-full" />
 
-              {/* Main Search Input */}
-              <div className="flex-1 flex items-center gap-2 sm:gap-2.5 px-1 sm:px-3 py-1 sm:py-0 relative min-w-0">
-                <Search className="w-4 h-4 text-stone-400 shrink-0" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onFocus={() => {
-                    setIsSearchFocused(true);
-                    setActiveDropdown(null);
-                  }}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSearchSubmit(e);
-                  }}
-                  placeholder="Search by project, builder, or area..."
-                  className="min-w-0 flex-1 text-xs sm:text-sm font-medium text-stone-900 bg-transparent outline-none placeholder:text-stone-400 py-1"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="p-1 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition cursor-pointer shrink-0"
-                    aria-label="Clear search"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-
-                {/* Solid Black Search Action Button with dynamic count */}
-                <button
-                  type="button"
-                  onClick={handleSearchSubmit}
-                  className="px-3.5 sm:px-5 py-2 rounded-xl sm:rounded-full bg-stone-900 hover:bg-black text-white text-xs font-semibold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer shadow-md hover:shadow-lg active:scale-[0.98] shrink-0"
-                >
-                  <span>Search</span>
-                  <span className="px-1.5 py-0.5 rounded-full bg-white/20 text-[11px] font-mono font-medium">
-                    {filteredProperties.length}
-                  </span>
-                </button>
-
-                {/* Instant Autocomplete & Suggestions Dropdown */}
-                {isSearchFocused && (
-                  <div className="absolute left-0 right-0 sm:right-auto top-full mt-3 w-full sm:w-[480px] max-h-80 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="text-[10px] uppercase font-bold tracking-wider text-stone-400 px-2 py-1 mb-1">
-                      {searchQuery.trim()
-                        ? 'Matching Homes & Builders'
-                        : 'Popular Searches & Top Builders'}
-                    </div>
-                    <div className="space-y-1">
-                      {filteredSuggestions.map((item, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => {
-                            setSearchQuery(item.title);
-                            setIsSearchFocused(false);
-                            const el = document.getElementById('collection');
-                            if (el) el.scrollIntoView({ behavior: 'smooth' });
-                          }}
-                          className="w-full text-left p-2 rounded-xl hover:bg-stone-50 transition-colors flex items-center justify-between cursor-pointer group"
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-lg bg-stone-100 flex items-center justify-center text-stone-600 group-hover:bg-stone-900 group-hover:text-white transition-colors">
-                              {item.type === 'builder' ? (
-                                <Building2 className="w-3.5 h-3.5" />
-                              ) : (
-                                <Sparkles className="w-3.5 h-3.5" />
-                              )}
-                            </div>
-                            <div>
-                              <div className="text-xs font-semibold text-stone-900">
-                                {item.title}
-                              </div>
-                              <div className="text-[11px] text-stone-500">
-                                {item.subtitle}
-                              </div>
-                            </div>
-                          </div>
-                          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-stone-100 text-stone-600">
-                            {item.badge}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              {/* Main Search Input with Dynamic Database-Driven Autocomplete */}
+              <SearchAutocomplete
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                selectedCity={selectedCity}
+                searchMode={searchMode}
+                filteredCount={filteredProperties.length}
+                onSelectProperty={(prop) => {
+                  if (prop.slug) {
+                    router.push(`/property/${prop.slug}`);
+                  } else {
+                    router.push(`/search?q=${encodeURIComponent(prop.title)}`);
+                  }
+                }}
+                onSelectLocation={(loc) => {
+                  const targetCity = (loc.city && citiesList.includes(loc.city)) ? loc.city : (selectedCity !== 'All Cities' ? selectedCity : null);
+                  const params = new URLSearchParams();
+                  if (loc.title) params.set('q', loc.title);
+                  if (targetCity) params.set('city', targetCity);
+                  if (searchMode && searchMode !== 'buy') params.set('mode', searchMode);
+                  router.push(`/search?${params.toString()}`);
+                }}
+                onSelectPropertyType={(type) => {
+                  const params = new URLSearchParams();
+                  if (selectedCity && selectedCity !== 'All Cities') params.set('city', selectedCity);
+                  params.set('type', type);
+                  if (searchMode && searchMode !== 'buy') params.set('mode', searchMode);
+                  router.push(`/search?${params.toString()}`);
+                }}
+                onSelectAttribute={(attr) => {
+                  const params = new URLSearchParams();
+                  if (selectedCity && selectedCity !== 'All Cities') params.set('city', selectedCity);
+                  if (attr.attributeType === 'bhk') {
+                    params.set('bhk', attr.title);
+                  } else {
+                    params.set('q', attr.title);
+                  }
+                  if (searchMode && searchMode !== 'buy') params.set('mode', searchMode);
+                  router.push(`/search?${params.toString()}`);
+                }}
+                onSearchSubmit={handleSearchSubmit}
+              />
             </div>
 
             {/* BOTTOM REFINEMENT SHELF */}

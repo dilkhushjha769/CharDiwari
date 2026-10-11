@@ -10,9 +10,23 @@ const notifyListeners = (data) => {
   listeners.forEach((listener) => listener(data));
 };
 
+function getInitialLocation() {
+  if (cachedLocation) return cachedLocation;
+  if (typeof window !== 'undefined') {
+    try {
+      const stored = sessionStorage.getItem('dwarkesh_user_loc');
+      if (stored) {
+        cachedLocation = JSON.parse(stored);
+        return cachedLocation;
+      }
+    } catch (_) {}
+  }
+  return null;
+}
+
 export function useUserLocation() {
-  const [userLocation, setUserLocation] = useState(cachedLocation);
-  const [locationLoading, setLocationLoading] = useState(!cachedLocation);
+  const [userLocation, setUserLocation] = useState(getInitialLocation);
+  const [locationLoading, setLocationLoading] = useState(() => !getInitialLocation());
 
   const parseLocationData = (data) => {
     const city =
@@ -119,27 +133,16 @@ export function useUserLocation() {
 
     listeners.add(handleUpdate);
 
-    // Check session storage first
-    if (!cachedLocation && typeof window !== 'undefined') {
-      try {
-        const stored = sessionStorage.getItem('dwarkesh_user_loc');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          cachedLocation = parsed;
-          setUserLocation(parsed);
-          setLocationLoading(false);
-        }
-      } catch (_) {}
-    }
-
     // Auto-fetch if not yet loaded
+    let timerId = null;
     if (!cachedLocation) {
-      fetchLocation();
-    } else {
-      setLocationLoading(false);
+      timerId = setTimeout(() => {
+        fetchLocation();
+      }, 0);
     }
 
     return () => {
+      if (timerId) clearTimeout(timerId);
       listeners.delete(handleUpdate);
     };
   }, [fetchLocation]);

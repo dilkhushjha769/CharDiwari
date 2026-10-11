@@ -139,6 +139,29 @@ const listings = [
     description:
       'Restored classic Portuguese-style villa with natural stone walls, private swimming pool, and fruit gardens.',
   },
+  {
+    id: 7,
+    tag: 'Verified',
+    badge: 'Prime City Residence',
+    title: 'The Imperial Heights',
+    location: 'Sarabha Nagar, Ludhiana',
+    city: 'Ludhiana',
+    type: 'Architectural Apartment',
+    possession: 'Ready to Move',
+    builder: 'Hero Realty',
+    price: '₹1.85 Cr',
+    priceNum: 1.85,
+    rentPrice: '₹75,000/mo',
+    rentPriceNum: 0.75,
+    mode: 'both',
+    beds: '2 Beds',
+    baths: '2 Baths',
+    area: '1,850 sq.ft',
+    image:
+      'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
+    description:
+      'Bespoke modern 2 BHK apartment in prime Sarabha Nagar with open modular kitchen, wide balconies, and smart home fittings.',
+  },
 ];
 
 // "The Courtyard Villa" -> "the-courtyard-villa"

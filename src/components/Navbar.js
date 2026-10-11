@@ -47,7 +47,13 @@ export default function Navbar() {
   const [customTiming, setCustomTiming] = useState('');
   const [user, setUser] = useState(null);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [currentUrl, setCurrentUrl] = useState('/');
+  const [currentUrl, setCurrentUrl] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname + window.location.search;
+      return path !== '/auth' ? path : '/';
+    }
+    return '/';
+  });
 
   const navRef = useRef(null);
   const timeoutRef = useRef(null);
@@ -55,10 +61,12 @@ export default function Navbar() {
 
   // Track current URL for redirect back after login
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    const handlePopState = () => {
       const path = window.location.pathname + window.location.search;
       setCurrentUrl(path !== '/auth' ? path : '/');
-    }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   // Check Supabase session & listen to auth changes

@@ -65,6 +65,17 @@ export const propertyDetails = {
       { type: 'airport', name: 'Manohar International Airport, Mopa', km: 29 },
     ],
   },
+  'the-imperial-heights': {
+    highlights: ['Sarabha Nagar prime location', 'Modern 2 BHK layout', 'Smart home automation'],
+    amenities: ['gym', 'clubhouse', 'garden', 'security', 'power-backup', 'parking', 'cctv'],
+    nearby: [
+      { type: 'mall', name: 'MBD Neopolis Mall', km: 2.1 },
+      { type: 'hospital', name: 'Dayanand Medical College & Hospital', km: 4.5 },
+      { type: 'school', name: 'Sacred Heart Convent School', km: 1.8 },
+      { type: 'railway', name: 'Ludhiana Junction Railway Station', km: 6.2 },
+      { type: 'airport', name: 'Sahnewal Airport', km: 16 },
+    ],
+  },
 };
 
 export function propertyDetail(slug) {
