@@ -31,7 +31,12 @@ export default function KeyFacts({ property }) {
       <dl className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-stone-200/80">
         <Fact label="Bedrooms">{property.beds}</Fact>
         <Fact label="Bathrooms">{property.baths}</Fact>
-        <Fact label={`Area (${active.label})`}>{indian.format(sqft * active.perSqft)}</Fact>
+        <Fact label={`Area (${active.label})`}>
+          {/* Keyed on the unit: the new value clears in, so the change is noticed. */}
+          <span key={unit} className="value-swap inline-block">
+            {indian.format(sqft * active.perSqft)}
+          </span>
+        </Fact>
         <Fact label="Type">{property.type}</Fact>
         <Fact label="Possession">{property.possession}</Fact>
         <Fact label="Builder">{property.builder}</Fact>
@@ -45,7 +50,7 @@ export default function KeyFacts({ property }) {
               type="button"
               aria-pressed={unit === item.id}
               onClick={() => setUnit(item.id)}
-              className="min-h-9 px-3 rounded-full text-xs font-semibold text-stone-600 cursor-pointer focus-ring transition-[transform,background-color,color] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-stone-900 active:scale-[0.97] aria-pressed:bg-stone-900 aria-pressed:text-white"
+              className="min-h-9 px-3 rounded-full text-xs font-semibold text-stone-600 cursor-pointer focus-ring transition-[scale,background-color,color] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-stone-900 active:scale-[0.97] aria-pressed:bg-stone-900 aria-pressed:text-white"
             >
               {item.label}
             </button>

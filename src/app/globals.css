@@ -403,6 +403,17 @@ input[type="range"]:focus-visible {
   animation: enterScale 200ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
+/* A value that changes in place (area units): the new one clears in. */
+@keyframes valueSwap {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+  }
+}
+.value-swap {
+  animation: valueSwap 150ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
 /* Reduced motion: keep the fades that explain what changed, drop the movement. */
 @keyframes fadeOnly {
   from {
@@ -413,6 +424,9 @@ input[type="range"]:focus-visible {
   .enter-down,
   .enter-scale {
     animation: fadeOnly 150ms ease backwards;
+  }
+  .value-swap {
+    animation: fadeOnly 120ms ease backwards;
   }
   .animate-viewer-in {
     animation: fadeOnly 150ms ease backwards;
