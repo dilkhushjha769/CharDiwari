@@ -1013,8 +1013,8 @@ export default function HomePage() {
 
           {/* Active Filter Tags Bar (Only rendered when filters are active, Quick Picks removed) */}
           {hasActiveFilters && (
-            <div className="w-full max-w-4xl flex flex-wrap items-center gap-2 text-xs text-stone-600 mt-3 mb-1 px-1">
-              <span className="text-[11px] font-medium text-stone-400 uppercase tracking-wider mr-1">
+            <div className="enter-down w-full max-w-4xl flex flex-wrap items-center gap-2 text-xs text-stone-600 mt-3 mb-1 px-1">
+              <span className="text-[11px] font-medium text-stone-500 uppercase tracking-wider mr-1">
                 Active Filters:
               </span>
               {selectedCity !== 'All Cities' && (
@@ -1165,7 +1165,7 @@ export default function HomePage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 px-6 bg-stone-50/70 dark:bg-stone-50 rounded-3xl border border-dashed border-stone-200">
+          <div className="enter-scale text-center py-16 px-6 bg-stone-50/70 dark:bg-stone-50 rounded-3xl border border-dashed border-stone-200">
             <div className="w-12 h-12 rounded-2xl bg-white dark:bg-stone-100 border border-stone-200 flex items-center justify-center mx-auto mb-4 text-stone-500 shadow-sm">
               <Search className="w-5 h-5" />
             </div>

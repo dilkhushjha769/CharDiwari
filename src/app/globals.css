@@ -380,6 +380,29 @@ input[type="range"]:focus-visible {
   animation: viewerIn 200ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
+/* Soft entrances for content that appears (filter tag bar, empty state).
+   Keyframes on mount: they always run when React inserts the element
+   (@starting-style didn't trigger reliably for the swapped-in empty state).
+   Exits stay instant. */
+@keyframes enterDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@keyframes enterScale {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+.enter-down {
+  animation: enterDown 200ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+.enter-scale {
+  animation: enterScale 200ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
 /* Reduced motion: keep the fades that explain what changed, drop the movement. */
 @keyframes fadeOnly {
   from {
@@ -387,6 +410,10 @@ input[type="range"]:focus-visible {
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .enter-down,
+  .enter-scale {
+    animation: fadeOnly 150ms ease backwards;
+  }
   .animate-viewer-in {
     animation: fadeOnly 150ms ease backwards;
   }
