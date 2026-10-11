@@ -6,3 +6,9 @@ export const WHATSAPP = '919876543210';
 export function whatsappLink(message) {
   return `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(message)}`;
 }
+
+// Lets the visitor pick who to send it to (family, a friend), unlike
+// whatsappLink, which goes to our number.
+export function whatsappShareLink(message) {
+  return `https://wa.me/?text=${encodeURIComponent(message)}`;
+}
