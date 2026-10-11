@@ -243,7 +243,7 @@ export default function Navbar() {
                 >
                   <span>Buy</span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-200 ${activeMenu === 'buy' ? 'rotate-180 text-stone-900' : ''
+                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeMenu === 'buy' ? 'rotate-180 text-stone-900' : ''
                       }`}
                   />
                 </button>
@@ -315,7 +315,7 @@ export default function Navbar() {
                 >
                   <span>Rent</span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-200 ${activeMenu === 'rent' ? 'rotate-180 text-stone-900' : ''
+                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeMenu === 'rent' ? 'rotate-180 text-stone-900' : ''
                       }`}
                   />
                 </button>
@@ -380,7 +380,7 @@ export default function Navbar() {
                 >
                   <span>Sell</span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-200 ${activeMenu === 'sell' ? 'rotate-180 text-stone-900' : ''
+                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeMenu === 'sell' ? 'rotate-180 text-stone-900' : ''
                       }`}
                   />
                 </button>
@@ -494,7 +494,7 @@ export default function Navbar() {
                     )}
                   </div>
                   <span className="font-semibold text-stone-900 text-xs sm:text-sm">Profile</span>
-                  <ChevronDown className={`w-3.5 h-3.5 text-stone-400 transition-transform ${profileDropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${profileDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {profileDropdownOpen && (
@@ -577,7 +577,7 @@ export default function Navbar() {
             className="lg:hidden fixed inset-0 top-[65px] scrim backdrop-blur-[2px] z-40"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="lg:hidden relative z-50 surface-raised border-b border-stone-200 px-6 py-6 animate-fade-in shadow-2xl max-h-[85vh] overflow-y-auto">
+          <div className="lg:hidden relative z-50 surface-raised border-b border-stone-200 px-6 py-6 origin-top animate-fade-in shadow-2xl max-h-[85vh] overflow-y-auto">
             <div className="space-y-4">
               {/* 1. Mobile Buy Accordion */}
               <div className="border-b border-stone-100 pb-3">
@@ -588,7 +588,7 @@ export default function Navbar() {
                 >
                   <span>Buy Homes</span>
                   <ChevronDown
-                    className={`w-4 h-4 transition-transform ${mobileAccordion === 'buy' ? 'rotate-180' : ''}`}
+                    className={`w-4 h-4 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${mobileAccordion === 'buy' ? 'rotate-180' : ''}`}
                   />
                 </button>
                 {mobileAccordion === 'buy' && (
@@ -634,7 +634,7 @@ export default function Navbar() {
                 >
                   <span>Rent Homes</span>
                   <ChevronDown
-                    className={`w-4 h-4 transition-transform ${mobileAccordion === 'rent' ? 'rotate-180' : ''}`}
+                    className={`w-4 h-4 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${mobileAccordion === 'rent' ? 'rotate-180' : ''}`}
                   />
                 </button>
                 {mobileAccordion === 'rent' && (
@@ -673,7 +673,7 @@ export default function Navbar() {
                 >
                   <span>Sell Property</span>
                   <ChevronDown
-                    className={`w-4 h-4 transition-transform ${mobileAccordion === 'sell' ? 'rotate-180' : ''}`}
+                    className={`w-4 h-4 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${mobileAccordion === 'sell' ? 'rotate-180' : ''}`}
                   />
                 </button>
                 {mobileAccordion === 'sell' && (
@@ -797,7 +797,7 @@ export default function Navbar() {
       {/* ============================================================== */}
       {expertModalOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 scrim backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 scrim backdrop-blur-sm animate-scrim-in"
           role="dialog"
           aria-modal="true"
           aria-labelledby="call-us-title"
@@ -809,7 +809,7 @@ export default function Navbar() {
           />
 
           {/* Modal Container */}
-          <div className="relative w-full max-w-md surface-raised rounded-3xl shadow-2xl border border-stone-200 overflow-hidden z-10 flex flex-col p-6 sm:p-7 space-y-5">
+          <div className="relative w-full max-w-md surface-raised rounded-3xl shadow-2xl border border-stone-200 overflow-hidden z-10 flex flex-col p-6 sm:p-7 space-y-5 animate-fade-in">
             {/* Header */}
             <div className="flex items-start justify-between">
               <div>

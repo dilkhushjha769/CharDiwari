@@ -94,7 +94,7 @@ function OtpBoxes({ digits, setDigits, onComplete, shaking }) {
           onPaste={handlePaste}
           onFocus={e => e.target.select()}
           className={`w-11 h-12 text-center text-lg font-semibold rounded-xl border-2 outline-none transition-[border-color,background-color,box-shadow] duration-150 focus:ring-2 focus:ring-zinc-400 light-input
-            ${d ? 'border-black bg-white text-black shadow-sm animate-otp-bounce'
+            ${d ? 'border-black bg-white text-black shadow-sm'
                 : 'border-zinc-200 bg-zinc-50 text-black focus:border-black focus:bg-white'}`}
           aria-label={`OTP digit ${i + 1}`}
         />
@@ -834,7 +834,7 @@ function AuthContent() {
 
               {/* Phone input */}
               {homeTab === 'phone' && (
-                <form onSubmit={handlePhoneContinue} className="space-y-3 animate-slide-in">
+                <form onSubmit={handlePhoneContinue} className="space-y-3 tab-swap">
                   <div className="flex gap-2">
                     {/* Country selector */}
                     <div className="relative">
@@ -890,7 +890,7 @@ function AuthContent() {
 
               {/* Email input */}
               {homeTab === 'email' && (
-                <form onSubmit={handleEmailContinue} className="space-y-3 animate-slide-in">
+                <form onSubmit={handleEmailContinue} className="space-y-3 tab-swap">
                   <input
                     type="email"
                     value={email}

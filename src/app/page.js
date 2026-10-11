@@ -366,12 +366,12 @@ export default function HomePage() {
           {/* Live Auto-detected Location Pill */}
           <div style={{ "--i": 0 }} className="hero-enter inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-stone-200/90 shadow-xs text-[11px] sm:text-xs text-stone-700 mb-3 sm:mb-4 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-stone-300">
             <span className="relative flex h-2 w-2 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
             <MapPin className="w-3.5 h-3.5 text-stone-800 shrink-0" />
             {locationLoading ? (
-              <span className="text-stone-400 font-medium animate-pulse">Detecting your location...</span>
+              <span className="text-stone-400 font-medium">Detecting your location...</span>
             ) : userLocation ? (
               <div className="flex items-center gap-1 truncate max-w-[210px] sm:max-w-none">
                 <span className="text-stone-500 font-normal">Location:</span>
@@ -424,7 +424,7 @@ export default function HomePage() {
                     <span className="truncate max-w-[140px]">{selectedCity}</span>
                   </span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-200 ${activeDropdown === 'city' ? 'rotate-180' : ''
+                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'city' ? 'rotate-180' : ''
                       }`}
                   />
                 </button>
@@ -590,7 +590,7 @@ export default function HomePage() {
                         <Compass className="w-3.5 h-3.5" />
                         <span>{selectedLocation}</span>
                         <ChevronDown
-                          className={`w-3 h-3 opacity-60 transition-transform ${activeDropdown === 'location' ? 'rotate-180' : ''
+                          className={`w-3 h-3 opacity-60 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'location' ? 'rotate-180' : ''
                             }`}
                         />
                       </button>
@@ -667,7 +667,7 @@ export default function HomePage() {
                         <Bed className="w-3.5 h-3.5" />
                         <span>{selectedBhk}</span>
                         <ChevronDown
-                          className={`w-3 h-3 opacity-60 transition-transform ${activeDropdown === 'bhk' ? 'rotate-180' : ''
+                          className={`w-3 h-3 opacity-60 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'bhk' ? 'rotate-180' : ''
                             }`}
                         />
                       </button>
@@ -742,7 +742,7 @@ export default function HomePage() {
                         <Landmark className="w-3.5 h-3.5" />
                         <span>{selectedBudget}</span>
                         <ChevronDown
-                          className={`w-3 h-3 opacity-60 transition-transform ${activeDropdown === 'budget' ? 'rotate-180' : ''
+                          className={`w-3 h-3 opacity-60 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'budget' ? 'rotate-180' : ''
                             }`}
                         />
                       </button>
@@ -811,7 +811,7 @@ export default function HomePage() {
                         <Key className="w-3.5 h-3.5" />
                         <span>{selectedPossession}</span>
                         <ChevronDown
-                          className={`w-3 h-3 opacity-60 transition-transform ${activeDropdown === 'possession' ? 'rotate-180' : ''
+                          className={`w-3 h-3 opacity-60 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'possession' ? 'rotate-180' : ''
                             }`}
                         />
                       </button>
@@ -889,7 +889,7 @@ export default function HomePage() {
                         <Home className="w-3.5 h-3.5" />
                         <span>{selectedType}</span>
                         <ChevronDown
-                          className={`w-3 h-3 opacity-60 transition-transform ${activeDropdown === 'type' ? 'rotate-180' : ''
+                          className={`w-3 h-3 opacity-60 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'type' ? 'rotate-180' : ''
                             }`}
                         />
                       </button>
@@ -1013,8 +1013,8 @@ export default function HomePage() {
 
           {/* Active Filter Tags Bar (Only rendered when filters are active, Quick Picks removed) */}
           {hasActiveFilters && (
-            <div className="w-full max-w-4xl flex flex-wrap items-center gap-2 text-xs text-stone-600 mt-3 mb-1 px-1">
-              <span className="text-[11px] font-medium text-stone-400 uppercase tracking-wider mr-1">
+            <div className="enter-down w-full max-w-4xl flex flex-wrap items-center gap-2 text-xs text-stone-600 mt-3 mb-1 px-1">
+              <span className="text-[11px] font-medium text-stone-500 uppercase tracking-wider mr-1">
                 Active Filters:
               </span>
               {selectedCity !== 'All Cities' && (
@@ -1165,7 +1165,7 @@ export default function HomePage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 px-6 bg-stone-50/70 dark:bg-stone-50 rounded-3xl border border-dashed border-stone-200">
+          <div className="enter-scale text-center py-16 px-6 bg-stone-50/70 dark:bg-stone-50 rounded-3xl border border-dashed border-stone-200">
             <div className="w-12 h-12 rounded-2xl bg-white dark:bg-stone-100 border border-stone-200 flex items-center justify-center mx-auto mb-4 text-stone-500 shadow-sm">
               <Search className="w-5 h-5" />
             </div>
@@ -1257,7 +1257,7 @@ export default function HomePage() {
           <img
             src="/property-banner.png"
             alt="Find Your Perfect Property - Buy, Sell or Rent with Ease"
-            className="w-full h-auto object-cover rounded-2xl sm:rounded-3xl group-hover:scale-[1.01] transition-transform duration-500"
+            className="w-full h-auto object-cover rounded-2xl sm:rounded-3xl motion-safe:group-hover:scale-[1.01] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
           />
         </Link>
         </Reveal>
