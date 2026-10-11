@@ -424,7 +424,7 @@ export default function HomePage() {
                     <span className="truncate max-w-[140px]">{selectedCity}</span>
                   </span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-200 ${activeDropdown === 'city' ? 'rotate-180' : ''
+                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'city' ? 'rotate-180' : ''
                       }`}
                   />
                 </button>
@@ -590,7 +590,7 @@ export default function HomePage() {
                         <Compass className="w-3.5 h-3.5" />
                         <span>{selectedLocation}</span>
                         <ChevronDown
-                          className={`w-3 h-3 opacity-60 transition-transform ${activeDropdown === 'location' ? 'rotate-180' : ''
+                          className={`w-3 h-3 opacity-60 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'location' ? 'rotate-180' : ''
                             }`}
                         />
                       </button>
@@ -667,7 +667,7 @@ export default function HomePage() {
                         <Bed className="w-3.5 h-3.5" />
                         <span>{selectedBhk}</span>
                         <ChevronDown
-                          className={`w-3 h-3 opacity-60 transition-transform ${activeDropdown === 'bhk' ? 'rotate-180' : ''
+                          className={`w-3 h-3 opacity-60 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'bhk' ? 'rotate-180' : ''
                             }`}
                         />
                       </button>
@@ -742,7 +742,7 @@ export default function HomePage() {
                         <Landmark className="w-3.5 h-3.5" />
                         <span>{selectedBudget}</span>
                         <ChevronDown
-                          className={`w-3 h-3 opacity-60 transition-transform ${activeDropdown === 'budget' ? 'rotate-180' : ''
+                          className={`w-3 h-3 opacity-60 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'budget' ? 'rotate-180' : ''
                             }`}
                         />
                       </button>
@@ -811,7 +811,7 @@ export default function HomePage() {
                         <Key className="w-3.5 h-3.5" />
                         <span>{selectedPossession}</span>
                         <ChevronDown
-                          className={`w-3 h-3 opacity-60 transition-transform ${activeDropdown === 'possession' ? 'rotate-180' : ''
+                          className={`w-3 h-3 opacity-60 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'possession' ? 'rotate-180' : ''
                             }`}
                         />
                       </button>
@@ -889,7 +889,7 @@ export default function HomePage() {
                         <Home className="w-3.5 h-3.5" />
                         <span>{selectedType}</span>
                         <ChevronDown
-                          className={`w-3 h-3 opacity-60 transition-transform ${activeDropdown === 'type' ? 'rotate-180' : ''
+                          className={`w-3 h-3 opacity-60 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'type' ? 'rotate-180' : ''
                             }`}
                         />
                       </button>
@@ -1257,7 +1257,7 @@ export default function HomePage() {
           <img
             src="/property-banner.png"
             alt="Find Your Perfect Property - Buy, Sell or Rent with Ease"
-            className="w-full h-auto object-cover rounded-2xl sm:rounded-3xl group-hover:scale-[1.01] transition-transform duration-500"
+            className="w-full h-auto object-cover rounded-2xl sm:rounded-3xl motion-safe:group-hover:scale-[1.01] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
           />
         </Link>
         </Reveal>
