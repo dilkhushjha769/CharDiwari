@@ -53,13 +53,13 @@ export default function PropertyGallery({ title, photos }) {
         role="region"
         aria-roledescription="carousel"
         aria-label={`${title} photos`}
-        className="relative rounded-3xl overflow-hidden border border-stone-200/90 bg-stone-100 shadow-sm"
+        className="light-scope relative rounded-3xl overflow-hidden border border-stone-200/90 bg-stone-100 dark:border-white/10 dark:bg-neutral-800 shadow-sm"
       >
         <ul
           ref={stripRef}
           tabIndex={0}
           aria-label="Photos, scroll sideways"
-          className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth motion-reduce:scroll-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden outline-none focus-visible:ring-2 focus-visible:ring-stone-900 focus-visible:ring-inset"
+          className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth motion-reduce:scroll-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden outline-none focus-visible:ring-[3px] focus-visible:ring-white focus-visible:ring-inset"
         >
           {photos.map((photo, index) => (
             <li
@@ -120,7 +120,7 @@ export default function PropertyGallery({ title, photos }) {
             onClick={() => show(index)}
             aria-label={`Show photo ${index + 1}: ${photo.caption}`}
             aria-current={index === current ? 'true' : undefined}
-            className={`relative shrink-0 w-20 sm:w-24 aspect-[3/2] rounded-xl overflow-hidden border-2 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-stone-900 focus-visible:ring-offset-2 ${press} ${
+            className={`relative shrink-0 w-20 sm:w-24 aspect-[3/2] rounded-xl overflow-hidden border-2 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-stone-900 focus-visible:ring-offset-2 ring-offset-white ${press} ${
               index === current ? 'border-stone-900' : 'border-transparent opacity-60 hover:opacity-100'
             }`}
           >

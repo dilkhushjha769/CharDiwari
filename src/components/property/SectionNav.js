@@ -33,7 +33,7 @@ export default function SectionNav({ sections, className = '' }) {
             <a
               href={`#${section.id}`}
               aria-current={active === section.id ? 'true' : undefined}
-              className={`inline-flex h-9 items-center rounded-full px-3.5 text-xs font-semibold outline-none transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-stone-900 ${
+              className={`inline-flex h-9 items-center rounded-full px-3.5 text-xs font-semibold focus-ring transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97] ${
                 active === section.id ? 'bg-stone-900 text-white' : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
               }`}
             >

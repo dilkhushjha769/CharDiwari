@@ -44,7 +44,7 @@ export default function BookVisitButton({ property, className = '' }) {
       type="button"
       onClick={book}
       aria-busy={checking}
-      className={`inline-flex items-center justify-center gap-2 rounded-full bg-stone-900 text-white text-sm font-semibold cursor-pointer outline-none transition-[transform,background-color] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-black active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-stone-900 focus-visible:ring-offset-2 ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-full bg-stone-900 text-white text-sm font-semibold cursor-pointer outline-none transition-[transform,background-color] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-black active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-stone-500 focus-visible:ring-offset-2 ring-offset-white ${className}`}
     >
       <CalendarCheck className="w-4 h-4" />
       Book a free visit

@@ -29,7 +29,7 @@ import {
 export function Section({ id, title, children }) {
   return (
     <section id={id} aria-labelledby={`${id}-title`} className="min-w-0 scroll-mt-[113px] pt-10">
-      <h2 id={`${id}-title`} className="text-2xl sm:text-3xl font-serif text-stone-900 tracking-tight">
+      <h2 id={`${id}-title`} className="text-2xl sm:text-3xl font-serif text-stone-900 tracking-tight text-balance">
         {title}
       </h2>
       <div className="mt-5">{children}</div>
@@ -40,13 +40,13 @@ export function Section({ id, title, children }) {
 export function Overview({ property, detail }) {
   return (
     <>
-      <p className="max-w-2xl text-base text-stone-600 leading-relaxed">{property.description}</p>
+      <p className="max-w-2xl text-base text-stone-600 leading-relaxed text-pretty">{property.description}</p>
       {detail.highlights?.length ? (
         <ul className="mt-6 grid gap-3 sm:grid-cols-3">
           {detail.highlights.map((highlight) => (
             <li
               key={highlight}
-              className="flex items-start gap-2.5 rounded-2xl border border-stone-200/90 bg-white p-4 text-sm font-medium text-stone-800 shadow-sm"
+              className="flex items-start gap-2.5 rounded-2xl border border-stone-200/90 bg-white dark:bg-stone-50 p-4 text-sm font-medium text-stone-800 shadow-sm"
             >
               <CheckCircle2 className="mt-0.5 w-4 h-4 shrink-0 text-emerald-700" />
               {highlight}
@@ -79,7 +79,7 @@ export function Amenities({ amenities }) {
         const amenity = amenityList[id] ?? { label: id, icon: CheckCircle2 };
         const Icon = amenity.icon;
         return (
-          <li key={id} className="flex items-center gap-3 rounded-2xl border border-stone-200/90 bg-white px-4 py-3.5 text-sm font-medium text-stone-800 shadow-sm">
+          <li key={id} className="flex items-center gap-3 rounded-2xl border border-stone-200/90 bg-white dark:bg-stone-50 px-4 py-3.5 text-sm font-medium text-stone-800 shadow-sm">
             <span className="flex w-9 h-9 shrink-0 items-center justify-center rounded-xl bg-stone-50 border border-stone-200/80">
               <Icon className="w-4 h-4 text-stone-700" />
             </span>
@@ -115,14 +115,14 @@ export function Location({ property, detail }) {
           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${property.title}, ${property.location}`)}`}
           target="_blank"
           rel="noreferrer"
-          className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white border border-stone-200 px-4 py-2 text-xs font-semibold text-stone-900 shadow-sm hover:bg-stone-900 hover:text-white transition-colors"
+          className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white border border-stone-200 px-4 py-2 text-xs font-semibold text-stone-900 shadow-sm hover:bg-stone-900 hover:text-white dark:hover:bg-stone-200 dark:hover:text-stone-900 transition-colors focus-ring"
         >
           Directions on Google Maps
           <ArrowUpRight className="w-3.5 h-3.5" />
         </a>
       </div>
       {nearby.length ? (
-        <ul className="divide-y divide-stone-100 rounded-3xl border border-stone-200/90 bg-white shadow-sm">
+        <ul className="divide-y divide-stone-100 rounded-3xl border border-stone-200/90 bg-white dark:bg-stone-50 shadow-sm">
           {nearby.map((place) => {
             const Icon = nearbyIcons[place.type] ?? MapPin;
             return (
@@ -169,12 +169,12 @@ export function Faqs({ faqs }) {
   return (
     <div className="grid gap-3">
       {faqs.map((faq) => (
-        <details key={faq.question} className="group rounded-2xl border border-stone-200/90 bg-white shadow-sm open:shadow-md">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-stone-900 outline-none focus-visible:ring-2 focus-visible:ring-stone-900 rounded-2xl [&::-webkit-details-marker]:hidden">
+        <details key={faq.question} className="group rounded-2xl border border-stone-200/90 bg-white dark:bg-stone-50 shadow-sm open:shadow-md open:border-stone-300">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-stone-900 focus-ring rounded-2xl [&::-webkit-details-marker]:hidden">
             {faq.question}
             <ChevronDown className="w-4 h-4 shrink-0 text-stone-500 transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group-open:rotate-180" />
           </summary>
-          <p className="px-5 pb-5 text-sm text-stone-600 leading-relaxed">{faq.answer}</p>
+          <p className="px-5 pb-5 text-sm text-stone-600 leading-relaxed text-pretty">{faq.answer}</p>
         </details>
       ))}
     </div>
