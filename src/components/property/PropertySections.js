@@ -23,6 +23,8 @@ import {
   Waves,
   Zap,
 } from 'lucide-react';
+import NeighbourhoodViewer from './NeighbourhoodViewer';
+import CommuteCheck from './CommuteCheck';
 
 // One section of the property page. scroll-mt clears the sticky navbar (65px)
 // and section nav (48px); min-w-0 keeps wide content from widening the page.
@@ -105,36 +107,43 @@ const nearbyIcons = {
 export function Location({ property, detail }) {
   const nearby = [...(detail.nearby ?? [])].sort((a, b) => a.km - b.km);
   return (
-    <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-      <div className="rounded-3xl border border-stone-200/90 bg-stone-50/70 p-6">
-        <p className="flex items-start gap-2 text-sm font-semibold text-stone-900">
-          <MapPin className="mt-0.5 w-4 h-4 shrink-0 text-stone-500" />
-          {property.location}
-        </p>
-        <a
-          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${property.title}, ${property.location}`)}`}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white border border-stone-200 px-4 py-2 text-xs font-semibold text-stone-900 shadow-sm hover:bg-stone-900 hover:text-white dark:hover:bg-stone-200 dark:hover:text-stone-900 transition-colors focus-ring"
-        >
-          Directions on Google Maps
-          <ArrowUpRight className="w-3.5 h-3.5" />
-        </a>
+    <div className="grid gap-4">
+      {/* 3D / Street View / Map: loads from Google only when the visitor asks. */}
+      <NeighbourhoodViewer property={property} detail={detail} />
+      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+        <div className="grid content-start gap-4">
+          <div className="rounded-3xl border border-stone-200/90 bg-stone-50/70 p-6">
+            <p className="flex items-start gap-2 text-sm font-semibold text-stone-900">
+              <MapPin className="mt-0.5 w-4 h-4 shrink-0 text-stone-500" />
+              {property.location}
+            </p>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${property.title}, ${property.location}`)}`}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white border border-stone-200 px-4 py-2 text-xs font-semibold text-stone-900 shadow-sm hover:bg-stone-900 hover:text-white dark:hover:bg-stone-200 dark:hover:text-stone-900 transition-colors focus-ring"
+            >
+              Directions on Google Maps
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </a>
+          </div>
+          <CommuteCheck detail={detail} />
+        </div>
+        {nearby.length ? (
+          <ul className="divide-y divide-stone-100 rounded-3xl border border-stone-200/90 bg-white dark:bg-stone-50 shadow-sm">
+            {nearby.map((place) => {
+              const Icon = nearbyIcons[place.type] ?? MapPin;
+              return (
+                <li key={place.name} className="flex items-center gap-3 px-5 py-3.5 text-sm">
+                  <Icon className="w-4 h-4 shrink-0 text-stone-400" />
+                  <span className="flex-1 text-stone-800">{place.name}</span>
+                  <span className="text-xs font-semibold text-stone-500 tabular-nums">{place.km} km</span>
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
       </div>
-      {nearby.length ? (
-        <ul className="divide-y divide-stone-100 rounded-3xl border border-stone-200/90 bg-white dark:bg-stone-50 shadow-sm">
-          {nearby.map((place) => {
-            const Icon = nearbyIcons[place.type] ?? MapPin;
-            return (
-              <li key={place.name} className="flex items-center gap-3 px-5 py-3.5 text-sm">
-                <Icon className="w-4 h-4 shrink-0 text-stone-400" />
-                <span className="flex-1 text-stone-800">{place.name}</span>
-                <span className="text-xs font-semibold text-stone-500 tabular-nums">{place.km} km</span>
-              </li>
-            );
-          })}
-        </ul>
-      ) : null}
     </div>
   );
 }

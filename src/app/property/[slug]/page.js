@@ -183,7 +183,7 @@ function PropertyContent({ property, detail }) {
                   <Amenities amenities={detail.amenities} />
                 </Section>
               ) : null}
-              <Section id="location" title="Location and nearby">
+              <Section id="location" title="Location and neighbourhood">
                 <Location property={property} detail={detail} />
               </Section>
             </div>
