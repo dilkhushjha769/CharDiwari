@@ -92,10 +92,30 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-white text-stone-900 font-sans text-xs">
-        <div className="flex flex-col items-center gap-3">
-          <RefreshCw className="w-5 h-5 animate-spin text-stone-900" />
-          <p className="text-stone-500">Loading your profile...</p>
+      // Skeleton in the shape of the page (header, profile card, two cards,
+      // a strip), so it fills in rather than swapping from a spinner.
+      <div className="min-h-screen bg-stone-50/40 dark:bg-white flex flex-col font-sans" aria-busy="true">
+        <span className="sr-only" role="status">Loading your profile…</span>
+        <div className="border-b border-stone-200/80 bg-white/90 h-16" />
+        <div className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-10 motion-safe:animate-pulse">
+          <div className="rounded-3xl border border-stone-200/80 dark:border-stone-300 bg-white dark:bg-stone-50 p-6 sm:p-8 mb-8 flex items-center gap-5">
+            <div className="w-16 h-16 rounded-full bg-stone-100" />
+            <div className="flex-1 space-y-3">
+              <div className="h-5 w-48 max-w-full rounded bg-stone-100" />
+              <div className="h-3.5 w-64 max-w-full rounded bg-stone-100" />
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            {[0, 1].map((card) => (
+              <div key={card} className="h-56 rounded-2xl border border-stone-200/80 dark:border-stone-300 bg-white dark:bg-stone-50 p-6 space-y-4">
+                <div className="h-4 w-32 rounded bg-stone-100" />
+                <div className="h-3 w-full rounded bg-stone-100" />
+                <div className="h-3 w-5/6 rounded bg-stone-100" />
+                <div className="h-3 w-2/3 rounded bg-stone-100" />
+              </div>
+            ))}
+          </div>
+          <div className="h-24 rounded-2xl border border-stone-200/80 dark:border-stone-300 bg-white dark:bg-stone-50" />
         </div>
       </div>
     );
