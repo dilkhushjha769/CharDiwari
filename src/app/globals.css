@@ -414,6 +414,15 @@ input[type="range"]:focus-visible {
   animation: valueSwap 150ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
+/* Reveal with stagger: children rise in one after another (--i = order). */
+[data-reveal="in"].reveal-stagger {
+  animation: none;
+}
+[data-reveal="in"].reveal-stagger > * {
+  animation: revealIn 400ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 50ms);
+}
+
 /* Reduced motion: keep the fades that explain what changed, drop the movement. */
 @keyframes fadeOnly {
   from {
@@ -427,6 +436,9 @@ input[type="range"]:focus-visible {
   }
   .value-swap {
     animation: fadeOnly 120ms ease backwards;
+  }
+  [data-reveal="in"].reveal-stagger > * {
+    animation: fadeOnly 300ms ease backwards;
   }
   .animate-viewer-in {
     animation: fadeOnly 150ms ease backwards;
