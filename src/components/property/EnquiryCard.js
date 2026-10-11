@@ -3,7 +3,7 @@ import { PHONE, whatsappLink } from '@/lib/contact';
 import BookVisitButton from './BookVisitButton';
 
 const secondary =
-  'flex flex-1 items-center justify-center gap-2 rounded-full border border-stone-200 bg-white text-xs font-semibold text-stone-900 outline-none transition-[transform,background-color,color] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-stone-900 hover:text-white dark:hover:bg-stone-200 dark:hover:text-stone-900 active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-stone-900';
+  'flex flex-1 items-center justify-center gap-2 rounded-full border border-stone-200 bg-white text-xs font-semibold text-stone-900 outline-none transition-[scale,background-color,color] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-stone-900 hover:text-white dark:hover:bg-stone-200 dark:hover:text-stone-900 active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-stone-900';
 
 function enquiryMessage(property) {
   return `Hi Dwarkesh, I'm interested in ${property.title}, ${property.location} (${property.price}).`;
