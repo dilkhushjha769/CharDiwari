@@ -75,3 +75,26 @@ Check code quality with ESLint:
 ```bash
 npm run lint
 ```
+
+## 🗺️ Google Maps (property page)
+
+Each property page has a neighbourhood viewer (photorealistic **3D**, **Street View** and a **map**) and a **commute check**. Without a key they show a "Map preview unavailable" card, so the site works either way.
+
+To turn them on:
+
+1. In Google Cloud, enable the **Maps JavaScript API**, **Places API (New)** and **Routes API** on a project with billing.
+2. Create an API key and restrict it by **HTTP referrer** to:
+   - `http://localhost:3000/*`
+   - your live domain, e.g. `https://char-diwari.vercel.app/*`
+   - your Vercel preview pattern, e.g. `https://*-<your-team>.vercel.app/*` (otherwise maps won't load on PR previews)
+3. Optionally create a **Map ID** (Google Maps Platform → Map management) for map styling. Without one, Google's `DEMO_MAP_ID` is used.
+4. Add both to `.env.local` (never committed) and to the Vercel project's environment variables:
+   ```
+   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=...
+   NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID=...
+   ```
+5. Set a **daily quota cap** per API (APIs & Services → each API → Quotas) as a cost safety net.
+
+**Cost:** nothing loads from Google until a visitor clicks "Explore in 3D" or "Check my commute". Google's India price list gives monthly free usage per product, and a small site should stay within it.
+
+**Data:** pins are placed at the locality centre (`coordinates` in `src/data/property-details.js`, marked `locationPrecision: 'approximate'`). Once there's a key, set `streetView: true` for properties where the Street View metadata endpoint finds coverage. Fill `commuteClaims` with the builder's advertised times to show them beside the real ones.
