@@ -26,22 +26,22 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-wrap items-center gap-8 text-stone-600">
-          <Link href="/#collection" className="hover:text-stone-900 transition">
+          <Link href="/#collection" className="focus-ring rounded-sm hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]">
             Buy Homes
           </Link>
-          <Link href="/#collection" className="hover:text-stone-900 transition">
+          <Link href="/#collection" className="focus-ring rounded-sm hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]">
             Rentals
           </Link>
-          <Link href="/#emi-calculator" className="hover:text-stone-900 transition">
+          <Link href="/#emi-calculator" className="focus-ring rounded-sm hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]">
             EMI Calculator
           </Link>
-          <Link href="/auth" className="hover:text-stone-900 transition">
+          <Link href="/auth" className="focus-ring rounded-sm hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]">
             Sign In
           </Link>
-          <Link href="/profile" className="hover:text-stone-900 transition">
+          <Link href="/profile" className="focus-ring rounded-sm hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]">
             My Profile
           </Link>
-          <span className="text-stone-400">© 2026 Dwarkesh</span>
+          <span className="text-stone-500">© 2026 Dwarkesh</span>
         </div>
       </div>
     </footer>
