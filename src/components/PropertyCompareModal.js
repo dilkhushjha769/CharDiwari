@@ -119,6 +119,33 @@ export default function PropertyCompareModal({
     return map;
   }, [compareList]);
 
+  // Desktop Executive Summary Stats (Fills the left column elegantly)
+  const summaryStats = useMemo(() => {
+    if (compareList.length === 0) return null;
+    const prices = compareList.map((p) => p.priceNum).filter(Boolean);
+    const minP = Math.min(...prices);
+    const maxP = Math.max(...prices);
+    const priceRangeText =
+      minP === maxP
+        ? `₹${minP.toFixed(2)} Cr`
+        : `₹${minP.toFixed(2)} – ₹${maxP.toFixed(2)} Cr`;
+
+    const cities = Array.from(new Set(compareList.map((p) => p.city).filter(Boolean)));
+    const citiesSummary = cities.join(', ');
+
+    const bhks = Array.from(
+      new Set(compareList.map((p) => p.beds?.replace(/[^\d]/g, '')).filter(Boolean))
+    ).sort((a, b) => Number(a) - Number(b));
+    const bhkSummary =
+      bhks.length > 1
+        ? `${bhks[0]} to ${bhks[bhks.length - 1]} BHK`
+        : bhks.length === 1
+        ? `${bhks[0]} BHK`
+        : 'Multiple';
+
+    return { priceRangeText, citiesSummary, bhkSummary };
+  }, [compareList]);
+
   if (!isOpen) return null;
 
   // Comparison feature definitions
@@ -149,33 +176,6 @@ export default function PropertyCompareModal({
 
   const activeMobilePropA = compareList[mobileSlotA] || compareList[0];
   const activeMobilePropB = compareList[mobileSlotB] || compareList[1] || compareList[0];
-
-  // Desktop Executive Summary Stats (Fills the left column elegantly)
-  const summaryStats = useMemo(() => {
-    if (compareList.length === 0) return null;
-    const prices = compareList.map((p) => p.priceNum).filter(Boolean);
-    const minP = Math.min(...prices);
-    const maxP = Math.max(...prices);
-    const priceRangeText =
-      minP === maxP
-        ? `₹${minP.toFixed(2)} Cr`
-        : `₹${minP.toFixed(2)} – ₹${maxP.toFixed(2)} Cr`;
-
-    const cities = Array.from(new Set(compareList.map((p) => p.city).filter(Boolean)));
-    const citiesSummary = cities.join(', ');
-
-    const bhks = Array.from(
-      new Set(compareList.map((p) => p.beds?.replace(/[^\d]/g, '')).filter(Boolean))
-    ).sort((a, b) => Number(a) - Number(b));
-    const bhkSummary =
-      bhks.length > 1
-        ? `${bhks[0]} to ${bhks[bhks.length - 1]} BHK`
-        : bhks.length === 1
-        ? `${bhks[0]} BHK`
-        : 'Multiple';
-
-    return { priceRangeText, citiesSummary, bhkSummary };
-  }, [compareList]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6 animate-in fade-in duration-200">
