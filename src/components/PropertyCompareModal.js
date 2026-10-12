@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -22,7 +22,7 @@ import {
   Eye,
   EyeOff,
   ChevronDown,
-  Layers,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { propertyDetail } from '@/data/property-details';
 import { properties as allProperties } from '@/data/properties';
@@ -41,7 +41,7 @@ function calculateEstEMI(priceNum) {
     (Math.pow(1 + monthlyRate, tenureMonths) - 1);
 
   if (emi >= 100000) {
-    return `₹${(emi / 100000).toFixed(2)} Lakh/mo`;
+    return `₹${(emi / 100000).toFixed(2)} L/mo`;
   }
   return `₹${Math.round(emi).toLocaleString('en-IN')}/mo`;
 }
@@ -69,7 +69,18 @@ export default function PropertyCompareModal({
 }) {
   const [highlightDifferences, setHighlightDifferences] = useState(false);
   const [addDropdownOpen, setAddDropdownOpen] = useState(false);
-  const scrollContainerRef = useRef(null);
+
+  // Mobile comparison slots (indices of the 2 active properties to compare side-by-side)
+  const [mobileSlotA, setMobileSlotA] = useState(0);
+  const [mobileSlotB, setMobileSlotB] = useState(1);
+
+  // Ensure valid indices when compareList changes
+  useEffect(() => {
+    if (compareList.length > 0) {
+      setMobileSlotA(0);
+      setMobileSlotB(compareList.length > 1 ? 1 : 0);
+    }
+  }, [compareList.length]);
 
   // Close modal on Escape key and lock body scroll
   useEffect(() => {
@@ -86,17 +97,6 @@ export default function PropertyCompareModal({
       document.body.style.overflow = originalOverflow;
     };
   }, [isOpen, onClose]);
-
-  // Smooth scroll to a specific property column on mobile
-  const scrollToColumn = (index) => {
-    if (!scrollContainerRef.current) return;
-    // On mobile, each property column is approx 175px
-    const colWidth = 175;
-    scrollContainerRef.current.scrollTo({
-      left: index * colWidth,
-      behavior: 'smooth',
-    });
-  };
 
   // Available properties to add if slots are less than 3
   const availableToAdd = useMemo(() => {
@@ -140,11 +140,18 @@ export default function PropertyCompareModal({
     return compareList.some((p) => getter(p) !== firstVal);
   };
 
-  // Total columns in the table (1 label col + properties + optional add slot)
-  const totalColumns = 1 + compareList.length + (compareList.length < 3 ? 1 : 0);
+  const isMobileDifferent = (getter) => {
+    const propA = compareList[mobileSlotA];
+    const propB = compareList[mobileSlotB];
+    if (!propA || !propB || propA.id === propB.id) return false;
+    return getter(propA) !== getter(propB);
+  };
+
+  const activeMobilePropA = compareList[mobileSlotA] || compareList[0];
+  const activeMobilePropB = compareList[mobileSlotB] || compareList[1] || compareList[0];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6 animate-in fade-in duration-200">
       {/* Backdrop */}
       <div
         className="fixed inset-0 scrim bg-black/60 backdrop-blur-xs transition-opacity"
@@ -157,7 +164,7 @@ export default function PropertyCompareModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="compare-modal-title"
-        className="relative surface-raised bg-white dark:bg-stone-50 rounded-t-2xl sm:rounded-3xl border-t sm:border border-stone-200/90 shadow-2xl w-full max-w-6xl h-[95dvh] sm:h-auto sm:max-h-[92vh] flex flex-col overflow-hidden z-10 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200"
+        className="relative surface-raised bg-white dark:bg-stone-50 rounded-t-2xl md:rounded-3xl border-t md:border border-stone-200/90 shadow-2xl w-full max-w-6xl h-[92dvh] md:h-auto md:max-h-[92vh] flex flex-col overflow-hidden z-10 animate-in slide-in-from-bottom md:zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header Bar */}
@@ -172,7 +179,7 @@ export default function PropertyCompareModal({
                 Property Comparison
               </h2>
               <span className="text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-stone-200 dark:bg-stone-200 text-stone-700 shrink-0">
-                {compareList.length} of 3
+                {compareList.length} Selected
               </span>
             </div>
 
@@ -222,41 +229,67 @@ export default function PropertyCompareModal({
             </div>
           </div>
 
-          {/* Subtitle (Desktop only for compactness) */}
-          <p className="text-xs text-stone-500 mt-1 hidden sm:block">
+          {/* Subtitle (Desktop only) */}
+          <p className="text-xs text-stone-500 mt-1 hidden md:block">
             Review prices, floor plans, amenities, and connectivity side-by-side
           </p>
 
-          {/* Mobile Quick Navigation Strip (Jump to Property & Swipe hint) */}
-          {compareList.length > 1 && (
-            <div className="sm:hidden mt-2 pt-2 border-t border-stone-200/70 flex items-center justify-between gap-2 overflow-x-auto scrollbar-none">
+          {/* Mobile Comparison Pair Switcher (When 3 properties are selected) */}
+          {compareList.length === 3 && (
+            <div className="md:hidden mt-2.5 pt-2 border-t border-stone-200/70 flex items-center justify-between gap-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 shrink-0">
-                Jump to:
+                Compare:
               </span>
-              <div className="flex items-center gap-1 overflow-x-auto">
-                {compareList.map((p, idx) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => scrollToColumn(idx)}
-                    className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white dark:bg-stone-50 border border-stone-200 text-stone-700 shrink-0 max-w-[110px] truncate active:bg-stone-200 transition"
-                  >
-                    {idx + 1}. {p.title.replace(/^The\s+/i, '').split(' ')[0]}
-                  </button>
-                ))}
+              <div className="grid grid-cols-3 gap-1 flex-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileSlotA(0);
+                    setMobileSlotB(1);
+                  }}
+                  className={`px-1.5 py-1 rounded-lg text-[10px] font-bold text-center truncate transition ${
+                    mobileSlotA === 0 && mobileSlotB === 1
+                      ? 'bg-stone-900 text-white shadow-xs'
+                      : 'bg-white dark:bg-stone-50 border border-stone-200 text-stone-700'
+                  }`}
+                >
+                  1 vs 2
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileSlotA(1);
+                    setMobileSlotB(2);
+                  }}
+                  className={`px-1.5 py-1 rounded-lg text-[10px] font-bold text-center truncate transition ${
+                    mobileSlotA === 1 && mobileSlotB === 2
+                      ? 'bg-stone-900 text-white shadow-xs'
+                      : 'bg-white dark:bg-stone-50 border border-stone-200 text-stone-700'
+                  }`}
+                >
+                  2 vs 3
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileSlotA(0);
+                    setMobileSlotB(2);
+                  }}
+                  className={`px-1.5 py-1 rounded-lg text-[10px] font-bold text-center truncate transition ${
+                    mobileSlotA === 0 && mobileSlotB === 2
+                      ? 'bg-stone-900 text-white shadow-xs'
+                      : 'bg-white dark:bg-stone-50 border border-stone-200 text-stone-700'
+                  }`}
+                >
+                  1 vs 3
+                </button>
               </div>
-              <span className="text-[10px] font-medium text-stone-400 shrink-0">
-                Swipe &rarr;
-              </span>
             </div>
           )}
         </div>
 
-        {/* Modal Scrollable Body */}
-        <div
-          ref={scrollContainerRef}
-          className="flex-1 overflow-y-auto overflow-x-auto overscroll-x-contain p-2 sm:p-6 scroll-smooth"
-        >
+        {/* Modal Body */}
+        <div className="flex-1 overflow-y-auto p-3 sm:p-6">
           {compareList.length === 0 ? (
             /* Empty State */
             <div className="py-16 text-center max-w-sm mx-auto">
@@ -276,581 +309,642 @@ export default function PropertyCompareModal({
               </button>
             </div>
           ) : (
-            /* Unified Comparison Table with Sticky Left Label Column */
-            <table className="w-full border-collapse text-left">
-              <thead>
-                <tr>
-                  {/* Sticky Corner Header */}
-                  <th className="sticky left-0 top-0 z-30 surface-raised bg-white dark:bg-stone-50 border-r border-b border-stone-200 dark:border-stone-200 p-2 sm:p-3 w-[110px] sm:w-[180px] min-w-[110px] sm:min-w-[180px] shadow-[3px_0_8px_-2px_rgba(0,0,0,0.06)] align-bottom font-normal">
-                    <div className="pb-1">
-                      <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-stone-400 block">
-                        Estates
-                      </span>
-                      <span className="text-[10px] sm:text-xs text-stone-500 font-normal hidden sm:block mt-0.5">
-                        Overview &amp; Specs
-                      </span>
-                      <span className="text-[9px] text-stone-400 font-normal sm:hidden mt-0.5 flex items-center gap-0.5">
-                        <span>Swipe</span>
-                        <span>&rarr;</span>
-                      </span>
-                    </div>
-                  </th>
-
-                  {/* Property Card Columns */}
-                  {compareList.map((prop) => {
+            <>
+              {/* ============================================================== */}
+              {/* MOBILE 2-COLUMN VIEW (md:hidden) — Zero white box, 100% clean */}
+              {/* ============================================================== */}
+              <div className="md:hidden space-y-3">
+                {/* Mobile Top 2 Property Cards */}
+                <div className="grid grid-cols-2 gap-2">
+                  {[activeMobilePropA, activeMobilePropB].map((prop, idx) => {
+                    if (!prop) return null;
                     const estEMI = calculateEstEMI(prop.priceNum);
                     const priceSqft = calculatePricePerSqft(prop.priceNum, prop.area);
+                    const slotIndex = idx === 0 ? mobileSlotA : mobileSlotB;
 
                     return (
-                      <th
-                        key={prop.id}
-                        className="p-1 sm:p-3 w-[175px] sm:w-[220px] min-w-[175px] sm:min-w-[220px] align-top font-normal border-b border-stone-200"
+                      <div
+                        key={`${prop.id}-${idx}`}
+                        className="surface-raised bg-stone-50/70 dark:bg-stone-100/40 rounded-xl border border-stone-200/90 p-2 flex flex-col justify-between relative"
                       >
-                        <div className="surface-raised bg-stone-50/70 dark:bg-stone-100/40 rounded-xl sm:rounded-2xl border border-stone-200/90 p-2 sm:p-3.5 flex flex-col justify-between relative group hover:border-stone-400 transition h-full">
-                          {/* Remove X Button */}
-                          <button
-                            type="button"
-                            onClick={() => onRemoveProperty(prop)}
-                            className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition cursor-pointer"
-                            title="Remove from comparison"
-                            aria-label={`Remove ${prop.title} from comparison`}
-                          >
-                            <X className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                          </button>
+                        {/* Remove Button */}
+                        <button
+                          type="button"
+                          onClick={() => onRemoveProperty(prop)}
+                          className="absolute top-1.5 right-1.5 z-10 w-5 h-5 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition cursor-pointer"
+                          aria-label={`Remove ${prop.title}`}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
 
-                          <div>
-                            {/* Photo */}
-                            <div className="relative aspect-[16/10] w-full rounded-lg sm:rounded-xl overflow-hidden bg-stone-200 mb-2">
-                              <Image
-                                src={prop.image}
-                                alt={prop.title}
-                                fill
-                                sizes="(max-width: 768px) 180px, 240px"
-                                className="object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
-                              {prop.badge && (
-                                <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-stone-900/80 backdrop-blur-xs text-[9px] sm:text-[10px] font-semibold text-white">
-                                  {prop.badge}
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Title & Location */}
-                            <Link
-                              href={`/property/${prop.slug || prop.id}`}
-                              className="font-serif font-bold text-xs sm:text-base text-stone-900 hover:text-stone-600 block line-clamp-1 transition-colors leading-snug"
-                            >
-                              {prop.title}
-                            </Link>
-                            <p className="text-[10px] sm:text-[11px] text-stone-500 flex items-center gap-1 mt-0.5 truncate">
-                              <MapPin className="w-3 h-3 text-stone-400 shrink-0" />
-                              <span className="truncate">{prop.location}</span>
-                            </p>
-
-                            {/* Price & Price per sq.ft */}
-                            <div className="mt-2 pt-1.5 border-t border-stone-200/70 flex items-baseline justify-between gap-1">
-                              <div className="text-sm sm:text-lg font-bold text-stone-950 font-serif leading-none">
-                                {prop.price}
-                              </div>
-                              {priceSqft && (
-                                <div className="text-[10px] sm:text-[11px] font-medium text-stone-500 leading-none">
-                                  {priceSqft}
-                                </div>
-                              )}
-                            </div>
-                            {estEMI && (
-                              <div className="text-[10px] sm:text-[11px] text-emerald-700 dark:text-emerald-400 font-medium mt-1 leading-none">
-                                EMI: {estEMI}
-                              </div>
+                        <div>
+                          {/* Photo */}
+                          <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-stone-200 mb-1.5">
+                            <Image
+                              src={prop.image}
+                              alt={prop.title}
+                              fill
+                              sizes="180px"
+                              className="object-cover"
+                            />
+                            {prop.badge && (
+                              <span className="absolute top-1 left-1 px-1.5 py-0.2 rounded bg-stone-900/80 backdrop-blur-xs text-[8px] font-semibold text-white truncate max-w-[85%]">
+                                {prop.badge}
+                              </span>
                             )}
                           </div>
 
-                          {/* CTAs */}
-                          <div className="mt-2.5 grid grid-cols-2 gap-1 pt-1.5 border-t border-stone-200/70">
-                            <Link
-                              href={`/property/${prop.slug || prop.id}`}
-                              className="px-2 py-1.5 rounded-lg bg-stone-900 hover:bg-black text-white text-[10px] sm:text-xs font-semibold text-center transition flex items-center justify-center gap-1 shadow-xs"
-                            >
-                              <span>View</span>
-                              <ArrowUpRight className="w-3 h-3" />
-                            </Link>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                onSelectPropertyForEnquiry && onSelectPropertyForEnquiry(prop)
-                              }
-                              className="px-2 py-1.5 rounded-lg border border-stone-300 hover:border-stone-800 text-stone-800 hover:bg-stone-100 text-[10px] sm:text-xs font-semibold text-center transition cursor-pointer"
-                            >
-                              Enquire
-                            </button>
-                          </div>
-                        </div>
-                      </th>
-                    );
-                  })}
-
-                  {/* Add Property Slot Header (if < 3) */}
-                  {compareList.length < 3 && (
-                    <th className="p-1 sm:p-3 w-[170px] sm:w-[200px] min-w-[170px] sm:min-w-[200px] align-top font-normal border-b border-stone-200">
-                      <div className="rounded-xl sm:rounded-2xl border-2 border-dashed border-stone-200 dark:border-stone-300 p-3 sm:p-4 flex flex-col items-center justify-center text-center relative bg-stone-50/40 h-full min-h-[190px]">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-400 mb-1.5">
-                          <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </div>
-                        <span className="text-xs font-bold text-stone-900 mb-0.5">
-                          Add Property
-                        </span>
-                        <p className="text-[10px] sm:text-[11px] text-stone-500 mb-2.5 max-w-[140px] leading-tight">
-                          Compare with another estate
-                        </p>
-
-                        <div className="relative w-full">
-                          <button
-                            type="button"
-                            onClick={() => setAddDropdownOpen((prev) => !prev)}
-                            className="w-full px-2 py-1.5 rounded-lg bg-white dark:bg-stone-50 border border-stone-300 text-[11px] sm:text-xs font-semibold text-stone-800 flex items-center justify-between gap-1 hover:border-stone-500 transition cursor-pointer shadow-xs"
+                          {/* Title & Locality */}
+                          <Link
+                            href={`/property/${prop.slug || prop.id}`}
+                            className="font-serif font-bold text-xs text-stone-900 hover:text-stone-600 block line-clamp-1 transition-colors leading-tight"
                           >
-                            <span className="truncate">Select Estate</span>
-                            <ChevronDown className="w-3 h-3 shrink-0 text-stone-400" />
-                          </button>
+                            {prop.title}
+                          </Link>
+                          <p className="text-[10px] text-stone-500 truncate mt-0.5">
+                            {prop.location}
+                          </p>
 
-                          {addDropdownOpen && (
-                            <div className="absolute left-0 right-0 top-full mt-1 max-h-48 overflow-y-auto surface-raised bg-white dark:bg-stone-50 border border-stone-200 rounded-xl shadow-xl p-1 z-30 divide-y divide-stone-100 text-left">
-                              {availableToAdd.length === 0 ? (
-                                <div className="p-2 text-xs text-stone-400 text-center">
-                                  No more listings
-                                </div>
-                              ) : (
-                                availableToAdd.map((p) => (
-                                  <button
-                                    key={p.id}
-                                    type="button"
-                                    onClick={() => {
-                                      onAddProperty(p);
-                                      setAddDropdownOpen(false);
-                                    }}
-                                    className="w-full p-1.5 sm:p-2 text-left hover:bg-stone-100 rounded-lg flex items-center justify-between gap-1.5 cursor-pointer transition"
-                                  >
-                                    <div className="min-w-0">
-                                      <div className="text-[11px] font-bold text-stone-900 truncate">
-                                        {p.title}
-                                      </div>
-                                      <div className="text-[10px] text-stone-500 truncate">
-                                        {p.location}
-                                      </div>
-                                    </div>
-                                    <span className="text-[10px] font-semibold text-stone-800 shrink-0 font-mono">
-                                      {p.price}
-                                    </span>
-                                  </button>
-                                ))
-                              )}
+                          {/* Price */}
+                          <div className="mt-1.5 pt-1 border-t border-stone-200/70 flex items-baseline justify-between gap-1">
+                            <span className="text-xs font-bold text-stone-950 font-serif leading-none">
+                              {prop.price}
+                            </span>
+                            {priceSqft && (
+                              <span className="text-[9px] text-stone-500 leading-none">
+                                {priceSqft}
+                              </span>
+                            )}
+                          </div>
+                          {estEMI && (
+                            <div className="text-[9px] text-emerald-700 dark:text-emerald-400 font-medium mt-0.5 leading-none">
+                              EMI: {estEMI}
                             </div>
                           )}
                         </div>
+
+                        {/* Actions */}
+                        <div className="mt-2 grid grid-cols-2 gap-1 pt-1 border-t border-stone-200/70">
+                          <Link
+                            href={`/property/${prop.slug || prop.id}`}
+                            className="px-1.5 py-1 rounded bg-stone-900 text-white text-[10px] font-semibold text-center flex items-center justify-center gap-0.5 shadow-xs"
+                          >
+                            <span>View</span>
+                            <ArrowUpRight className="w-2.5 h-2.5" />
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onSelectPropertyForEnquiry && onSelectPropertyForEnquiry(prop)
+                            }
+                            className="px-1.5 py-1 rounded border border-stone-300 text-stone-800 text-[10px] font-semibold text-center"
+                          >
+                            Enquire
+                          </button>
+                        </div>
                       </div>
-                    </th>
-                  )}
-                </tr>
-              </thead>
+                    );
+                  })}
+                </div>
 
-              <tbody className="divide-y divide-stone-100 dark:divide-stone-200/50">
-                {/* ──────────────────────────────────────────────────────────── */}
-                {/* CATEGORY 1: PRICING & FINANCIALS */}
-                {/* ──────────────────────────────────────────────────────────── */}
-                <tr className="bg-stone-100/70 dark:bg-stone-200/40">
-                  <td
-                    colSpan={totalColumns}
-                    className="px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-stone-500"
-                  >
-                    Pricing &amp; Financials
-                  </td>
-                </tr>
+                {/* Mobile Side-by-Side Spec Rows */}
+                <div className="space-y-1.5">
+                  {[
+                    {
+                      label: 'Total Purchase Price',
+                      valA: activeMobilePropA.price,
+                      valB: activeMobilePropB.price,
+                      getter: (p) => p.priceNum,
+                      mono: true,
+                    },
+                    {
+                      label: 'Price / sq.ft',
+                      valA: calculatePricePerSqft(activeMobilePropA.priceNum, activeMobilePropA.area) || 'On Request',
+                      valB: calculatePricePerSqft(activeMobilePropB.priceNum, activeMobilePropB.area) || 'On Request',
+                      getter: (p) => calculatePricePerSqft(p.priceNum, p.area),
+                    },
+                    {
+                      label: 'Est. EMI (20 Yrs @ 8.5%)',
+                      valA: calculateEstEMI(activeMobilePropA.priceNum) || 'Contact',
+                      valB: calculateEstEMI(activeMobilePropB.priceNum) || 'Contact',
+                      getter: (p) => calculateEstEMI(p.priceNum),
+                      accent: true,
+                    },
+                    {
+                      label: 'Carpet Area',
+                      valA: activeMobilePropA.area,
+                      valB: activeMobilePropB.area,
+                      getter: (p) => p.area,
+                    },
+                    {
+                      label: 'Bedrooms & Baths',
+                      valA: `${activeMobilePropA.beds} • ${activeMobilePropA.baths || '4 Baths'}`,
+                      valB: `${activeMobilePropB.beds} • ${activeMobilePropB.baths || '4 Baths'}`,
+                      getter: (p) => `${p.beds}-${p.baths}`,
+                    },
+                    {
+                      label: 'Property Type',
+                      valA: activeMobilePropA.type,
+                      valB: activeMobilePropB.type,
+                      getter: (p) => p.type,
+                    },
+                    {
+                      label: 'Possession',
+                      valA: activeMobilePropA.possession || 'Ready to Move',
+                      valB: activeMobilePropB.possession || 'Ready to Move',
+                      getter: (p) => p.possession,
+                    },
+                    {
+                      label: 'Architect / Developer',
+                      valA: activeMobilePropA.builder || 'Dwarkesh',
+                      valB: activeMobilePropB.builder || 'Dwarkesh',
+                      getter: (p) => p.builder,
+                    },
+                    {
+                      label: 'Rental Value Estimate',
+                      valA: activeMobilePropA.rentPrice || 'N/A',
+                      valB: activeMobilePropB.rentPrice || 'N/A',
+                      getter: (p) => p.rentPrice,
+                    },
+                  ].map((row, i) => {
+                    const differs = highlightDifferences && isMobileDifferent(row.getter);
 
-                {/* Purchase Price */}
-                <tr
-                  className={
-                    highlightDifferences && isDifferent((p) => p.priceNum)
-                      ? 'bg-amber-500/10 dark:bg-amber-950/20'
-                      : 'hover:bg-stone-50/60'
-                  }
-                >
-                  <th className="sticky left-0 z-20 surface-raised bg-white dark:bg-stone-50 border-r border-stone-200 p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-stone-600 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.06)]">
-                    Total Price
-                  </th>
-                  {compareList.map((p) => (
-                    <td
-                      key={p.id}
-                      className="p-2 sm:p-2.5 text-[11px] sm:text-xs font-bold text-stone-950 font-mono"
-                    >
-                      {p.price}
-                    </td>
-                  ))}
-                  {compareList.length < 3 && <td className="p-2 text-stone-300 text-xs">-</td>}
-                </tr>
-
-                {/* Price / sq.ft */}
-                <tr
-                  className={
-                    highlightDifferences &&
-                    isDifferent((p) => calculatePricePerSqft(p.priceNum, p.area))
-                      ? 'bg-amber-500/10 dark:bg-amber-950/20'
-                      : 'hover:bg-stone-50/60'
-                  }
-                >
-                  <th className="sticky left-0 z-20 surface-raised bg-white dark:bg-stone-50 border-r border-stone-200 p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-stone-600 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.06)]">
-                    Price / sq.ft
-                  </th>
-                  {compareList.map((p) => (
-                    <td
-                      key={p.id}
-                      className="p-2 sm:p-2.5 text-[11px] sm:text-xs font-medium text-stone-800"
-                    >
-                      {calculatePricePerSqft(p.priceNum, p.area) || 'On Request'}
-                    </td>
-                  ))}
-                  {compareList.length < 3 && <td className="p-2 text-stone-300 text-xs">-</td>}
-                </tr>
-
-                {/* Est. EMI */}
-                <tr
-                  className={
-                    highlightDifferences && isDifferent((p) => calculateEstEMI(p.priceNum))
-                      ? 'bg-amber-500/10 dark:bg-amber-950/20'
-                      : 'hover:bg-stone-50/60'
-                  }
-                >
-                  <th className="sticky left-0 z-20 surface-raised bg-white dark:bg-stone-50 border-r border-stone-200 p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-stone-600 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.06)]">
-                    Est. EMI (20 Yrs)
-                  </th>
-                  {compareList.map((p) => (
-                    <td
-                      key={p.id}
-                      className="p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-emerald-700 dark:text-emerald-400"
-                    >
-                      {calculateEstEMI(p.priceNum) || 'Contact Sales'}
-                    </td>
-                  ))}
-                  {compareList.length < 3 && <td className="p-2 text-stone-300 text-xs">-</td>}
-                </tr>
-
-                {/* Rental Estimate */}
-                <tr
-                  className={
-                    highlightDifferences && isDifferent((p) => p.rentPrice)
-                      ? 'bg-amber-500/10 dark:bg-amber-950/20'
-                      : 'hover:bg-stone-50/60'
-                  }
-                >
-                  <th className="sticky left-0 z-20 surface-raised bg-white dark:bg-stone-50 border-r border-stone-200 p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-stone-600 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.06)]">
-                    Rental Value
-                  </th>
-                  {compareList.map((p) => (
-                    <td
-                      key={p.id}
-                      className="p-2 sm:p-2.5 text-[11px] sm:text-xs font-medium text-stone-800"
-                    >
-                      {p.rentPrice || 'N/A'}
-                    </td>
-                  ))}
-                  {compareList.length < 3 && <td className="p-2 text-stone-300 text-xs">-</td>}
-                </tr>
-
-                {/* ──────────────────────────────────────────────────────────── */}
-                {/* CATEGORY 2: SPACE & CONFIGURATION */}
-                {/* ──────────────────────────────────────────────────────────── */}
-                <tr className="bg-stone-100/70 dark:bg-stone-200/40">
-                  <td
-                    colSpan={totalColumns}
-                    className="px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-stone-500"
-                  >
-                    Space &amp; Configuration
-                  </td>
-                </tr>
-
-                {/* Property Type */}
-                <tr
-                  className={
-                    highlightDifferences && isDifferent((p) => p.type)
-                      ? 'bg-amber-500/10 dark:bg-amber-950/20'
-                      : 'hover:bg-stone-50/60'
-                  }
-                >
-                  <th className="sticky left-0 z-20 surface-raised bg-white dark:bg-stone-50 border-r border-stone-200 p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-stone-600 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.06)]">
-                    Type
-                  </th>
-                  {compareList.map((p) => (
-                    <td
-                      key={p.id}
-                      className="p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-stone-900"
-                    >
-                      {p.type}
-                    </td>
-                  ))}
-                  {compareList.length < 3 && <td className="p-2 text-stone-300 text-xs">-</td>}
-                </tr>
-
-                {/* Bedrooms */}
-                <tr
-                  className={
-                    highlightDifferences && isDifferent((p) => p.beds)
-                      ? 'bg-amber-500/10 dark:bg-amber-950/20'
-                      : 'hover:bg-stone-50/60'
-                  }
-                >
-                  <th className="sticky left-0 z-20 surface-raised bg-white dark:bg-stone-50 border-r border-stone-200 p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-stone-600 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.06)]">
-                    Bedrooms
-                  </th>
-                  {compareList.map((p) => (
-                    <td
-                      key={p.id}
-                      className="p-2 sm:p-2.5 text-[11px] sm:text-xs font-medium text-stone-800"
-                    >
-                      <div className="flex items-center gap-1">
-                        <Bed className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                        <span>{p.beds}</span>
-                      </div>
-                    </td>
-                  ))}
-                  {compareList.length < 3 && <td className="p-2 text-stone-300 text-xs">-</td>}
-                </tr>
-
-                {/* Bathrooms */}
-                <tr
-                  className={
-                    highlightDifferences && isDifferent((p) => p.baths)
-                      ? 'bg-amber-500/10 dark:bg-amber-950/20'
-                      : 'hover:bg-stone-50/60'
-                  }
-                >
-                  <th className="sticky left-0 z-20 surface-raised bg-white dark:bg-stone-50 border-r border-stone-200 p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-stone-600 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.06)]">
-                    Bathrooms
-                  </th>
-                  {compareList.map((p) => (
-                    <td
-                      key={p.id}
-                      className="p-2 sm:p-2.5 text-[11px] sm:text-xs font-medium text-stone-800"
-                    >
-                      <div className="flex items-center gap-1">
-                        <Bath className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                        <span>{p.baths || '4 Baths'}</span>
-                      </div>
-                    </td>
-                  ))}
-                  {compareList.length < 3 && <td className="p-2 text-stone-300 text-xs">-</td>}
-                </tr>
-
-                {/* Carpet Area */}
-                <tr
-                  className={
-                    highlightDifferences && isDifferent((p) => p.area)
-                      ? 'bg-amber-500/10 dark:bg-amber-950/20'
-                      : 'hover:bg-stone-50/60'
-                  }
-                >
-                  <th className="sticky left-0 z-20 surface-raised bg-white dark:bg-stone-50 border-r border-stone-200 p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-stone-600 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.06)]">
-                    Carpet Area
-                  </th>
-                  {compareList.map((p) => (
-                    <td
-                      key={p.id}
-                      className="p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-stone-900"
-                    >
-                      <div className="flex items-center gap-1">
-                        <Maximize2 className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                        <span>{p.area}</span>
-                      </div>
-                    </td>
-                  ))}
-                  {compareList.length < 3 && <td className="p-2 text-stone-300 text-xs">-</td>}
-                </tr>
-
-                {/* Possession */}
-                <tr
-                  className={
-                    highlightDifferences && isDifferent((p) => p.possession)
-                      ? 'bg-amber-500/10 dark:bg-amber-950/20'
-                      : 'hover:bg-stone-50/60'
-                  }
-                >
-                  <th className="sticky left-0 z-20 surface-raised bg-white dark:bg-stone-50 border-r border-stone-200 p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-stone-600 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.06)]">
-                    Possession
-                  </th>
-                  {compareList.map((p) => (
-                    <td
-                      key={p.id}
-                      className="p-2 sm:p-2.5 text-[11px] sm:text-xs font-medium text-stone-800"
-                    >
-                      {p.possession || 'Ready to Move'}
-                    </td>
-                  ))}
-                  {compareList.length < 3 && <td className="p-2 text-stone-300 text-xs">-</td>}
-                </tr>
-
-                {/* Builder / Architect */}
-                <tr
-                  className={
-                    highlightDifferences && isDifferent((p) => p.builder)
-                      ? 'bg-amber-500/10 dark:bg-amber-950/20'
-                      : 'hover:bg-stone-50/60'
-                  }
-                >
-                  <th className="sticky left-0 z-20 surface-raised bg-white dark:bg-stone-50 border-r border-stone-200 p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-stone-600 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.06)]">
-                    Developer
-                  </th>
-                  {compareList.map((p) => (
-                    <td
-                      key={p.id}
-                      className="p-2 sm:p-2.5 text-[11px] sm:text-xs font-medium text-stone-800"
-                    >
-                      {p.builder || 'Dwarkesh Luxury'}
-                    </td>
-                  ))}
-                  {compareList.length < 3 && <td className="p-2 text-stone-300 text-xs">-</td>}
-                </tr>
-
-                {/* ──────────────────────────────────────────────────────────── */}
-                {/* CATEGORY 3: HIGHLIGHTS */}
-                {/* ──────────────────────────────────────────────────────────── */}
-                <tr className="bg-stone-100/70 dark:bg-stone-200/40">
-                  <td
-                    colSpan={totalColumns}
-                    className="px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-stone-500"
-                  >
-                    Architectural Highlights
-                  </td>
-                </tr>
-                <tr>
-                  <th className="sticky left-0 z-20 surface-raised bg-white dark:bg-stone-50 border-r border-stone-200 p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-stone-600 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.06)] align-top">
-                    Highlights
-                  </th>
-                  {compareList.map((p) => {
-                    const detail = propertyDetailsMap[p.id];
-                    const highlights = detail?.highlights || [];
                     return (
-                      <td key={p.id} className="p-2 sm:p-2.5 align-top">
-                        <div className="space-y-1">
+                      <div
+                        key={i}
+                        className={`p-2 rounded-xl border transition ${
+                          differs
+                            ? 'bg-amber-500/10 dark:bg-amber-950/20 border-amber-300 dark:border-amber-700/50'
+                            : 'bg-stone-50/60 dark:bg-stone-100/30 border-stone-200/80'
+                        }`}
+                      >
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-stone-400 text-center mb-1">
+                          {row.label}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-center items-center">
+                          <div
+                            className={`text-xs font-semibold truncate border-r border-stone-200/80 pr-1 ${
+                              row.accent
+                                ? 'text-emerald-700 dark:text-emerald-400'
+                                : row.mono
+                                ? 'font-mono text-stone-950'
+                                : 'text-stone-900'
+                            }`}
+                          >
+                            {row.valA}
+                          </div>
+                          <div
+                            className={`text-xs font-semibold truncate pl-1 ${
+                              row.accent
+                                ? 'text-emerald-700 dark:text-emerald-400'
+                                : row.mono
+                                ? 'font-mono text-stone-950'
+                                : 'text-stone-900'
+                            }`}
+                          >
+                            {row.valB}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Mobile Amenities Checklist */}
+                <div className="pt-2">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-1.5 px-1">
+                    Amenities &amp; Facilities
+                  </div>
+                  <div className="space-y-1">
+                    {commonAmenities.map(({ key, label }) => {
+                      const detA = propertyDetailsMap[activeMobilePropA.id];
+                      const detB = propertyDetailsMap[activeMobilePropB.id];
+                      const hasA = (detA?.amenities || []).includes(key);
+                      const hasB = (detB?.amenities || []).includes(key);
+                      const differs = highlightDifferences && hasA !== hasB;
+
+                      return (
+                        <div
+                          key={key}
+                          className={`p-1.5 px-2.5 rounded-lg border flex items-center justify-between text-xs ${
+                            differs
+                              ? 'bg-amber-500/10 dark:bg-amber-950/20 border-amber-300 dark:border-amber-700/50'
+                              : 'bg-stone-50/40 border-stone-200/60'
+                          }`}
+                        >
+                          <span className="text-[11px] font-medium text-stone-600 truncate max-w-[120px]">
+                            {label}
+                          </span>
+                          <div className="grid grid-cols-2 gap-2 text-center w-28">
+                            <span className="font-semibold text-[11px]">
+                              {hasA ? (
+                                <span className="text-emerald-600 font-bold">✓ Included</span>
+                              ) : (
+                                <span className="text-stone-300">-</span>
+                              )}
+                            </span>
+                            <span className="font-semibold text-[11px]">
+                              {hasB ? (
+                                <span className="text-emerald-600 font-bold">✓ Included</span>
+                              ) : (
+                                <span className="text-stone-300">-</span>
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Mobile Highlights Section */}
+                <div className="pt-2">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-1.5 px-1">
+                    Architectural Highlights
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[activeMobilePropA, activeMobilePropB].map((prop, idx) => {
+                      const det = propertyDetailsMap[prop.id];
+                      const highlights = det?.highlights || [];
+
+                      return (
+                        <div
+                          key={idx}
+                          className="p-2 rounded-xl bg-stone-50/60 dark:bg-stone-100/30 border border-stone-200/80 text-[10px] space-y-1"
+                        >
+                          <span className="font-bold text-stone-900 block truncate mb-1">
+                            {prop.title.replace(/^The\s+/i, '')}
+                          </span>
                           {highlights.length > 0 ? (
                             highlights.map((h, i) => (
-                              <div
-                                key={i}
-                                className="flex items-start gap-1 text-[10px] sm:text-xs text-stone-800 leading-tight"
-                              >
+                              <div key={i} className="flex items-start gap-1 text-stone-700 leading-tight">
                                 <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0 mt-0.5" />
                                 <span>{h}</span>
                               </div>
                             ))
                           ) : (
-                            <p className="text-[10px] sm:text-xs text-stone-600 line-clamp-3 leading-snug">
-                              {p.description}
+                            <p className="text-stone-600 line-clamp-3 leading-snug">
+                              {prop.description}
                             </p>
                           )}
                         </div>
-                      </td>
-                    );
-                  })}
-                  {compareList.length < 3 && <td className="p-2 text-stone-300 text-xs">-</td>}
-                </tr>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
 
-                {/* ──────────────────────────────────────────────────────────── */}
-                {/* CATEGORY 4: AMENITIES & FEATURES */}
-                {/* ──────────────────────────────────────────────────────────── */}
-                <tr className="bg-stone-100/70 dark:bg-stone-200/40">
-                  <td
-                    colSpan={totalColumns}
-                    className="px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-stone-500"
-                  >
-                    Amenities &amp; Features
-                  </td>
-                </tr>
+              {/* ============================================================== */}
+              {/* DESKTOP FULL-WIDTH GRID VIEW (hidden md:block) */}
+              {/* ============================================================== */}
+              <div className="hidden md:block space-y-6">
+                {/* Top Estate Cards Grid */}
+                <div
+                  className="grid gap-4"
+                  style={{
+                    gridTemplateColumns: `180px repeat(${compareList.length}, minmax(220px, 1fr)) ${
+                      compareList.length < 3 ? 'minmax(200px, 1fr)' : ''
+                    }`,
+                  }}
+                >
+                  {/* Left Column Label */}
+                  <div className="flex flex-col justify-end pb-3 pr-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-stone-400 block">
+                      Estates Overview
+                    </span>
+                    <span className="text-xs text-stone-500 mt-1">
+                      Side-by-side feature comparison
+                    </span>
+                  </div>
 
-                {commonAmenities.map(({ key, label }) => {
-                  const differs = isDifferent((p) => {
-                    const detail = propertyDetailsMap[p.id];
-                    return (detail?.amenities || []).includes(key);
-                  });
+                  {/* Property Cards */}
+                  {compareList.map((prop) => {
+                    const estEMI = calculateEstEMI(prop.priceNum);
+                    const priceSqft = calculatePricePerSqft(prop.priceNum, prop.area);
 
-                  return (
-                    <tr
-                      key={key}
-                      className={
-                        highlightDifferences && differs
-                          ? 'bg-amber-500/10 dark:bg-amber-950/20'
-                          : 'hover:bg-stone-50/60'
-                      }
-                    >
-                      <th className="sticky left-0 z-20 surface-raised bg-white dark:bg-stone-50 border-r border-stone-200 p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-stone-600 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.06)]">
-                        {label}
-                      </th>
-                      {compareList.map((p) => {
-                        const detail = propertyDetailsMap[p.id];
-                        const hasAmenity = (detail?.amenities || []).includes(key);
-                        return (
-                          <td key={p.id} className="p-2 sm:p-2.5">
-                            {hasAmenity ? (
-                              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-semibold text-[10px] sm:text-[11px]">
-                                <Check className="w-3 h-3 text-emerald-600" />
-                                <span>Yes</span>
-                              </span>
-                            ) : (
-                              <span className="text-stone-300 text-xs font-bold">-</span>
-                            )}
-                          </td>
-                        );
-                      })}
-                      {compareList.length < 3 && <td className="p-2 text-stone-300 text-xs">-</td>}
-                    </tr>
-                  );
-                })}
-
-                {/* ──────────────────────────────────────────────────────────── */}
-                {/* CATEGORY 5: CONNECTIVITY & LOCATION */}
-                {/* ──────────────────────────────────────────────────────────── */}
-                <tr className="bg-stone-100/70 dark:bg-stone-200/40">
-                  <td
-                    colSpan={totalColumns}
-                    className="px-2.5 sm:px-3 py-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-stone-500"
-                  >
-                    Neighbourhood &amp; Connectivity
-                  </td>
-                </tr>
-
-                {/* City */}
-                <tr className="hover:bg-stone-50/60">
-                  <th className="sticky left-0 z-20 surface-raised bg-white dark:bg-stone-50 border-r border-stone-200 p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-stone-600 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.06)]">
-                    City / Market
-                  </th>
-                  {compareList.map((p) => (
-                    <td
-                      key={p.id}
-                      className="p-2 sm:p-2.5 text-[11px] sm:text-xs font-medium text-stone-900"
-                    >
-                      {p.city}
-                    </td>
-                  ))}
-                  {compareList.length < 3 && <td className="p-2 text-stone-300 text-xs">-</td>}
-                </tr>
-
-                {/* Airport Distance */}
-                <tr className="hover:bg-stone-50/60">
-                  <th className="sticky left-0 z-20 surface-raised bg-white dark:bg-stone-50 border-r border-stone-200 p-2 sm:p-2.5 text-[11px] sm:text-xs font-semibold text-stone-600 shadow-[3px_0_8px_-2px_rgba(0,0,0,0.06)]">
-                    Airport
-                  </th>
-                  {compareList.map((p) => {
-                    const detail = propertyDetailsMap[p.id];
-                    const airport = (detail?.nearby || []).find((n) => n.type === 'airport');
                     return (
-                      <td
-                        key={p.id}
-                        className="p-2 sm:p-2.5 text-[11px] sm:text-xs font-medium text-stone-700"
+                      <div
+                        key={prop.id}
+                        className="surface-raised bg-stone-50/70 dark:bg-stone-100/40 rounded-2xl border border-stone-200/90 p-3.5 flex flex-col justify-between relative group hover:border-stone-400 transition"
                       >
-                        {airport ? `${airport.name} (${airport.km} km)` : 'Within 25 km'}
-                      </td>
+                        <button
+                          type="button"
+                          onClick={() => onRemoveProperty(prop)}
+                          className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition cursor-pointer"
+                          title="Remove from comparison"
+                          aria-label={`Remove ${prop.title} from comparison`}
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+
+                        <div>
+                          <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-stone-200 mb-2.5">
+                            <Image
+                              src={prop.image}
+                              alt={prop.title}
+                              fill
+                              sizes="320px"
+                              className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                            {prop.badge && (
+                              <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-stone-900/80 backdrop-blur-xs text-[10px] font-semibold text-white">
+                                {prop.badge}
+                              </span>
+                            )}
+                          </div>
+
+                          <Link
+                            href={`/property/${prop.slug || prop.id}`}
+                            className="font-serif font-bold text-base text-stone-900 hover:text-stone-600 block line-clamp-1 transition-colors"
+                          >
+                            {prop.title}
+                          </Link>
+                          <p className="text-[11px] text-stone-500 flex items-center gap-1 mt-0.5 truncate">
+                            <MapPin className="w-3 h-3 text-stone-400 shrink-0" />
+                            <span>{prop.location}</span>
+                          </p>
+
+                          <div className="mt-2.5 pt-2 border-t border-stone-200/70 flex items-baseline justify-between gap-1">
+                            <div className="text-lg font-bold text-stone-950 font-serif">
+                              {prop.price}
+                            </div>
+                            {priceSqft && (
+                              <div className="text-[11px] font-medium text-stone-500">
+                                {priceSqft}
+                              </div>
+                            )}
+                          </div>
+                          {estEMI && (
+                            <div className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">
+                              Est. EMI: {estEMI}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="mt-3.5 grid grid-cols-2 gap-1.5 pt-2 border-t border-stone-200/70">
+                          <Link
+                            href={`/property/${prop.slug || prop.id}`}
+                            className="px-2.5 py-1.5 rounded-lg bg-stone-900 hover:bg-black text-white text-xs font-semibold text-center transition flex items-center justify-center gap-1 shadow-xs"
+                          >
+                            <span>Explore</span>
+                            <ArrowUpRight className="w-3 h-3" />
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onSelectPropertyForEnquiry && onSelectPropertyForEnquiry(prop)
+                            }
+                            className="px-2.5 py-1.5 rounded-lg border border-stone-300 hover:border-stone-800 text-stone-800 hover:bg-stone-100 text-xs font-semibold text-center transition cursor-pointer"
+                          >
+                            Enquire
+                          </button>
+                        </div>
+                      </div>
                     );
                   })}
-                  {compareList.length < 3 && <td className="p-2 text-stone-300 text-xs">-</td>}
-                </tr>
-              </tbody>
-            </table>
+
+                  {/* Add Property Slot (Desktop) */}
+                  {compareList.length < 3 && (
+                    <div className="rounded-2xl border-2 border-dashed border-stone-200 dark:border-stone-300 p-4 flex flex-col items-center justify-center text-center relative bg-stone-50/40">
+                      <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-400 mb-2">
+                        <Plus className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs font-bold text-stone-900 mb-0.5">
+                        Add Property
+                      </span>
+                      <p className="text-[11px] text-stone-500 mb-3 max-w-[140px]">
+                        Compare with another estate
+                      </p>
+
+                      <div className="relative w-full">
+                        <button
+                          type="button"
+                          onClick={() => setAddDropdownOpen((prev) => !prev)}
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-stone-50 border border-stone-300 text-xs font-semibold text-stone-800 flex items-center justify-between gap-1 hover:border-stone-500 transition cursor-pointer shadow-xs"
+                        >
+                          <span className="truncate">Select Estate</span>
+                          <ChevronDown className="w-3.5 h-3.5 shrink-0 text-stone-400" />
+                        </button>
+
+                        {addDropdownOpen && (
+                          <div className="absolute left-0 right-0 top-full mt-1 max-h-48 overflow-y-auto surface-raised bg-white dark:bg-stone-50 border border-stone-200 rounded-xl shadow-xl p-1 z-30 divide-y divide-stone-100 text-left">
+                            {availableToAdd.length === 0 ? (
+                              <div className="p-2 text-xs text-stone-400 text-center">
+                                No more listings
+                              </div>
+                            ) : (
+                              availableToAdd.map((p) => (
+                                <button
+                                  key={p.id}
+                                  type="button"
+                                  onClick={() => {
+                                    onAddProperty(p);
+                                    setAddDropdownOpen(false);
+                                  }}
+                                  className="w-full p-2 text-left hover:bg-stone-100 rounded-lg flex items-center justify-between gap-2 cursor-pointer transition"
+                                >
+                                  <div className="min-w-0">
+                                    <div className="text-xs font-bold text-stone-900 truncate">
+                                      {p.title}
+                                    </div>
+                                    <div className="text-[10px] text-stone-500 truncate">
+                                      {p.location} • {p.beds}
+                                    </div>
+                                  </div>
+                                  <span className="text-xs font-semibold text-stone-800 shrink-0 font-mono">
+                                    {p.price}
+                                  </span>
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Desktop Detailed Comparison Rows */}
+                <div className="divide-y divide-stone-200/90 pt-4">
+                  {/* Category: Pricing */}
+                  <div className="py-4 space-y-1">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-2">
+                      Pricing &amp; Terms
+                    </h4>
+                    {[
+                      {
+                        label: 'Total Purchase Price',
+                        val: (p) => p.price,
+                        diff: (p) => p.priceNum,
+                        mono: true,
+                      },
+                      {
+                        label: 'Price / sq.ft',
+                        val: (p) => calculatePricePerSqft(p.priceNum, p.area) || 'On Request',
+                        diff: (p) => calculatePricePerSqft(p.priceNum, p.area),
+                      },
+                      {
+                        label: 'Est. EMI (20 Yrs @ 8.5%)',
+                        val: (p) => calculateEstEMI(p.priceNum) || 'Contact',
+                        diff: (p) => calculateEstEMI(p.priceNum),
+                        accent: true,
+                      },
+                      {
+                        label: 'Rental Estimate',
+                        val: (p) => p.rentPrice || 'N/A',
+                        diff: (p) => p.rentPrice,
+                      },
+                    ].map((row, i) => {
+                      const differs = highlightDifferences && isDifferent(row.diff);
+                      return (
+                        <div
+                          key={i}
+                          className={`grid gap-4 py-2 px-3 rounded-lg text-xs items-center ${
+                            differs
+                              ? 'bg-amber-500/10 dark:bg-amber-950/20'
+                              : 'hover:bg-stone-50/60'
+                          }`}
+                          style={{
+                            gridTemplateColumns: `180px repeat(${compareList.length}, minmax(220px, 1fr)) ${
+                              compareList.length < 3 ? 'minmax(200px, 1fr)' : ''
+                            }`,
+                          }}
+                        >
+                          <span className="font-semibold text-stone-600">{row.label}</span>
+                          {compareList.map((p) => (
+                            <span
+                              key={p.id}
+                              className={`font-semibold ${
+                                row.accent
+                                  ? 'text-emerald-700 dark:text-emerald-400'
+                                  : row.mono
+                                  ? 'font-mono text-stone-950 text-sm'
+                                  : 'text-stone-900'
+                              }`}
+                            >
+                              {row.val(p)}
+                            </span>
+                          ))}
+                          {compareList.length < 3 && <span className="text-stone-300">-</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Category: Space */}
+                  <div className="py-4 space-y-1">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-2">
+                      Space &amp; Configuration
+                    </h4>
+                    {[
+                      {
+                        label: 'Property Type',
+                        val: (p) => p.type,
+                        diff: (p) => p.type,
+                      },
+                      {
+                        label: 'Bedrooms',
+                        val: (p) => p.beds,
+                        diff: (p) => p.beds,
+                      },
+                      {
+                        label: 'Bathrooms',
+                        val: (p) => p.baths || '4 Baths',
+                        diff: (p) => p.baths,
+                      },
+                      {
+                        label: 'Carpet Area',
+                        val: (p) => p.area,
+                        diff: (p) => p.area,
+                      },
+                      {
+                        label: 'Possession',
+                        val: (p) => p.possession || 'Ready to Move',
+                        diff: (p) => p.possession,
+                      },
+                      {
+                        label: 'Developer',
+                        val: (p) => p.builder || 'Dwarkesh',
+                        diff: (p) => p.builder,
+                      },
+                    ].map((row, i) => {
+                      const differs = highlightDifferences && isDifferent(row.diff);
+                      return (
+                        <div
+                          key={i}
+                          className={`grid gap-4 py-2 px-3 rounded-lg text-xs items-center ${
+                            differs
+                              ? 'bg-amber-500/10 dark:bg-amber-950/20'
+                              : 'hover:bg-stone-50/60'
+                          }`}
+                          style={{
+                            gridTemplateColumns: `180px repeat(${compareList.length}, minmax(220px, 1fr)) ${
+                              compareList.length < 3 ? 'minmax(200px, 1fr)' : ''
+                            }`,
+                          }}
+                        >
+                          <span className="font-semibold text-stone-600">{row.label}</span>
+                          {compareList.map((p) => (
+                            <span key={p.id} className="font-medium text-stone-900">
+                              {row.val(p)}
+                            </span>
+                          ))}
+                          {compareList.length < 3 && <span className="text-stone-300">-</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Category: Amenities */}
+                  <div className="py-4 space-y-1">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-2">
+                      Amenities &amp; Features
+                    </h4>
+                    {commonAmenities.map(({ key, label }) => {
+                      const differs = isDifferent((p) => {
+                        const detail = propertyDetailsMap[p.id];
+                        return (detail?.amenities || []).includes(key);
+                      });
+
+                      return (
+                        <div
+                          key={key}
+                          className={`grid gap-4 py-2 px-3 rounded-lg text-xs items-center ${
+                            highlightDifferences && differs
+                              ? 'bg-amber-500/10 dark:bg-amber-950/20'
+                              : 'hover:bg-stone-50/60'
+                          }`}
+                          style={{
+                            gridTemplateColumns: `180px repeat(${compareList.length}, minmax(220px, 1fr)) ${
+                              compareList.length < 3 ? 'minmax(200px, 1fr)' : ''
+                            }`,
+                          }}
+                        >
+                          <span className="font-semibold text-stone-600">{label}</span>
+                          {compareList.map((p) => {
+                            const detail = propertyDetailsMap[p.id];
+                            const hasAmenity = (detail?.amenities || []).includes(key);
+                            return (
+                              <div key={p.id} className="flex items-center gap-1.5">
+                                {hasAmenity ? (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-semibold text-[11px]">
+                                    <Check className="w-3 h-3 text-emerald-600" />
+                                    <span>Included</span>
+                                  </span>
+                                ) : (
+                                  <span className="text-stone-300 font-bold">-</span>
+                                )}
+                              </div>
+                            );
+                          })}
+                          {compareList.length < 3 && <span className="text-stone-300">-</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </>
           )}
         </div>
 
