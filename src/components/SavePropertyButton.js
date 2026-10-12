@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Heart } from 'lucide-react';
 import { useSavedProperties } from '@/lib/useSavedProperties';
+import { trackPropertyFavorited } from '@/lib/analytics';
 
 export default function SavePropertyButton({
   property,
@@ -18,6 +19,7 @@ export default function SavePropertyButton({
     e.preventDefault();
     e.stopPropagation();
     setAnimating(true);
+    trackPropertyFavorited(property, !saved);
     toggleSave(property);
     setTimeout(() => setAnimating(false), 300);
   };

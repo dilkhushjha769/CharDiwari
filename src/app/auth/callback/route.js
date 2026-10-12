@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { migrateVisitorActivity } from '@/lib/activity';
 
 export async function GET(request) {
   const { searchParams, origin } = new URL(request.url);
@@ -20,11 +21,20 @@ export async function GET(request) {
     return NextResponse.redirect(`${origin}/auth?error=${msg}`);
   }
 
+  const visitorId = request.cookies.get('dwarkesh_vid')?.value;
+
   // 1. If PKCE authorization code is present (OAuth / PKCE flow)
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      const userId = data?.user?.id || data?.session?.user?.id;
+      if (userId && visitorId) {
+        try {
+          await migrateVisitorActivity(userId, visitorId);
+        } catch (_) {}
+      }
+
       const response = NextResponse.redirect(`${origin}${next}`);
       response.cookies.set('dwarkesh_session', 'true', {
         path: '/',
@@ -40,11 +50,18 @@ export async function GET(request) {
   // 2. If token_hash is present (Supabase email confirmation link)
   if (token_hash) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.verifyOtp({
+    const { data, error } = await supabase.auth.verifyOtp({
       type,
       token_hash,
     });
     if (!error) {
+      const userId = data?.user?.id || data?.session?.user?.id;
+      if (userId && visitorId) {
+        try {
+          await migrateVisitorActivity(userId, visitorId);
+        } catch (_) {}
+      }
+
       const response = NextResponse.redirect(`${origin}${next}`);
       response.cookies.set('dwarkesh_session', 'true', {
         path: '/',

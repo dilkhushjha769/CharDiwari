@@ -39,6 +39,7 @@ import {
   Heart,
 } from 'lucide-react';
 import { getSupabaseClient } from '@/lib/supabase/client';
+import { resetUser } from '@/lib/posthog';
 
 // The header is transparent at the very top and frosts once the page scrolls.
 // Read through useSyncExternalStore: the server snapshot (false) matches the
@@ -141,6 +142,7 @@ export default function Navbar() {
       document.cookie = 'chardiwari_session=; path=/; max-age=0; SameSite=Lax';
     }
     await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+    resetUser();
     setUser(null);
     setProfileDropdownOpen(false);
   };
@@ -193,6 +195,16 @@ export default function Navbar() {
     timeoutRef.current = setTimeout(() => {
       setActiveMenu(null);
     }, 150);
+  };
+
+  const handleNavFilter = (type, mode = 'buy') => {
+    setActiveMenu(null);
+    setMobileMenuOpen(false);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('dwarkesh-nav-filter', { detail: { type, mode } })
+      );
+    }
   };
 
   const navItems = [
@@ -263,36 +275,36 @@ export default function Navbar() {
                           icon={<Home className="w-4 h-4" />}
                           title="Villas & Estates"
                           description="Gated private homes"
-                          href="/#collection"
-                          onClick={() => setActiveMenu(null)}
+                          href="/?type=Luxury+Villa+%26+Estate#collection"
+                          onClick={() => handleNavFilter('Luxury Villa & Estate', 'buy')}
                         />
                         <DropdownItem
                           icon={<Building className="w-4 h-4" />}
                           title="Apartments"
                           description="3 & 4 BHK luxury flats"
-                          href="/#collection"
-                          onClick={() => setActiveMenu(null)}
+                          href="/?type=Architectural+Apartment#collection"
+                          onClick={() => handleNavFilter('Architectural Apartment', 'buy')}
                         />
                         <DropdownItem
                           icon={<Building2 className="w-4 h-4" />}
                           title="Penthouses"
                           description="Skyline duplex homes"
-                          href="/#collection"
-                          onClick={() => setActiveMenu(null)}
+                          href="/?type=Penthouse+%2F+Sky+Villa#collection"
+                          onClick={() => handleNavFilter('Penthouse / Sky Villa', 'buy')}
                         />
                         <DropdownItem
                           icon={<Compass className="w-4 h-4" />}
                           title="Plots & Land"
                           description="Gated parcels to build"
-                          href="/#collection"
-                          onClick={() => setActiveMenu(null)}
+                          href="/?type=Private+Plot+%2F+Land#collection"
+                          onClick={() => handleNavFilter('Private Plot / Land', 'buy')}
                         />
                       </div>
                       <div className="mt-2 pt-2.5 border-t border-stone-100 flex items-center justify-between px-2.5 text-[11px] text-stone-500">
                         <span>100+ Verified Homes</span>
                         <Link
-                          href="/#collection"
-                          onClick={() => setActiveMenu(null)}
+                          href="/?type=All+Types#collection"
+                          onClick={() => handleNavFilter('All Types', 'buy')}
                           className="focus-ring rounded-md text-stone-900 font-semibold hover:underline inline-flex items-center gap-1"
                         >
                           <span>Browse All</span>
@@ -335,29 +347,29 @@ export default function Navbar() {
                           icon={<Building className="w-4 h-4" />}
                           title="Furnished Apartments"
                           description="Designer 2, 3 & 4 BHK flats"
-                          href="/#collection"
-                          onClick={() => setActiveMenu(null)}
+                          href="/?mode=rent&type=Architectural+Apartment#collection"
+                          onClick={() => handleNavFilter('Architectural Apartment', 'rent')}
                         />
                         <DropdownItem
                           icon={<Home className="w-4 h-4" />}
                           title="Luxury Villas"
                           description="Private homes with gardens"
-                          href="/#collection"
-                          onClick={() => setActiveMenu(null)}
+                          href="/?mode=rent&type=Luxury+Villa+%26+Estate#collection"
+                          onClick={() => handleNavFilter('Luxury Villa & Estate', 'rent')}
                         />
                         <DropdownItem
                           icon={<Building2 className="w-4 h-4" />}
                           title="Penthouses & Duplexes"
                           description="Top floor city skyline views"
-                          href="/#collection"
-                          onClick={() => setActiveMenu(null)}
+                          href="/?mode=rent&type=Penthouse+%2F+Sky+Villa#collection"
+                          onClick={() => handleNavFilter('Penthouse / Sky Villa', 'rent')}
                         />
                       </div>
                       <div className="mt-2 pt-2.5 border-t border-stone-100 flex items-center justify-between px-2.5 text-[11px] text-stone-500">
                         <span>Zero Brokerage Options</span>
                         <Link
-                          href="/#collection"
-                          onClick={() => setActiveMenu(null)}
+                          href="/?mode=rent#collection"
+                          onClick={() => handleNavFilter('All Types', 'rent')}
                           className="focus-ring rounded-md text-stone-900 font-semibold hover:underline inline-flex items-center gap-1"
                         >
                           <span>View Rentals</span>
@@ -604,29 +616,29 @@ export default function Navbar() {
                 {mobileAccordion === 'buy' && (
                   <div className="pl-3 pt-2 space-y-2 text-xs text-stone-600">
                     <Link
-                      href="/#collection"
-                      onClick={() => setMobileMenuOpen(false)}
+                      href="/?type=Luxury+Villa+%26+Estate#collection"
+                      onClick={() => handleNavFilter('Luxury Villa & Estate', 'buy')}
                       className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       • Villas & Estates
                     </Link>
                     <Link
-                      href="/#collection"
-                      onClick={() => setMobileMenuOpen(false)}
+                      href="/?type=Architectural+Apartment#collection"
+                      onClick={() => handleNavFilter('Architectural Apartment', 'buy')}
                       className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       • Apartments
                     </Link>
                     <Link
-                      href="/#collection"
-                      onClick={() => setMobileMenuOpen(false)}
+                      href="/?type=Penthouse+%2F+Sky+Villa#collection"
+                      onClick={() => handleNavFilter('Penthouse / Sky Villa', 'buy')}
                       className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       • Penthouses
                     </Link>
                     <Link
-                      href="/#collection"
-                      onClick={() => setMobileMenuOpen(false)}
+                      href="/?type=Private+Plot+%2F+Land#collection"
+                      onClick={() => handleNavFilter('Private Plot / Land', 'buy')}
                       className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       • Plots & Land
@@ -650,22 +662,22 @@ export default function Navbar() {
                 {mobileAccordion === 'rent' && (
                   <div className="pl-3 pt-2 space-y-2 text-xs text-stone-600">
                     <Link
-                      href="/#collection"
-                      onClick={() => setMobileMenuOpen(false)}
+                      href="/?mode=rent&type=Architectural+Apartment#collection"
+                      onClick={() => handleNavFilter('Architectural Apartment', 'rent')}
                       className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       • Furnished Apartments
                     </Link>
                     <Link
-                      href="/#collection"
-                      onClick={() => setMobileMenuOpen(false)}
+                      href="/?mode=rent&type=Luxury+Villa+%26+Estate#collection"
+                      onClick={() => handleNavFilter('Luxury Villa & Estate', 'rent')}
                       className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       • Luxury Villas
                     </Link>
                     <Link
-                      href="/#collection"
-                      onClick={() => setMobileMenuOpen(false)}
+                      href="/?mode=rent&type=Penthouse+%2F+Sky+Villa#collection"
+                      onClick={() => handleNavFilter('Penthouse / Sky Villa', 'rent')}
                       className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       • Penthouses & Duplexes

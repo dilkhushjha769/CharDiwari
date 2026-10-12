@@ -4,6 +4,7 @@ import { loginSchema } from '@/lib/validation';
 import { findUserByEmail } from '@/lib/db';
 import { checkRateLimit, resetRateLimit } from '@/lib/rate-limit';
 import { createSessionToken, setSessionCookie } from '@/lib/session';
+import { migrateVisitorActivity } from '@/lib/activity';
 
 export async function POST(request) {
   try {
@@ -55,6 +56,14 @@ export async function POST(request) {
 
     // Success - reset failed login count
     resetRateLimit(rateLimitKey);
+
+    // If anonymous visitor ID exists, migrate user activity
+    const visitorId = body?.visitorId || request.cookies.get('dwarkesh_vid')?.value;
+    if (visitorId && user?.id) {
+      try {
+        await migrateVisitorActivity(user.id, visitorId);
+      } catch (_) {}
+    }
 
     // Create session
     const token = await createSessionToken(user);

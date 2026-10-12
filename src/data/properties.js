@@ -163,6 +163,52 @@ const listings = [
     description:
       'Bespoke modern 2 BHK apartment in prime Sarabha Nagar with open modular kitchen, wide balconies, and smart home fittings.',
   },
+  {
+    id: 8,
+    tag: 'Available',
+    badge: 'Coastal Land',
+    title: 'The Orchard Estate Plot',
+    location: 'Awas Beach Road, Alibaug',
+    city: 'Alibaug',
+    type: 'Private Plot / Land',
+    possession: 'Ready to Move',
+    builder: 'Samira Habitats',
+    price: '₹3.40 Cr',
+    priceNum: 3.4,
+    rentPrice: '₹1.20 Lakh/mo',
+    rentPriceNum: 1.2,
+    mode: 'both',
+    beds: 'Plot',
+    baths: 'Gated',
+    area: '10,500 sq.ft',
+    image:
+      'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80',
+    description:
+      'Expansive coastal residential plot surrounded by mature coconut groves, clear title RERA registered, ready for custom villa construction.',
+  },
+  {
+    id: 9,
+    tag: 'New Launch',
+    badge: 'Gated Township',
+    title: 'The Valley Crest Plot',
+    location: 'Golf Course Extension, Gurugram',
+    city: 'Gurugram',
+    type: 'Private Plot / Land',
+    possession: 'Ready to Move',
+    builder: 'DLF Homes',
+    price: '₹5.50 Cr',
+    priceNum: 5.5,
+    rentPrice: '₹1.80 Lakh/mo',
+    rentPriceNum: 1.8,
+    mode: 'both',
+    beds: 'Plot',
+    baths: 'Gated',
+    area: '500 sq.yd',
+    image:
+      'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=1200&q=80',
+    description:
+      'Exclusive south-facing gated luxury villa plot with wide boulevard frontage, 24/7 security, underground utilities, and clubhouse membership.',
+  },
 ];
 
 // "The Courtyard Villa" -> "the-courtyard-villa"

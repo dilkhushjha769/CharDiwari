@@ -41,8 +41,8 @@ function getStoredLocation() {
 }
 
 export function useUserLocation() {
-  const [userLocation, setUserLocation] = useState(getStoredLocation);
-  const [locationLoading, setLocationLoading] = useState(() => !getStoredLocation());
+  const [userLocation, setUserLocation] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(true);
   const hasAutoFetchedRef = useRef(false);
 
   const saveLocation = useCallback((loc) => {
@@ -271,6 +271,12 @@ export function useUserLocation() {
 
   // AUTO-DETECT ON WEBSITE OPEN
   useEffect(() => {
+    const stored = getStoredLocation();
+    if (stored) {
+      setUserLocation(stored);
+      setLocationLoading(false);
+    }
+
     const handleUpdate = (newLoc) => {
       setUserLocation(newLoc);
       setLocationLoading(false);

@@ -1,11 +1,14 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Bath, Bed, MapPin, Maximize2 } from 'lucide-react';
 import SavePropertyButton from '@/components/SavePropertyButton';
+import { trackSearchResultClicked } from '@/lib/analytics';
 
 // One property in a grid: on the home page and under "Similar properties".
 // `price` is the sale or rent price to show, depending on the search mode.
-export default function PropertyCard({ property, price }) {
+export default function PropertyCard({ property, price, position = 0, searchContext = {} }) {
   return (
     <div className="group bg-white dark:bg-stone-50 rounded-3xl border border-stone-200/90 dark:hover:border-stone-300 overflow-hidden shadow-sm hover:shadow-xl transition-[box-shadow,border-color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col justify-between">
       <div>
@@ -67,6 +70,9 @@ export default function PropertyCard({ property, price }) {
       <div className="p-6 pt-0">
         <Link
           href={`/property/${property.slug}`}
+          onClick={() => {
+            trackSearchResultClicked(property, position, searchContext);
+          }}
           className="w-full py-3 rounded-xl bg-stone-50 hover:bg-stone-900 hover:text-white dark:hover:bg-stone-200 dark:hover:text-stone-900 text-stone-900 text-xs font-semibold transition-[background-color,color,border-color,scale] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] focus-ring flex items-center justify-center gap-2 border border-stone-200/80 group-hover:border-transparent active:scale-[0.98]"
         >
           <span>View Property Details</span>

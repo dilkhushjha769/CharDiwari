@@ -8,6 +8,8 @@ import { Box, Expand, House, Map as MapIcon, MapPin, PersonStanding, Route, Shar
 import { MAP_ID, hasMapsKey, importMapsLibrary } from '@/lib/google-maps';
 import { whatsappShareLink } from '@/lib/contact';
 import { NearbyIcon, nearbyColor } from './nearby';
+import NearbyPlacesPanel, { PLACE_CATEGORIES } from './NearbyPlacesPanel';
+import { trackPropertyMapInteracted } from '@/lib/analytics';
 
 // Neighbourhood viewer for a property. Two engines, same frame and toolbar:
 // - With a Google Maps key: photorealistic 3D, Street View and a map. Each
@@ -61,6 +63,18 @@ function formatImageDate(value) {
   return new Date(year, month - 1).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
 }
 
+function haversineMetres(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 // One nearby place on the free map: its colour and icon, the road distance,
 // and its name while in focus (hover, keyboard or tap). It grows in when its
 // route arrives.
@@ -93,26 +107,44 @@ function NearbyPin({ pin, focused, onFocusChange }) {
 }
 
 export default function NeighbourhoodViewer({ property, detail }) {
-  const coords = detail.coordinates;
+  const [coords, setCoords] = useState(detail.coordinates ?? null);
+  const [geocoding, setGeocoding] = useState(!detail.coordinates);
+  const [geocodeFailed, setGeocodeFailed] = useState(false);
   const approximate = detail.locationPrecision === 'approximate';
   const startMode = detail.viewerDefault === 'map' ? 'map' : '3d';
   const engine = hasMapsKey ? 'google' : 'open';
   // The free map has no Street View, so its toolbar shows only 3D and Map.
   const modes = engine === 'google' ? MODES : MODES.filter((m) => m.id !== 'street');
-  const streetAllowed = engine === 'google' && Boolean(detail.streetView);
+
+  // Dynamic Street View coverage and imagery state
+  const [streetCheckStatus, setStreetCheckStatus] = useState('idle'); // 'idle' | 'checking' | 'available' | 'unavailable' | 'error'
+  const [streetPanoData, setStreetPanoData]       = useState(null);
+  const [isNearbyStreetView, setIsNearbyStreetView] = useState(false);
+  const [streetDistance, setStreetDistance]       = useState(null);
+  const [streetLocationName, setStreetLocationName] = useState('');
+  const [streetDate, setStreetDate]               = useState(null);
+  const [streetLoading, setStreetLoading]         = useState(false);
+  const [streetMissing, setStreetMissing]         = useState(false);
+
+  const streetDisabled = engine !== 'google' || streetCheckStatus !== 'available' || streetMissing;
 
   const [phase, setPhase] = useState('idle'); // idle | loading | ready | error
   const [mode, setMode] = useState(startMode);
   const [created, setCreated] = useState({}); // which modes exist
   const [expanded, setExpanded] = useState(false);
-  const [streetDate, setStreetDate] = useState(null);
-  const [streetMissing, setStreetMissing] = useState(false);
   const [nearby, setNearby] = useState('off'); // off | loading | on | error (free map only)
   const [pins, setPins] = useState([]);
   const [focusedPlace, setFocusedPlace] = useState(null);
   const [homeElement, setHomeElement] = useState(null);
   // A shared link only changes the button label until the visitor clicks.
   const shared = parseSharedView(useSyncExternalStore(subscribeToNothing, readSearch, readNoSearch));
+
+  // ── Google Places nearby (google engine only) ────────────────────────────
+  const [activeCategory, setActiveCategory]   = useState(null);
+  const [focusedPlaceId, setFocusedPlaceId]   = useState(null);
+  const googlePlaceMarkers                    = useRef([]); // AdvancedMarkerElement[] or Marker3DElement[]
+  const currentPlacesRef                      = useRef([]);
+  const currentCatRef                         = useRef(null);
 
   const layers = useRef({});
   const instances = useRef({});
@@ -124,10 +156,124 @@ export default function NeighbourhoodViewer({ property, detail }) {
   const closeButtonRef = useRef(null);
   const lenis = useLenis();
 
+  // If coordinates are missing, geocode the address automatically
+  useEffect(() => {
+    if (coords) return;
+    let active = true;
+    async function geocodeAddress() {
+      setGeocoding(true);
+      const query = `${property.title}, ${property.location}`;
+      try {
+        if (hasMapsKey) {
+          const { Geocoder } = await importMapsLibrary('geocoding');
+          const geocoder = new Geocoder();
+          const res = await geocoder.geocode({ address: query });
+          const loc = res.results?.[0]?.geometry?.location;
+          if (loc && active) {
+            setCoords({ lat: loc.lat(), lng: loc.lng() });
+            setGeocoding(false);
+            return;
+          }
+        }
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.[0] && active) {
+            setCoords({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+            setGeocoding(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Geocoding failed', err);
+      }
+      if (active) {
+        setGeocoding(false);
+        setGeocodeFailed(true);
+      }
+    }
+    geocodeAddress();
+    return () => { active = false; };
+  }, [coords, property.location, property.title]);
+
   const center = useCallback(
-    (lat = coords.lat, lng = coords.lng) => ({ lat, lng, altitude: 0 }),
+    (lat = coords?.lat ?? 0, lng = coords?.lng ?? 0) => ({ lat, lng, altitude: 0 }),
     [coords]
   );
+
+  // Progressive radii check: 50m -> 150m -> 300m -> 1000m using StreetViewService
+  const checkStreetViewCoverage = useCallback(async (location) => {
+    if (!hasMapsKey || !location?.lat || !location?.lng) return;
+    setStreetCheckStatus('checking');
+    try {
+      const { StreetViewService, StreetViewSource } = await importMapsLibrary('streetView');
+      const service = new StreetViewService();
+      const radii = [50, 150, 300, 1000];
+
+      const queryPano = (r, source) =>
+        new Promise((resolve) => {
+          try {
+            service.getPanorama(
+              {
+                location: { lat: location.lat, lng: location.lng },
+                radius: r,
+                sources: source ? [source] : undefined,
+                preference: 'nearest',
+              },
+              (data, status) => {
+                if (status === 'OK' && data?.location?.pano) {
+                  resolve(data);
+                } else {
+                  resolve(null);
+                }
+              }
+            );
+          } catch {
+            resolve(null);
+          }
+        });
+
+      let found = null;
+      // 1. Progressively query outdoor street view
+      for (const r of radii) {
+        const data = await queryPano(r, StreetViewSource.OUTDOOR);
+        if (data) {
+          found = data;
+          break;
+        }
+      }
+
+      // 2. Fallback to default source up to 1000m
+      if (!found) {
+        found = await queryPano(1000, null);
+      }
+
+      if (found) {
+        const panoLat = typeof found.location.latLng.lat === 'function' ? found.location.latLng.lat() : found.location.latLng.lat;
+        const panoLng = typeof found.location.latLng.lng === 'function' ? found.location.latLng.lng() : found.location.latLng.lng;
+        const dist = Math.round(haversineMetres(location.lat, location.lng, panoLat, panoLng));
+
+        setStreetPanoData(found);
+        setStreetDistance(dist);
+        setIsNearbyStreetView(dist > 45 || approximate);
+        setStreetLocationName(found.location.description || found.location.shortDescription || '');
+        setStreetDate(formatImageDate(found.imageDate));
+        setStreetCheckStatus('available');
+      } else {
+        setStreetPanoData(null);
+        setStreetCheckStatus('unavailable');
+      }
+    } catch (err) {
+      console.warn('Street View coverage check error:', err);
+      setStreetCheckStatus('error');
+    }
+  }, [approximate]);
+
+  useEffect(() => {
+    if (coords && engine === 'google') {
+      checkStreetViewCoverage(coords);
+    }
+  }, [coords, engine, checkStreetViewCoverage]);
 
   const create3D = useCallback(
     async (view) => {
@@ -181,35 +327,78 @@ export default function NeighbourhoodViewer({ property, detail }) {
 
   const createStreet = useCallback(
     async (view) => {
-      const { StreetViewService, StreetViewPanorama, StreetViewSource } = await importMapsLibrary('streetView');
+      const { StreetViewPanorama } = await importMapsLibrary('streetView');
+      if (!streetPanoData?.location?.pano) {
+        setStreetMissing(true);
+        throw new Error('no-street');
+      }
+      setStreetLoading(true);
       try {
-        const { data } = await new StreetViewService().getPanorama({
-          location: { lat: coords.lat, lng: coords.lng },
-          radius: 150,
-          sources: [StreetViewSource.OUTDOOR],
-        });
-        // With only an approximate location, face along the street rather than at a building.
-        const heading = view?.heading ?? data.links?.[0]?.heading ?? 0;
-        instances.current.street = new StreetViewPanorama(layers.current.street, {
-          pano: data.location.pano,
+        const heading = view?.heading ?? streetPanoData.links?.[0]?.heading ?? 0;
+        const panorama = new StreetViewPanorama(layers.current.street, {
+          pano: streetPanoData.location.pano,
           pov: { heading, pitch: 5 },
           addressControl: false,
           fullscreenControl: false,
           motionTracking: false,
           motionTrackingControl: false,
+          zoomControl: true,
+          enableCloseButton: false,
         });
-        setStreetDate(formatImageDate(data.imageDate));
-      } catch {
+
+        // Ensure we only mark Street View as loaded when valid panorama data displays
+        await new Promise((resolve, reject) => {
+          let done = false;
+          const timer = setTimeout(() => {
+            if (!done) {
+              done = true;
+              setStreetLoading(false);
+              resolve();
+            }
+          }, 3500);
+
+          panorama.addListener('status_changed', () => {
+            const status = panorama.getStatus();
+            if (status === 'OK' && !done) {
+              done = true;
+              clearTimeout(timer);
+              setStreetLoading(false);
+              resolve();
+            } else if (status && status !== 'OK' && !done) {
+              done = true;
+              clearTimeout(timer);
+              setStreetLoading(false);
+              reject(new Error(status));
+            }
+          });
+
+          panorama.addListener('pano_changed', () => {
+            if (!done) {
+              done = true;
+              clearTimeout(timer);
+              setStreetLoading(false);
+              resolve();
+            }
+          });
+        });
+
+        instances.current.street = panorama;
+        setStreetDate(formatImageDate(streetPanoData.imageDate));
+      } catch (err) {
+        setStreetLoading(false);
         setStreetMissing(true);
-        throw new Error('no-street');
+        throw err;
       }
     },
-    [coords]
+    [streetPanoData]
   );
 
   const createMap = useCallback(
     async (view) => {
-      const [{ Map }, { AdvancedMarkerElement }] = await Promise.all([importMapsLibrary('maps'), importMapsLibrary('marker')]);
+      const [{ Map, Circle }, { AdvancedMarkerElement, PinElement }] = await Promise.all([
+        importMapsLibrary('maps'),
+        importMapsLibrary('marker'),
+      ]);
       const map = new Map(layers.current.map, {
         center: { lat: view?.lat ?? coords.lat, lng: view?.lng ?? coords.lng },
         zoom: view?.zoom ?? 16,
@@ -220,10 +409,38 @@ export default function NeighbourhoodViewer({ property, detail }) {
         fullscreenControl: false,
         clickableIcons: false,
       });
-      new AdvancedMarkerElement({ map, position: { lat: coords.lat, lng: coords.lng }, title: property.title });
+
+      // Distinct Red Property Pin anchored to property coordinates
+      const propertyPin = new PinElement({
+        background: '#dc2626', // Vibrant Red
+        borderColor: '#ffffff',
+        glyphColor: '#ffffff',
+        scale: 1.25,
+      });
+
+      new AdvancedMarkerElement({
+        map,
+        position: { lat: coords.lat, lng: coords.lng },
+        title: approximate ? `${property.title} (approximate area)` : property.title,
+        content: propertyPin.element,
+      });
+
+      if (approximate && Circle) {
+        new Circle({
+          strokeColor: '#dc2626',
+          strokeOpacity: 0.6,
+          strokeWeight: 1.5,
+          fillColor: '#dc2626',
+          fillOpacity: 0.12,
+          map,
+          center: { lat: coords.lat, lng: coords.lng },
+          radius: 350,
+        });
+      }
+
       instances.current.map = map;
     },
-    [coords, property.title]
+    [approximate, coords, property.title]
   );
 
   const createOpen = useCallback(
@@ -359,6 +576,7 @@ export default function NeighbourhoodViewer({ property, detail }) {
   const places = detail.nearby ?? [];
 
   async function showNearby() {
+    trackPropertyMapInteracted(property, 'nearby_places');
     const map = instances.current.open;
     const lib = mapLib.current;
     if (!map || !lib) return;
@@ -447,10 +665,131 @@ export default function NeighbourhoodViewer({ property, detail }) {
     frameOpen(before);
   }
 
+  // ── Google Places marker management ──────────────────────────────────────
+  function clearGooglePlaceMarkers() {
+    googlePlaceMarkers.current.forEach((m) => {
+      if (m?.remove) {
+        try { m.remove(); } catch {}
+      }
+      if (m && m.map !== undefined) {
+        m.map = null;
+      }
+    });
+    googlePlaceMarkers.current = [];
+  }
+
+  // Focus: scale up the selected marker; fly camera to destination in 3D or 2D
+  const handlePlaceFocus = useCallback(
+    (id) => {
+      setFocusedPlaceId(id);
+      if (!coords) return;
+      if (!id) {
+        if (mode === '3d' && instances.current['3d']) {
+          instances.current['3d'].flyCameraTo({
+            endCamera: {
+              center: { lat: coords.lat, lng: coords.lng, altitude: 0 },
+              range: SETTLED.range,
+              tilt: SETTLED.tilt,
+              heading: SETTLED.heading,
+            },
+            durationMillis: 1800,
+          });
+        } else if (mode === 'map' && instances.current.map) {
+          instances.current.map.panTo({ lat: coords.lat, lng: coords.lng });
+          instances.current.map.setZoom(16);
+        }
+        return;
+      }
+      const place = currentPlacesRef.current.find((p) => p.id === id);
+      if (!place) return;
+
+      if (mode === '3d' && instances.current['3d']) {
+        instances.current['3d'].flyCameraTo({
+          endCamera: {
+            center: { lat: place.location.lat, lng: place.location.lng, altitude: 0 },
+            range: 450,
+            tilt: 60,
+            heading: 25,
+          },
+          durationMillis: 1800,
+        });
+      } else if (mode === 'map' && instances.current.map) {
+        instances.current.map.panTo(place.location);
+        instances.current.map.setZoom(17);
+      }
+    },
+    [coords, mode, setFocusedPlaceId]
+  );
+
+  const renderGoogleMarkers = useCallback(
+    async (places, category, targetMode) => {
+      clearGooglePlaceMarkers();
+      if (!places?.length || !category) return;
+      const activeMode = targetMode || mode;
+
+      const catConfig = PLACE_CATEGORIES.find((c) => c.id === category);
+      const color     = catConfig?.color ?? '#57534e';
+
+      if (activeMode === '3d' && instances.current['3d']) {
+        try {
+          const { Marker3DElement } = await importMapsLibrary('maps3d');
+          const newMarkers = places.map((place) => {
+            const m3d = new Marker3DElement({
+              position: { lat: place.location.lat, lng: place.location.lng, altitude: 0 },
+              label: `${place.name} (${place.distanceKm} km)`,
+            });
+            m3d._placeId = place.id;
+            m3d.addEventListener('gmp-click', () => handlePlaceFocus(place.id));
+            instances.current['3d'].append(m3d);
+            return m3d;
+          });
+          googlePlaceMarkers.current = newMarkers;
+        } catch (err) {
+          console.warn('Marker3D error:', err);
+        }
+      } else if (activeMode === 'map' && instances.current.map) {
+        try {
+          const { AdvancedMarkerElement, PinElement } = await importMapsLibrary('marker');
+          const newMarkers = places.map((place) => {
+            const pin = new PinElement({
+              background:  color,
+              borderColor: 'white',
+              glyphColor:  'white',
+              scale:       0.9,
+            });
+            const marker = new AdvancedMarkerElement({
+              map:      instances.current.map,
+              position: place.location,
+              title:    `${place.name} (${place.distanceKm} km)`,
+              content:  pin.element,
+            });
+            marker._placeId = place.id;
+            marker.addListener('gmp-click', () => handlePlaceFocus(place.id));
+            return marker;
+          });
+          googlePlaceMarkers.current = newMarkers;
+        } catch (err) {
+          console.warn('AdvancedMarker error:', err);
+        }
+      }
+    },
+    [handlePlaceFocus, mode]
+  );
+
+  // Called by NearbyPlacesPanel when a new category's results arrive.
+  const handlePlacesLoaded = useCallback(
+    (places, category) => {
+      currentPlacesRef.current = places;
+      currentCatRef.current    = category;
+      renderGoogleMarkers(places, category, mode);
+    },
+    [mode, renderGoogleMarkers]
+  );
+
   async function explore() {
     setPhase('loading');
     const view = shared;
-    const first = view?.mode === 'street' && !streetAllowed ? startMode : view?.mode ?? startMode;
+    const first = view?.mode === 'street' && streetDisabled ? startMode : view?.mode ?? startMode;
     // Render the layers first so the creators have somewhere to mount.
     setMode(first);
     await new Promise((resolve) => requestAnimationFrame(() => resolve()));
@@ -470,14 +809,20 @@ export default function NeighbourhoodViewer({ property, detail }) {
 
   async function switchTo(next) {
     if (next === mode) return;
-    if (next === 'street' && (!streetAllowed || streetMissing)) return;
+    if (next === 'street' && streetDisabled) return;
+    trackPropertyMapInteracted(property, next);
     if (engine === 'open') {
       setMode(next);
       frameOpen(next);
       return;
     }
     const ok = await ensureMode(next);
-    if (ok) setMode(next);
+    if (ok) {
+      setMode(next);
+      if (currentCatRef.current && currentPlacesRef.current.length) {
+        renderGoogleMarkers(currentPlacesRef.current, currentCatRef.current, next);
+      }
+    }
   }
 
   // Gestures: inline the map only moves with two fingers / Ctrl-scroll; expanded it takes everything.
@@ -504,6 +849,27 @@ export default function NeighbourhoodViewer({ property, detail }) {
   useEffect(() => {
     nearbyRun.current.declutter?.();
   }, [pins]);
+
+  // Google Places: highlight the focused marker.
+  useEffect(() => {
+    googlePlaceMarkers.current.forEach((m) => {
+      const isFocused = m._placeId === focusedPlaceId;
+      if (m.content) {
+        m.content.style.transform = isFocused ? 'scale(1.25)' : '';
+        m.content.style.zIndex    = isFocused ? '10' : '';
+        m.content.style.transition = 'transform 150ms ease';
+      }
+    });
+  }, [focusedPlaceId]);
+
+  // When active category is cleared, remove all Google Place markers.
+  useEffect(() => {
+    if (!activeCategory) {
+      currentCatRef.current = null;
+      currentPlacesRef.current = [];
+      clearGooglePlaceMarkers();
+    }
+  }, [activeCategory]);
 
   // The free map holds a WebGL context; release it when the page goes.
   useEffect(() => {
@@ -553,28 +919,32 @@ export default function NeighbourhoodViewer({ property, detail }) {
     ['view', 'lat', 'lng', 'range', 'tilt', 'heading', 'zoom'].forEach((key) => url.searchParams.delete(key));
     url.searchParams.set('view', mode);
     const round = (n, digits = 5) => String(Math.round(n * 10 ** digits) / 10 ** digits);
-    if (engine === 'open' && instances.current.open) {
-      const map = instances.current.open;
-      const c = map.getCenter();
-      url.searchParams.set('lat', round(c.lat));
-      url.searchParams.set('lng', round(c.lng));
-      url.searchParams.set('zoom', round(map.getZoom(), 1));
-      url.searchParams.set('tilt', round(map.getPitch(), 1));
-      url.searchParams.set('heading', round(map.getBearing(), 1));
-    } else if (mode === '3d' && instances.current['3d']) {
-      const map = instances.current['3d'];
-      url.searchParams.set('lat', round(map.center.lat));
-      url.searchParams.set('lng', round(map.center.lng));
-      url.searchParams.set('range', round(map.range, 0));
-      url.searchParams.set('tilt', round(map.tilt, 1));
-      url.searchParams.set('heading', round(map.heading, 1));
-    } else if (mode === 'street' && instances.current.street) {
+    // When listing hides exact location (approximate privacy setting), do not expose precise coordinates in URL
+    if (!approximate) {
+      if (engine === 'open' && instances.current.open) {
+        const map = instances.current.open;
+        const c = map.getCenter();
+        url.searchParams.set('lat', round(c.lat));
+        url.searchParams.set('lng', round(c.lng));
+        url.searchParams.set('zoom', round(map.getZoom(), 1));
+        url.searchParams.set('tilt', round(map.getPitch(), 1));
+        url.searchParams.set('heading', round(map.getBearing(), 1));
+      } else if (mode === '3d' && instances.current['3d']) {
+        const map = instances.current['3d'];
+        url.searchParams.set('lat', round(map.center.lat));
+        url.searchParams.set('lng', round(map.center.lng));
+        url.searchParams.set('range', round(map.range, 0));
+        url.searchParams.set('tilt', round(map.tilt, 1));
+        url.searchParams.set('heading', round(map.heading, 1));
+      } else if (mode === 'map' && instances.current.map) {
+        const c = instances.current.map.getCenter();
+        url.searchParams.set('lat', round(c.lat()));
+        url.searchParams.set('lng', round(c.lng));
+        url.searchParams.set('zoom', round(instances.current.map.getZoom(), 1));
+      }
+    }
+    if (mode === 'street' && instances.current.street) {
       url.searchParams.set('heading', round(instances.current.street.getPov().heading, 1));
-    } else if (mode === 'map' && instances.current.map) {
-      const c = instances.current.map.getCenter();
-      url.searchParams.set('lat', round(c.lat()));
-      url.searchParams.set('lng', round(c.lng()));
-      url.searchParams.set('zoom', round(instances.current.map.getZoom(), 1));
     }
     const label = modes[modeIndex].label;
     window.open(whatsappShareLink(`Take a look around ${property.title}, ${property.location} (${label} view): ${url}`), '_blank', 'noopener');
@@ -583,19 +953,36 @@ export default function NeighbourhoodViewer({ property, detail }) {
   function onTabKey(event) {
     if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
     event.preventDefault();
-    const enabled = modes.filter((m) => m.id !== 'street' || (streetAllowed && !streetMissing));
+    const enabled = modes.filter((m) => m.id !== 'street' || !streetDisabled);
     const index = enabled.findIndex((m) => m.id === mode);
     const next = enabled[(index + (event.key === 'ArrowRight' ? 1 : enabled.length - 1)) % enabled.length];
     switchTo(next.id);
     document.getElementById(`viewer-tab-${property.slug}-${next.id}`)?.focus();
   }
 
-  if (!coords) return null;
+  if (!coords) {
+    if (geocodeFailed) {
+      return (
+        <div className="rounded-3xl border border-stone-200/90 bg-stone-50 p-8 text-center">
+          <MapPin className="mx-auto h-8 w-8 text-stone-400 mb-2" />
+          <p className="text-sm font-semibold text-stone-800">Map location not available</p>
+          <p className="text-xs text-stone-500 mt-1">Precise coordinates could not be determined for this address.</p>
+        </div>
+      );
+    }
+    return (
+      <div className="relative w-full aspect-[16/9] overflow-hidden rounded-3xl border border-stone-200/90 bg-stone-100 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <span className="h-8 w-36 rounded-full bg-stone-200 motion-safe:animate-pulse" />
+          <p className="text-xs text-stone-500">Locating neighbourhood…</p>
+        </div>
+      </div>
+    );
+  }
 
   const frame = 'relative w-full overflow-hidden rounded-3xl border border-stone-200/90 bg-stone-100 dark:bg-stone-50 aspect-[4/3] sm:aspect-[16/9]';
 
   const exploreLabel = shared ? 'Open the shared view' : startMode === '3d' ? 'Explore in 3D' : 'Explore the area';
-  const streetDisabled = !streetAllowed || streetMissing;
   const layerIds = engine === 'google' ? modes.map((m) => m.id) : ['open'];
   const visibleLayer = engine === 'google' ? mode : 'open';
   const modeIndex = Math.max(0, modes.findIndex((m) => m.id === mode));
@@ -665,19 +1052,66 @@ export default function NeighbourhoodViewer({ property, detail }) {
         ) : null}
 
         {/* Chips sit top-left, clear of the map's zoom controls and its attribution at the bottom. */}
-        <div className="pointer-events-none absolute top-3 left-3 flex flex-wrap gap-2">
+        <div className="pointer-events-none absolute top-3 left-3 z-20 flex flex-wrap gap-2 max-w-[calc(100%-120px)] sm:max-w-md">
           {approximate ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-stone-900 shadow-sm dark:bg-stone-50/95">
-              <MapPin className="w-3 h-3" />
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-stone-900 shadow-sm backdrop-blur dark:bg-stone-50/95">
+              <MapPin className="w-3 h-3 text-red-600" />
               Approximate location
             </span>
           ) : null}
-          {mode === 'street' && streetDate && phase === 'ready' ? (
-            <span className="rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-stone-900 shadow-sm dark:bg-stone-50/95">
-              Street photo from {streetDate}
-            </span>
-          ) : null}
+          {mode === 'street' && phase === 'ready' && !streetLoading && (
+            <>
+              {isNearbyStreetView ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/95 text-white px-2.5 py-1 text-[11px] font-semibold shadow-sm backdrop-blur">
+                  Nearby street view {streetDistance ? `(~${streetDistance}m)` : ''}
+                </span>
+              ) : null}
+              {streetLocationName ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-stone-900/85 text-white px-2.5 py-1 text-[11px] font-medium shadow-sm backdrop-blur max-w-[180px] sm:max-w-xs truncate" title={streetLocationName}>
+                  <MapPin className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{streetLocationName}</span>
+                </span>
+              ) : null}
+              {streetDate ? (
+                <span className="rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-stone-900 shadow-sm backdrop-blur dark:bg-stone-50/95">
+                  Street photo from {streetDate}
+                </span>
+              ) : null}
+            </>
+          )}
         </div>
+
+        {/* When Street View is active, provide a clear way to return to 3D or regular map directly in the view */}
+        {mode === 'street' && phase === 'ready' && !streetLoading && (
+          <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => switchTo('3d')}
+              className="press inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-stone-900 shadow-md backdrop-blur hover:bg-white focus-ring dark:bg-stone-900/90 dark:text-white"
+              title="Return to 3D neighbourhood view"
+            >
+              <Box className="w-3.5 h-3.5 text-stone-700 dark:text-stone-300" />
+              <span className="hidden sm:inline">Return to</span> 3D
+            </button>
+            <button
+              type="button"
+              onClick={() => switchTo('map')}
+              className="press inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-stone-900 shadow-md backdrop-blur hover:bg-white focus-ring dark:bg-stone-900/90 dark:text-white"
+              title="Return to property map"
+            >
+              <MapIcon className="w-3.5 h-3.5 text-stone-700 dark:text-stone-300" />
+              <span className="hidden sm:inline">Return to</span> Map
+            </button>
+          </div>
+        )}
+
+        {/* Street View Loading State: Do not show successful view until panorama has loaded */}
+        {mode === 'street' && streetLoading && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-stone-950/60 backdrop-blur-sm text-white">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            <span className="mt-2.5 text-xs font-medium text-white/90">Loading 360° Street View…</span>
+          </div>
+        )}
       </div>
 
       {/* Nearby pins live inside MapLibre's markers; React renders their content. */}
@@ -728,12 +1162,23 @@ export default function NeighbourhoodViewer({ property, detail }) {
                   aria-selected={mode === m.id}
                   tabIndex={mode === m.id ? 0 : -1}
                   disabled={disabled}
-                  title={disabled ? "Street View isn't available here yet" : undefined}
+                  title={
+                    disabled
+                      ? streetCheckStatus === 'checking'
+                        ? 'Checking Street View availability…'
+                        : "Street View isn't available around this property"
+                      : isNearbyStreetView
+                      ? `Nearby Street View (${streetDistance ? `~${streetDistance}m` : 'nearby'})`
+                      : undefined
+                  }
                   onClick={() => switchTo(m.id)}
                   className="relative z-10 inline-flex items-center justify-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold text-stone-600 aria-selected:text-stone-900 disabled:cursor-not-allowed disabled:opacity-40 transition-colors focus-ring"
                 >
                   <Icon className="w-3.5 h-3.5" />
                   <span className="whitespace-nowrap">{m.label}</span>
+                  {m.id === 'street' && !disabled && isNearbyStreetView && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500" title="Nearby street view" />
+                  )}
                 </button>
               );
             })}
@@ -790,7 +1235,36 @@ export default function NeighbourhoodViewer({ property, detail }) {
         <p className="text-xs text-red-600">Couldn&apos;t load the nearby places. Please try again.</p>
       ) : null}
       {engine === 'google' && streetDisabled && phase === 'ready' ? (
-        <p className="text-xs text-stone-500">Street View isn&apos;t available here yet.</p>
+        <p className="text-xs text-stone-500">
+          {streetCheckStatus === 'checking'
+            ? 'Checking 360° Street View coverage…'
+            : "Street View imagery isn't available within 1 km of this property."}
+        </p>
+      ) : null}
+      {engine === 'google' && !streetDisabled && isNearbyStreetView && mode === 'street' && phase === 'ready' ? (
+        <p className="text-xs text-amber-700 dark:text-amber-600">
+          Viewing nearest outdoor Street View (~{streetDistance}m from property{streetLocationName ? ` near ${streetLocationName}` : ''}).
+        </p>
+      ) : null}
+
+      {/* ── Google Places nearby panel ─────────────────────────────────────
+          Only renders after the viewer is ready and a Google key is present.
+          Shown below the toolbar so it never covers the map or attribution. */}
+      {engine === 'google' && phase === 'ready' ? (
+        <NearbyPlacesPanel
+          coords={coords}
+          activeCategory={activeCategory}
+          onCategoryChange={(cat) => {
+            setActiveCategory(cat);
+            setFocusedPlaceId(null);
+            // Switch to map mode so markers are visible (3D mode uses a
+            // different layer; markers appear on the 2D map layer).
+            if (cat && mode === 'street') switchTo('map');
+          }}
+          focusedPlaceId={focusedPlaceId}
+          onPlaceFocus={handlePlaceFocus}
+          onPlacesLoaded={handlePlacesLoaded}
+        />
       ) : null}
     </div>
   );

@@ -34,9 +34,17 @@ import {
   Maximize2,
   Search,
   Sparkles,
+  BarChart3,
+  Activity,
+  Clock,
+  Layers,
+  ShieldCheck,
+  Flame,
+  Compass,
 } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { parseVideoUrl } from '@/lib/video';
+import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 
 export default function AdminPage() {
   // Auth state
@@ -80,31 +88,37 @@ export default function AdminPage() {
   const fileInputRef = useRef(null);
   const propMediaInputRef = useRef(null);
 
+  // Analytics Test State
+  const [testEventStatus, setTestEventStatus] = useState('');
+
   // Check admin session on mount
   useEffect(() => {
-    checkAdminSession();
-  }, []);
+    let ignore = false;
+    fetch('/api/admin/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (ignore) return;
+        if (data?.authenticated) {
+          setIsAdminLoggedIn(true);
+          setAdminUser(data.admin);
+          fetchProperties();
+          fetchSettings();
+        } else {
+          setIsAdminLoggedIn(false);
+          setAdminUser(null);
+        }
+      })
+      .catch(() => {
+        if (!ignore) setIsAdminLoggedIn(false);
+      })
+      .finally(() => {
+        if (!ignore) setAuthLoading(false);
+      });
 
-  const checkAdminSession = async () => {
-    try {
-      setAuthLoading(true);
-      const res = await fetch('/api/admin/me');
-      const data = await res.json();
-      if (res.ok && data.authenticated) {
-        setIsAdminLoggedIn(true);
-        setAdminUser(data.admin);
-        fetchProperties();
-        fetchSettings();
-      } else {
-        setIsAdminLoggedIn(false);
-        setAdminUser(null);
-      }
-    } catch (err) {
-      setIsAdminLoggedIn(false);
-    } finally {
-      setAuthLoading(false);
-    }
-  };
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -146,7 +160,7 @@ export default function AdminPage() {
     }
   };
 
-  const fetchProperties = async () => {
+  async function fetchProperties() {
     try {
       setLoadingProps(true);
       const res = await fetch('/api/admin/properties');
@@ -159,9 +173,9 @@ export default function AdminPage() {
     } finally {
       setLoadingProps(false);
     }
-  };
+  }
 
-  const fetchSettings = async () => {
+  async function fetchSettings() {
     try {
       setSettingsLoading(true);
       const res = await fetch('/api/admin/settings');
@@ -174,7 +188,7 @@ export default function AdminPage() {
     } finally {
       setSettingsLoading(false);
     }
-  };
+  }
 
   const handleOpenNewProperty = () => {
     setIsCreatingNew(true);
@@ -686,6 +700,7 @@ export default function AdminPage() {
             { id: 'properties', label: 'Property Listings', icon: Building2, count: properties.length },
             { id: 'access', label: 'Website Availability', icon: Globe },
             { id: 'media', label: 'Media & Video Vault', icon: Film },
+            { id: 'analytics', label: 'PostHog Analytics', icon: BarChart3 },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -1166,6 +1181,11 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {/* ================================================================ */}
+        {/* TAB 4: POSTHOG ANALYTICS & INSIGHTS                              */}
+        {/* ================================================================ */}
+        {activeTab === 'analytics' && <AnalyticsDashboard />}
       </main>
 
       {/* ================================================================ */}

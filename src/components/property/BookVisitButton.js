@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { CalendarCheck } from 'lucide-react';
 import { getSupabaseClient } from '@/lib/supabase/client';
 import { whatsappLink } from '@/lib/contact';
+import { trackVisitBookingStarted, trackVisitBookingCompleted } from '@/lib/analytics';
 
 // Booking a visit goes through sign-in. Signed-in visitors (Supabase or the
 // site's own session, the same two checks the navbar makes) go straight to
@@ -27,8 +28,11 @@ export default function BookVisitButton({ property, className = '' }) {
 
   async function book() {
     setChecking(true);
+    trackVisitBookingStarted(property);
     try {
-      if (await signedIn()) {
+      const isAuth = await signedIn();
+      if (isAuth) {
+        trackVisitBookingCompleted(property, { channel: 'whatsapp' });
         const message = `Hi Dwarkesh, I'd like to book a free visit to ${property.title}, ${property.location}.`;
         window.open(whatsappLink(message), '_blank', 'noopener');
       } else {

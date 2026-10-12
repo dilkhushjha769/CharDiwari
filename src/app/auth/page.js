@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw, Mail, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { getSupabaseClient, getSupabaseConfig } from '@/lib/supabase/client';
+import { triggerActivityMigration } from '@/lib/visitor';
 
 // ─── Country Codes ─────────────────────────────────────────────────────────────
 const COUNTRY_CODES = [
@@ -253,6 +254,7 @@ function AuthContent() {
         if (typeof document !== 'undefined') {
           document.cookie = 'dwarkesh_session=true; path=/; max-age=604800; SameSite=Lax';
         }
+        triggerActivityMigration().catch(() => {});
         router.push(redirectPath);
       }
     });
@@ -261,6 +263,7 @@ function AuthContent() {
         if (typeof document !== 'undefined') {
           document.cookie = 'dwarkesh_session=true; path=/; max-age=604800; SameSite=Lax';
         }
+        triggerActivityMigration().catch(() => {});
         router.push(redirectPath);
       }
     });
@@ -455,6 +458,7 @@ function AuthContent() {
         document.cookie = 'dwarkesh_session=true; path=/; max-age=604800; SameSite=Lax';
       }
       recordRegisteredEmail(cleanEmail);
+      triggerActivityMigration().catch(() => {});
       devLog('Auth request completed: signin');
       setSuccess('Welcome back! Logging in...');
       setTimeout(() => router.push(redirectPath), 500);
@@ -528,6 +532,7 @@ function AuthContent() {
         if (typeof document !== 'undefined') {
           document.cookie = 'dwarkesh_session=true; path=/; max-age=604800; SameSite=Lax';
         }
+        triggerActivityMigration().catch(() => {});
         setSuccess('Account created! Welcome to Dwarkesh...');
         setTimeout(() => router.push(redirectPath), 600);
       } else {
@@ -670,6 +675,7 @@ function AuthContent() {
       }
 
       recordRegisteredEmail(email.trim());
+      triggerActivityMigration().catch(() => {});
       devLog('Auth request completed: verify_otp');
       setSuccess('Verified! Logging in...');
       setTimeout(() => router.push(redirectPath), 700);

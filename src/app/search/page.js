@@ -10,6 +10,14 @@ import PropertyCompareModal from '@/components/PropertyCompareModal';
 import SavePropertyButton from '@/components/SavePropertyButton';
 import { properties } from '@/data/properties';
 import {
+  trackCategoryViewed,
+  trackSearchPerformed,
+  trackSearchResultClicked,
+  trackFilterApplied,
+  trackCategoryEngagement,
+} from '@/lib/analytics';
+import { useActiveTimeTracker } from '@/lib/useActiveTimeTracker';
+import {
   ChevronDown,
   ChevronUp,
   ChevronRight,
@@ -92,6 +100,7 @@ function getProximities(city) {
 // Subcategory Navigation Items
 const SUB_CATEGORIES = [
   { name: 'All Properties', type: 'All Types' },
+  { name: 'Plots & Land', type: 'Private Plot / Land' },
   { name: 'Luxury Villas', type: 'Luxury Villa & Estate' },
   { name: 'Apartments', type: 'Architectural Apartment' },
   { name: 'Penthouses', type: 'Penthouse / Sky Villa' },
@@ -106,6 +115,7 @@ const PROPERTY_TYPES = [
   'Luxury Villa & Estate',
   'Architectural Apartment',
   'Penthouse / Sky Villa',
+  'Private Plot / Land',
 ];
 
 const BHK_LIST = ['2 BHK', '3 BHK', '4 BHK', '5+ BHK'];
@@ -185,7 +195,7 @@ function PropertyCardGallery({
     const intervals = [3200, 4400, 3600, 5100, 3400, 4200, 3800, 4700];
     const key = typeof cardIndex === 'number' ? cardIndex : (prop?.id || 0);
     return intervals[key % intervals.length];
-  }, [cardIndex, prop?.id]);
+  }, [cardIndex, prop.id]);
 
   // Auto-slideshow with staggered initial delay so components don't all slide in sync
   useEffect(() => {
@@ -381,6 +391,16 @@ function SearchContent() {
     searchParams.get('possession') === 'Ready to Move'
   );
 
+  // Sync with URL search params changes
+  useEffect(() => {
+    const t = searchParams.get('type');
+    if (t && t !== 'All Types') {
+      setSelectedTypes([t]);
+    } else if (t === 'All Types') {
+      setSelectedTypes([]);
+    }
+  }, [searchParams]);
+
   // Sorting
   const [sortBy, setSortBy] = useState('relevance');
 
@@ -420,32 +440,51 @@ function SearchContent() {
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
 
+  // Active engagement tracker for current category
+  const currentCategoryForEngagement = selectedTypes[0] || (searchParams.get('mode') === 'plots' ? 'Private Plot / Land' : null);
+  useActiveTimeTracker({
+    enabled: Boolean(currentCategoryForEngagement),
+    onFlush: (flushedSec, totalSec) => {
+      if (currentCategoryForEngagement) {
+        trackCategoryEngagement(currentCategoryForEngagement, flushedSec, totalSec);
+      }
+    },
+  });
+
   const toggleAccordion = (key) => {
     setAccordions((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   const toggleType = (t) => {
-    setSelectedTypes((prev) =>
-      prev.includes(t) ? prev.filter((item) => item !== t) : [...prev, t]
-    );
+    setSelectedTypes((prev) => {
+      const isSelected = prev.includes(t);
+      trackFilterApplied('property_type', t, { action: isSelected ? 'remove' : 'add' });
+      return isSelected ? prev.filter((item) => item !== t) : [...prev, t];
+    });
   };
 
   const toggleBhk = (b) => {
-    setSelectedBhks((prev) =>
-      prev.includes(b) ? prev.filter((item) => item !== b) : [...prev, b]
-    );
+    setSelectedBhks((prev) => {
+      const isSelected = prev.includes(b);
+      trackFilterApplied('bhk', b, { action: isSelected ? 'remove' : 'add' });
+      return isSelected ? prev.filter((item) => item !== b) : [...prev, b];
+    });
   };
 
   const toggleCity = (c) => {
-    setSelectedCity((prev) =>
-      prev.includes(c) ? prev.filter((item) => item !== c) : [...prev, c]
-    );
+    setSelectedCity((prev) => {
+      const isSelected = prev.includes(c);
+      trackFilterApplied('city', c, { action: isSelected ? 'remove' : 'add' });
+      return isSelected ? prev.filter((item) => item !== c) : [...prev, c];
+    });
   };
 
   const togglePriceRange = (label) => {
-    setSelectedPriceRanges((prev) =>
-      prev.includes(label) ? prev.filter((item) => item !== label) : [...prev, label]
-    );
+    setSelectedPriceRanges((prev) => {
+      const isSelected = prev.includes(label);
+      trackFilterApplied('price_range', label, { action: isSelected ? 'remove' : 'add' });
+      return isSelected ? prev.filter((item) => item !== label) : [...prev, label];
+    });
   };
 
   const toggleCompare = (prop) => {
@@ -567,6 +606,9 @@ function SearchContent() {
   }, [filteredProperties, sortBy]);
 
   const handleCategoryClick = (cat) => {
+    if (cat.name) {
+      trackCategoryViewed(cat.name, { category_type: cat.type || '', city: cat.city || '' });
+    }
     if (cat.type && cat.type !== 'All Types') {
       setSelectedTypes([cat.type]);
     } else if (cat.type === 'All Types') {
@@ -595,7 +637,13 @@ function SearchContent() {
               setSearchQuery={setSearchQuery}
               placeholder="Search properties, builder, locality..."
               onSearchSubmit={(q) => {
+                const term = typeof q === 'string' ? q : searchQuery;
                 if (typeof q === 'string') setSearchQuery(q);
+                trackSearchPerformed(term, {
+                  city: selectedCity.join(','),
+                  type: selectedTypes.join(','),
+                  bhk: selectedBhks.join(','),
+                }, filteredProperties.length);
               }}
               onSelectLocation={(loc) => {
                 if (loc.city) setSelectedCity([loc.city]);
@@ -1031,6 +1079,9 @@ function SearchContent() {
                         <div className="flex items-center justify-between gap-2">
                           <Link
                             href={`/property/${prop.slug || prop.id}`}
+                            onClick={() => {
+                              trackSearchResultClicked(prop, propIndex, { query: searchQuery, city: selectedCity, type: selectedType });
+                            }}
                             className="text-base font-bold text-stone-900 hover:text-stone-700 tracking-tight leading-snug truncate"
                           >
                             {prop.title}
@@ -1095,6 +1146,9 @@ function SearchContent() {
 
                           <Link
                             href={`/property/${prop.slug || prop.id}`}
+                            onClick={() => {
+                              trackSearchResultClicked(prop, propIndex, { query: searchQuery, city: selectedCity, type: selectedType });
+                            }}
                             className="h-8 px-3.5 rounded-lg bg-stone-900 hover:bg-black text-white text-xs font-semibold flex items-center gap-1 transition shadow-xs active:scale-95 shrink-0"
                           >
                             <span>Explore</span>
@@ -1122,6 +1176,9 @@ function SearchContent() {
                         <div className="mb-3">
                           <Link
                             href={`/property/${prop.slug || prop.id}`}
+                            onClick={() => {
+                              trackSearchResultClicked(prop, propIndex, { query: searchQuery, city: selectedCity, type: selectedType });
+                            }}
                             className="group/title inline-flex items-center gap-1.5 sm:gap-2"
                           >
                             <h2 className="text-lg sm:text-2xl font-bold text-stone-900 group-hover/title:text-stone-700 transition-colors tracking-tight">
@@ -1248,6 +1305,9 @@ function SearchContent() {
                           {/* Explore Button */}
                           <Link
                             href={`/property/${prop.slug || prop.id}`}
+                            onClick={() => {
+                              trackSearchResultClicked(prop, propIndex, { query: searchQuery, city: selectedCity, type: selectedType });
+                            }}
                             className="h-9 sm:h-10 px-3 sm:px-4 rounded-lg bg-stone-900 hover:bg-black text-white text-xs font-semibold transition cursor-pointer shadow-xs flex items-center justify-center gap-1 shrink-0"
                           >
                             <span>Explore</span>

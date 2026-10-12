@@ -33,6 +33,7 @@ import Reveal from '@/components/Reveal';
 import { useUserLocation } from '@/lib/useUserLocation';
 import { properties } from '@/data/properties';
 import { useRouter } from 'next/navigation';
+import { trackSearchPerformed } from '@/lib/analytics';
 
 export default function HomePage() {
   const router = useRouter();
@@ -99,6 +100,51 @@ export default function HomePage() {
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Live Sync for Navbar subitem filters (Villas, Apartments, Penthouses, Plots)
+  useEffect(() => {
+    const applyNavFilter = (type, mode) => {
+      if (type) {
+        setSelectedType(type);
+      }
+      if (mode && ['buy', 'rent', 'plots'].includes(mode)) {
+        setSearchMode(mode);
+      }
+      setTimeout(() => {
+        const el = document.getElementById('collection');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 50);
+    };
+
+    const handleCustomFilter = (e) => {
+      if (e?.detail) {
+        applyNavFilter(e.detail.type, e.detail.mode);
+      }
+    };
+
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const type = params.get('type');
+      const mode = params.get('mode');
+      if (type || mode) {
+        applyNavFilter(type, mode);
+      }
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('type') || params.get('mode')) {
+      handlePopState();
+    }
+
+    window.addEventListener('dwarkesh-nav-filter', handleCustomFilter);
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('dwarkesh-nav-filter', handleCustomFilter);
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, []);
 
   const toggleDropdown = (name) => {
@@ -344,6 +390,19 @@ export default function HomePage() {
     }
 
     const searchUrl = `/search${params.toString() ? `?${params.toString()}` : ''}`;
+    trackSearchPerformed(
+      queryToUse,
+      {
+        city: selectedCity,
+        location: selectedLocation,
+        type: selectedType,
+        bhk: selectedBhk,
+        budget: selectedBudget,
+        possession: selectedPossession,
+        mode: searchMode,
+      },
+      filteredProperties.length
+    );
     router.push(searchUrl);
   };
 
@@ -1121,11 +1180,17 @@ export default function HomePage() {
         {/* Property Cards Grid or Empty State */}
         {filteredProperties.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {filteredProperties.map((property) => (
+            {filteredProperties.map((property, idx) => (
               <PropertyCard
                 key={property.id}
                 property={property}
                 price={searchMode === 'rent' ? property.rentPrice : property.price}
+                position={idx}
+                searchContext={{
+                  query: searchQuery,
+                  city: selectedCity,
+                  type: selectedType,
+                }}
               />
             ))}
           </div>

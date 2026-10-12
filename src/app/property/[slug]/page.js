@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ChevronRight, MapPin } from 'lucide-react';
+import { Box, ChevronRight, MapPin } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import EMICalculator from '@/components/EMICalculator';
@@ -16,6 +16,7 @@ import { propertyDetail } from '@/data/property-details';
 import { propertyPhotos } from '@/data/property-photos';
 import { getLiveProperty } from '@/lib/admin';
 import SavePropertyButton from '@/components/SavePropertyButton';
+import PropertyEngagementTracker from '@/components/analytics/PropertyEngagementTracker';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://char-diwari.vercel.app';
 const CRORE = 1e7;
@@ -82,7 +83,7 @@ function PropertyContent({ property, detail }) {
   const sections = [
     { id: 'overview', label: 'Overview' },
     detail.amenities?.length && { id: 'amenities', label: 'Amenities' },
-    { id: 'location', label: 'Location' },
+    { id: 'location', label: 'Explore in 3D' },
     similarItems.length && { id: 'similar-properties', label: 'Similar' },
     { id: 'emi-calculator', label: 'EMI' },
     { id: 'faqs', label: 'FAQs' },
@@ -119,6 +120,7 @@ function PropertyContent({ property, detail }) {
 
   return (
     <>
+      <PropertyEngagementTracker property={property} />
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(listingLd)} />
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(breadcrumbLd)} />
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(faqLd)} />
@@ -137,6 +139,7 @@ function PropertyContent({ property, detail }) {
 
           <div className="mt-5">
             <PropertyGallery
+              property={property}
               title={property.title}
               photos={propertyPhotos(property, detail)}
               videoUrl={property.video_url || property.videoUrl}
@@ -154,6 +157,13 @@ function PropertyContent({ property, detail }) {
                   <span className="px-2.5 py-1 rounded-full bg-emerald-700 text-white text-xs font-medium shadow-sm">{property.tag}</span>
                 </span>
                 <SavePropertyButton property={property} variant="pill" />
+                <a
+                  href="#location"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-900 text-white text-xs font-semibold hover:bg-black transition shadow-xs focus-ring"
+                >
+                  <Box className="w-3.5 h-3.5 text-amber-400" />
+                  Explore in 3D
+                </a>
               </div>
               <h1 className="mt-4 text-3xl sm:text-4xl md:text-5xl font-serif text-stone-900 tracking-tight text-balance">
                 {property.title}
@@ -192,7 +202,7 @@ function PropertyContent({ property, detail }) {
                   <Amenities amenities={detail.amenities} />
                 </Section>
               ) : null}
-              <Section id="location" title="Location and neighbourhood">
+              <Section id="location" title="Explore in 3D & Neighbourhood">
                 <Location property={property} detail={detail} />
               </Section>
             </div>

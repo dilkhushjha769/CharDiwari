@@ -3,6 +3,7 @@ import { otpSchema, emailSchema } from '@/lib/validation';
 import { getOtp, incrementOtpAttempt, deleteOtp, createUser, findUserByEmail } from '@/lib/db';
 import { verifyOtpHash } from '@/lib/mail';
 import { createSessionToken, createResetToken, setSessionCookie } from '@/lib/session';
+import { migrateVisitorActivity } from '@/lib/activity';
 
 export async function POST(request) {
   try {
@@ -98,6 +99,14 @@ export async function POST(request) {
           passwordHash: temp.passwordHash,
           provider: 'credentials',
         });
+      }
+
+      // Automatically migrate anonymous visitor activity if visitorId is present
+      const visitorId = body?.visitorId || request.cookies.get('dwarkesh_vid')?.value;
+      if (visitorId && user?.id) {
+        try {
+          await migrateVisitorActivity(user.id, visitorId);
+        } catch (_) {}
       }
 
       // Create session and set cookie

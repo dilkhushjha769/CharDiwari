@@ -5,6 +5,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import SmoothScroll from "@/components/SmoothScroll";
 import ThemeProvider from "@/components/ThemeProvider";
 import GlobalAnnouncementBanner from "@/components/GlobalAnnouncementBanner";
+import PostHogProvider from "@/components/analytics/PostHogProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,11 +38,13 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased bg-white text-black`}
     >
       <body className="min-h-full flex flex-col bg-white text-black">
-        <ThemeProvider>
-          <GlobalAnnouncementBanner />
-          <SmoothScroll />
-          {children}
-        </ThemeProvider>
+        <PostHogProvider>
+          <ThemeProvider>
+            <GlobalAnnouncementBanner />
+            <SmoothScroll />
+            {children}
+          </ThemeProvider>
+        </PostHogProvider>
       </body>
     </html>
   );

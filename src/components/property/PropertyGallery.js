@@ -4,16 +4,18 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Play, Video } from 'lucide-react';
 import { parseVideoUrl } from '@/lib/video';
+import { trackPropertyGalleryOpened, trackPropertyImageViewed } from '@/lib/analytics';
 
 const press = 'transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] active:scale-[0.97]';
 
 // Photo & video carousel built on native scroll-snap: real swipe momentum on phones,
 // no carousel library. Arrows and thumbnails scroll the strip; the current
 // slide is whichever item is mostly in view.
-export default function PropertyGallery({ title, photos, videoUrl }) {
+export default function PropertyGallery({ property, title, photos, videoUrl }) {
   const stripRef = useRef(null);
   const thumbsRef = useRef(null);
   const [current, setCurrent] = useState(0);
+  const hasTrackedGalleryOpened = useRef(false);
 
   const allItems = useMemo(() => {
     const list = [...(photos || [])];
@@ -30,20 +32,34 @@ export default function PropertyGallery({ title, photos, videoUrl }) {
     return list;
   }, [photos, videoUrl, title]);
 
+  // Track gallery opened once
+  useEffect(() => {
+    if (property && !hasTrackedGalleryOpened.current) {
+      hasTrackedGalleryOpened.current = true;
+      trackPropertyGalleryOpened(property, 0);
+    }
+  }, [property]);
+
   useEffect(() => {
     const strip = stripRef.current;
     if (!strip) return;
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) setCurrent(Number(entry.target.dataset.index));
+          if (entry.isIntersecting) {
+            const idx = Number(entry.target.dataset.index);
+            setCurrent(idx);
+            if (property && idx > 0) {
+              trackPropertyImageViewed(property, idx, allItems.length);
+            }
+          }
         }
       },
       { root: strip, threshold: 0.6 }
     );
     Array.from(strip.children).forEach((slide) => observer.observe(slide));
     return () => observer.disconnect();
-  }, [allItems]);
+  }, [allItems, property]);
 
   // Keep the current thumbnail visible inside its own row (never scrolls the page).
   useEffect(() => {
@@ -62,6 +78,9 @@ export default function PropertyGallery({ title, photos, videoUrl }) {
     const count = allItems.length;
     const wrapped = ((index % count) + count) % count;
     strip.scrollTo({ left: wrapped * strip.clientWidth });
+    if (property) {
+      trackPropertyImageViewed(property, wrapped, allItems.length);
+    }
   }
 
   return (

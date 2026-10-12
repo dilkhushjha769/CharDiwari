@@ -17,7 +17,7 @@ export async function POST(request) {
     if (type === 'signup') {
       const parseResult = signupSchema.safeParse(body);
       if (!parseResult.success) {
-        const firstError = parseResult.error.errors[0]?.message || 'Invalid registration details.';
+        const firstError = parseResult.error?.issues?.[0]?.message || parseResult.error?.errors?.[0]?.message || 'Invalid registration details.';
         return NextResponse.json({ error: firstError }, { status: 400 });
       }
 
@@ -107,7 +107,7 @@ export async function POST(request) {
   } catch (error) {
     console.error('Send OTP error:', error);
     return NextResponse.json(
-      { error: 'Something went wrong. Please try again.' },
+      { error: error.message || 'Something went wrong. Please try again.' },
       { status: 500 }
     );
   }
