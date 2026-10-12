@@ -22,11 +22,11 @@ export const propertyDetails = {
     highlights: ['Private swimming pool', 'Open central courtyard', 'Natural stone and wood finishes'],
     amenities: ['pool', 'garden', 'gym', 'clubhouse', 'security', 'power-backup', 'parking', 'cctv'],
     nearby: [
-      { type: 'metro', name: 'Sector 55–56 Rapid Metro', km: 3.2 },
-      { type: 'hospital', name: 'Medanta – The Medicity', km: 9.5 },
-      { type: 'school', name: 'The Shri Ram School, Aravali', km: 6.8 },
-      { type: 'mall', name: 'Worldmark, Sector 65', km: 4.1 },
-      { type: 'airport', name: 'Indira Gandhi International Airport', km: 24 },
+      { type: 'metro', name: 'Sector 55–56 Rapid Metro', km: 6, lat: 28.4234, lng: 77.1051 },
+      { type: 'hospital', name: 'Medanta – The Medicity', km: 6.4, lat: 28.43895, lng: 77.04027 },
+      { type: 'school', name: 'Manav Rachna International School', km: 4.1, lat: 28.42213, lng: 77.0605 },
+      { type: 'mall', name: 'M3M Urbana, Sector 67', km: 2.7, lat: 28.39137, lng: 77.06669 },
+      { type: 'airport', name: 'Indira Gandhi International Airport', km: 24.1, lat: 28.55542, lng: 77.08481 },
     ],
   },
   'the-mountain-villa': {
@@ -39,10 +39,10 @@ export const propertyDetails = {
     highlights: ['Himalayan valley views', 'Indoor sun deck', 'Pine forest setting'],
     amenities: ['garden', 'jogging', 'security', 'power-backup', 'parking'],
     nearby: [
-      { type: 'mall', name: 'Kasauli Mall Road', km: 2.5 },
-      { type: 'hospital', name: 'Kasauli Military Hospital', km: 3 },
-      { type: 'railway', name: 'Kalka railway station', km: 36 },
-      { type: 'airport', name: 'Chandigarh Airport', km: 68 },
+      { type: 'mall', name: 'Kasauli Mall Road', km: 1.8, lat: 30.9011, lng: 76.9647 },
+      { type: 'hospital', name: 'Dr. Virender Mohan Hospital, Dharampur', km: 12.2, lat: 30.90014, lng: 77.01946 },
+      { type: 'railway', name: 'Kalka railway station', km: 23.4, lat: 30.83923, lng: 76.93156 },
+      { type: 'airport', name: 'Chandigarh Airport', km: 51.2, lat: 30.67419, lng: 76.79099 },
     ],
   },
   'the-garden-villa': {
@@ -55,10 +55,10 @@ export const propertyDetails = {
     highlights: ['Among coconut groves', 'Eco-friendly build', 'Minutes from Awas beach'],
     amenities: ['pool', 'garden', 'security', 'power-backup', 'parking'],
     nearby: [
-      { type: 'beach', name: 'Awas Beach', km: 1.2 },
-      { type: 'jetty', name: 'Mandwa Jetty (ferry to Mumbai)', km: 9 },
-      { type: 'hospital', name: 'Alibaug Civil Hospital', km: 14 },
-      { type: 'mall', name: 'Alibaug market', km: 13 },
+      { type: 'beach', name: 'Awas Beach', km: 1.4, lat: 18.76606, lng: 72.86456 },
+      { type: 'jetty', name: 'Mandwa Jetty (ferry to Mumbai)', km: 7.6, lat: 18.8075, lng: 72.881 },
+      { type: 'hospital', name: 'Alibaug Civil Hospital', km: 16, lat: 18.64078, lng: 72.87181 },
+      { type: 'mall', name: 'Alibag market', km: 15, lat: 18.6498, lng: 72.8765 },
     ],
   },
   'the-courtyard-apartment': {
@@ -71,11 +71,11 @@ export const propertyDetails = {
     highlights: ['Clay lattice screens', 'Landscaped courtyard garden', 'Prime Bodakdev address'],
     amenities: ['gym', 'clubhouse', 'garden', 'kids-play', 'security', 'power-backup', 'parking', 'cctv'],
     nearby: [
-      { type: 'mall', name: 'Sindhu Bhavan Road', km: 1.1 },
-      { type: 'school', name: 'Delhi Public School, Bopal', km: 7.5 },
-      { type: 'hospital', name: 'Zydus Hospital', km: 3.4 },
-      { type: 'metro', name: 'Thaltej metro station', km: 3.8 },
-      { type: 'airport', name: 'Sardar Vallabhbhai Patel International Airport', km: 18 },
+      { type: 'mall', name: 'Sindhu Bhavan Road', km: 3.2, lat: 23.04145, lng: 72.49243 },
+      { type: 'school', name: 'Delhi Public School, Bopal', km: 7.8, lat: 23.04196, lng: 72.45751 },
+      { type: 'hospital', name: 'Zydus Hospital', km: 2.1, lat: 23.05851, lng: 72.51744 },
+      { type: 'metro', name: 'Thaltej metro station', km: 0.8, lat: 23.0497, lng: 72.516 },
+      { type: 'airport', name: 'Sardar Vallabhbhai Patel International Airport', km: 17.5, lat: 23.07593, lng: 72.63056 },
     ],
   },
   'the-horizon-penthouse': {
@@ -88,10 +88,10 @@ export const propertyDetails = {
     highlights: ['Sea-facing sky villa', 'Private terrace', 'Double-height living room'],
     amenities: ['pool', 'gym', 'clubhouse', 'spa', 'security', 'power-backup', 'parking', 'cctv'],
     nearby: [
-      { type: 'mall', name: 'Phoenix Palladium', km: 3.5 },
-      { type: 'hospital', name: 'Breach Candy Hospital', km: 5.8 },
-      { type: 'railway', name: 'Mahalaxmi railway station', km: 3.9 },
-      { type: 'airport', name: 'Chhatrapati Shivaji Maharaj International Airport', km: 14 },
+      { type: 'mall', name: 'Phoenix Palladium', km: 3.5, lat: 18.9942, lng: 72.8241 },
+      { type: 'hospital', name: 'Breach Candy Hospital', km: 5.3, lat: 18.97257, lng: 72.80427 },
+      { type: 'railway', name: 'Mahalaxmi railway station', km: 3.7, lat: 18.98252, lng: 72.82422 },
+      { type: 'airport', name: 'Chhatrapati Shivaji Maharaj International Airport', km: 13, lat: 19.09014, lng: 72.86382 },
     ],
   },
   'the-palm-villa': {
@@ -104,10 +104,10 @@ export const propertyDetails = {
     highlights: ['Indo-Portuguese design', 'Shaded palm garden', 'Private plunge pool'],
     amenities: ['pool', 'garden', 'security', 'power-backup', 'parking'],
     nearby: [
-      { type: 'beach', name: 'Anjuna Beach', km: 4.5 },
-      { type: 'mall', name: 'Mapusa market', km: 6 },
-      { type: 'hospital', name: 'Asilo Hospital, Mapusa', km: 6.5 },
-      { type: 'airport', name: 'Manohar International Airport, Mopa', km: 29 },
+      { type: 'beach', name: 'Anjuna Beach', km: 5.5, lat: 15.5761, lng: 73.74018 },
+      { type: 'mall', name: 'Mapusa market', km: 5.6, lat: 15.58858, lng: 73.81188 },
+      { type: 'hospital', name: 'Asilo Hospital, Mapusa', km: 5.9, lat: 15.59008, lng: 73.81671 },
+      { type: 'airport', name: 'Manohar International Airport, Mopa', km: 25.1, lat: 15.73672, lng: 73.86901 },
     ],
   },
 };
