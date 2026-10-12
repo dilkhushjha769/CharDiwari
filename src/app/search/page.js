@@ -1205,27 +1205,27 @@ function SearchContent() {
       {/* FLOATING COMPARE DOCK */}
       {/* ============================================================== */}
       {compareList.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 surface-raised bg-white dark:bg-stone-50 border-t border-stone-200/90 shadow-2xl p-3 sm:px-6 animate-in slide-in-from-bottom duration-200">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 overflow-x-auto min-w-0">
-              <span className="text-xs font-bold text-stone-900 uppercase tracking-wider shrink-0 flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-stone-600" />
-                <span>Compare ({compareList.length}/3)</span>
+        <div className="fixed bottom-0 left-0 right-0 z-40 surface-raised bg-white dark:bg-stone-50 border-t border-stone-200/90 shadow-2xl p-2.5 sm:p-3 sm:px-6 animate-in slide-in-from-bottom duration-200">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto min-w-0 flex-1 scrollbar-none">
+              <span className="text-[11px] sm:text-xs font-bold text-stone-900 uppercase tracking-wider shrink-0 flex items-center gap-1 sm:gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-stone-600 shrink-0" />
+                <span className="hidden sm:inline">Compare</span>
+                <span>({compareList.length}/3)</span>
               </span>
-              <div className="flex items-center gap-2 overflow-x-auto">
+              <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
                 {compareList.map((p) => (
                   <div
                     key={p.id}
-                    className="flex items-center gap-2 bg-stone-100 dark:bg-stone-200/60 rounded-lg px-2.5 py-1.5 border border-stone-200 text-xs font-medium text-stone-900 shrink-0 shadow-2xs"
+                    className="flex items-center gap-1.5 bg-stone-100 dark:bg-stone-200/60 rounded-lg px-2 sm:px-2.5 py-1 sm:py-1.5 border border-stone-200 text-[11px] sm:text-xs font-medium text-stone-900 shrink-0 shadow-2xs"
                   >
-                    <span className="truncate max-w-[140px] font-semibold">{p.title}</span>
-                    <span className="text-[11px] text-stone-500 font-mono hidden sm:inline">
-                      ({p.price})
+                    <span className="truncate max-w-[85px] sm:max-w-[140px] font-semibold">
+                      {p.title}
                     </span>
                     <button
                       type="button"
                       onClick={() => toggleCompare(p)}
-                      className="text-stone-400 hover:text-stone-900 p-0.5 rounded cursor-pointer transition"
+                      className="text-stone-400 hover:text-stone-900 p-0.5 rounded cursor-pointer transition shrink-0"
                       aria-label={`Remove ${p.title} from compare`}
                     >
                       <X className="w-3 h-3" />
@@ -1235,21 +1235,22 @@ function SearchContent() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => setCompareList([])}
-                className="text-xs text-stone-500 hover:text-rose-600 font-semibold px-2.5 py-1.5 rounded-lg transition cursor-pointer"
+                className="text-[11px] sm:text-xs text-stone-500 hover:text-rose-600 font-semibold px-1.5 sm:px-2.5 py-1.5 rounded-lg transition cursor-pointer"
               >
-                REMOVE ALL
+                Clear
               </button>
               <button
                 type="button"
                 onClick={() => setIsCompareModalOpen(true)}
-                className="px-4 py-2 bg-stone-900 hover:bg-black text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95 transition"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 bg-stone-900 hover:bg-black text-white text-[11px] sm:text-xs font-bold rounded-xl shadow-xs flex items-center gap-1 sm:gap-1.5 cursor-pointer active:scale-95 transition"
               >
                 <Layers className="w-3.5 h-3.5" />
-                <span>COMPARE ESTATES</span>
+                <span className="hidden sm:inline">COMPARE ESTATES</span>
+                <span className="sm:hidden">COMPARE</span>
               </button>
             </div>
           </div>
