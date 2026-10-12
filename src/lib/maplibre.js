@@ -8,25 +8,34 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 // "Liberty" is OpenFreeMap's style with 3D building shapes.
 const STYLE_URL = 'https://tiles.openfreemap.org/styles/liberty';
 
-// Liberty's bright blues and oranges, recoloured to the site's stone palette.
-// First matching rule wins; layers that match nothing keep their colours.
-const LAND = '#f3f1ee';
+// Liberty, warmed up: clear blue water, green parks, golden main roads and
+// cream buildings that deepen with height. First matching rule wins; layers
+// that match nothing keep their own colours.
+const LAND = '#f6f2ea';
 const PALETTE = [
   [/^background$/, { 'background-color': LAND }],
-  [/^water$/, { 'fill-color': '#cdd9e0' }],
-  [/^waterway_(tunnel|river|other)$/, { 'line-color': '#b9c9d2' }],
-  [/^(park|landcover_grass|landuse_pitch|landuse_track|landuse_cemetery)$/, { 'fill-color': '#dfe5d6' }],
+  [/^water$/, { 'fill-color': '#9fcbea' }],
+  [/^waterway_(tunnel|river|other)$/, { 'line-color': '#86bbe0' }],
+  [/^(park|landcover_grass|landuse_pitch|landuse_track)$/, { 'fill-color': '#c9e4b4' }],
+  [/^landuse_cemetery$/, { 'fill-color': '#d5e3c4' }],
   [/^park_outline$/, { 'line-color': 'rgba(0, 0, 0, 0)' }],
-  [/^landcover_wood$/, { 'fill-color': 'rgba(206, 217, 196, 0.6)' }],
-  [/^landuse_(hospital|school)$/, { 'fill-color': '#ece8e3' }],
-  [/^aeroway_fill$/, { 'fill-color': '#e9e6e1' }],
-  [/_casing$/, { 'line-color': '#d9d4ce' }],
-  [/^(road|bridge|tunnel)_(motorway|motorway_link|link|trunk_primary|secondary_tertiary)$/, { 'line-color': '#ffffff' }],
-  [/^building$/, { 'fill-color': '#e7e3de' }],
-  [/^building-3d$/, { 'fill-extrusion-color': '#e9e5e0' }],
-  [/^(water_name|waterway_line_label)/, { 'text-color': '#5f7481', 'text-halo-color': 'rgba(255, 255, 255, 0.8)' }],
+  [/^landcover_wood$/, { 'fill-color': 'rgba(155, 201, 128, 0.55)' }],
+  [/^landcover_sand$/, { 'fill-color': '#f5e9c4' }],
+  [/^landuse_hospital$/, { 'fill-color': '#fbe0e3' }],
+  [/^landuse_school$/, { 'fill-color': '#fcefc7' }],
+  [/^aeroway_fill$/, { 'fill-color': '#e8e4f0' }],
+  [/_(motorway|motorway_link|link|trunk_primary|secondary_tertiary)_casing$/, { 'line-color': '#e8b26a' }],
+  [/_casing$/, { 'line-color': '#ddd5ca' }],
+  [/^(road|bridge|tunnel)_(motorway|motorway_link)$/, { 'line-color': '#fcc979' }],
+  [/^(road|bridge|tunnel)_(link|trunk_primary|secondary_tertiary)$/, { 'line-color': '#fde7a8' }],
+  [/^building$/, { 'fill-color': '#ece2d4' }],
+  [
+    /^building-3d$/,
+    { 'fill-extrusion-color': ['interpolate', ['linear'], ['coalesce', ['get', 'render_height'], 0], 0, '#efe6d8', 40, '#e2cfb6', 120, '#d1b593'] },
+  ],
+  [/^(water_name|waterway_line_label)/, { 'text-color': '#2f6690', 'text-halo-color': 'rgba(255, 255, 255, 0.8)' }],
   [/^(poi_|highway-name|airport|label_other)/, { 'text-color': '#57534e', 'text-halo-color': LAND }],
-  [/^label_/, { 'text-color': '#292524', 'text-halo-color': LAND }],
+  [/^label_/, { 'text-color': '#1c1917', 'text-halo-color': LAND }],
 ];
 
 // Fetches the style and recolours it before the map draws anything, so the
