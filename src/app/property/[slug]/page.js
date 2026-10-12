@@ -77,10 +77,13 @@ function PropertyContent({ property, detail }) {
   const faqs = propertyFaqs(property, detail);
   const loan = Math.min(Math.round((property.priceNum * CRORE * 0.8) / 500000) * 500000, MAX_LOAN);
 
+  const similarItems = similarTo(property);
+
   const sections = [
     { id: 'overview', label: 'Overview' },
     detail.amenities?.length && { id: 'amenities', label: 'Amenities' },
     { id: 'location', label: 'Location' },
+    similarItems.length && { id: 'similar-properties', label: 'Similar' },
     { id: 'emi-calculator', label: 'EMI' },
     { id: 'faqs', label: 'FAQs' },
   ].filter(Boolean);
@@ -198,6 +201,32 @@ function PropertyContent({ property, detail }) {
             </div>
           </div>
 
+          {/* Similar properties section directly above the EMI calculator */}
+          {similarItems.length > 0 && (
+            <div id="similar-properties" className="max-w-7xl mx-auto w-full px-4 sm:px-6 pt-10 pb-12 border-t border-stone-200/80">
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6">
+                <div>
+                  <p className="text-xs font-mono uppercase tracking-widest text-stone-500 mb-1">Explore Alternatives</p>
+                  <h2 id="similar-title" className="text-2xl sm:text-3xl font-serif text-stone-900 tracking-tight text-balance">
+                    Similar properties you may like
+                  </h2>
+                </div>
+                <p className="text-xs text-stone-500">
+                  Curated luxury properties in {property.city} & nearby price bands
+                </p>
+              </div>
+
+              {/* Cards rise in one after another the first time they scroll into view. */}
+              <Reveal className="reveal-stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                {similarItems.map((item, index) => (
+                  <div key={item.slug} style={{ '--i': index }} className="grid">
+                    <PropertyCard property={item} price={item.price} />
+                  </div>
+                ))}
+              </Reveal>
+            </div>
+          )}
+
           {/* Its own section (id="emi-calculator", with top padding) is the link target. */}
           <EMICalculator initialLoanAmount={loan} />
 
@@ -210,20 +239,6 @@ function PropertyContent({ property, detail }) {
                 <Faqs faqs={faqs} />
               </Section>
             </div>
-
-            <section aria-labelledby="similar-title" className="mt-16 pt-10 border-t border-stone-200/80">
-              <h2 id="similar-title" className="text-2xl sm:text-3xl font-serif text-stone-900 tracking-tight text-balance">
-                Similar properties
-              </h2>
-              {/* Cards rise in one after another the first time they scroll into view. */}
-              <Reveal className="reveal-stagger mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                {similarTo(property).map((item, index) => (
-                  <div key={item.slug} style={{ '--i': index }} className="grid">
-                    <PropertyCard property={item} price={item.price} />
-                  </div>
-                ))}
-              </Reveal>
-            </section>
 
             <p className="mt-12 text-xs text-stone-500 text-pretty">
               Prices, areas and amenities are indicative and must be confirmed before booking. Photos marked
