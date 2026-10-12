@@ -369,7 +369,7 @@ function SearchContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f1f2f4] text-stone-900 flex flex-col font-sans selection:bg-[#0078db] selection:text-white">
+    <div className="min-h-screen bg-stone-100 text-stone-900 flex flex-col font-sans selection:bg-[#0078db] selection:text-white">
       {/* Universal Website Navbar */}
       <Navbar />
 
@@ -1359,7 +1359,7 @@ export default function SearchPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#f1f2f4] flex items-center justify-center">
+        <div className="min-h-screen bg-stone-100 flex items-center justify-center">
           <div className="text-center">
             <div className="w-8 h-8 border-2 border-stone-300 border-t-[#0078db] rounded-full animate-spin mx-auto mb-2" />
             <p className="text-xs text-stone-500 font-medium">Loading search results...</p>

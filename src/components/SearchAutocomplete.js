@@ -351,7 +351,7 @@ export default function SearchAutocomplete({
         <div
           id="autocomplete-dropdown"
           role="listbox"
-          className="absolute left-0 right-0 sm:left-auto sm:right-0 md:left-0 md:right-auto w-full sm:w-[620px] md:w-[680px] top-full mt-2 max-h-[460px] overflow-y-auto overscroll-contain bg-white rounded-xl border border-stone-200 shadow-xl shadow-stone-900/5 p-1.5 sm:p-2 z-50 animate-in fade-in duration-100 scrollbar-thin scrollbar-thumb-stone-200"
+          className="absolute left-0 right-0 sm:left-auto sm:right-0 md:left-0 md:right-auto w-full sm:w-[620px] md:w-[680px] top-full mt-2 max-h-[460px] overflow-y-auto overscroll-contain surface-raised bg-white rounded-xl border border-stone-200 shadow-xl shadow-stone-900/5 p-1.5 sm:p-2 z-50 animate-in fade-in duration-100 scrollbar-thin scrollbar-thumb-stone-200"
         >
           {categories.length > 0 ? (
             <div className="divide-y divide-stone-100">
