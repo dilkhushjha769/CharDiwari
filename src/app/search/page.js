@@ -907,83 +907,68 @@ function SearchContent() {
                     </div>
 
                     {/* ---------------------------------------------------- */}
-                    {/* MOBILE DETAILS VIEW (< md): EDITORIAL & IMAGE-FIRST  */}
+                    {/* MOBILE DETAILS VIEW (< md): ULTRA CLEAN & EDITORIAL  */}
                     {/* ---------------------------------------------------- */}
-                    <div className="md:hidden space-y-2.5 pt-0.5">
-                      {/* 1. Title + Verification Indicator */}
+                    <div className="md:hidden space-y-2 pt-1">
+                      {/* Title, Location & Type */}
                       <div>
                         <div className="flex items-center justify-between gap-2">
                           <Link
                             href={`/property/${prop.slug || prop.id}`}
-                            className="group/mtitle inline-flex items-center gap-1.5 min-w-0"
+                            className="text-base font-bold text-stone-900 hover:text-stone-700 tracking-tight leading-snug truncate"
                           >
-                            <h2 className="text-base font-semibold text-stone-900 group-hover/mtitle:text-stone-700 tracking-tight leading-snug truncate">
-                              {prop.title}
-                            </h2>
-                            <CheckCircle2 className="w-3.5 h-3.5 text-sky-500 fill-sky-500 text-white shrink-0" />
+                            {prop.title}
                           </Link>
-                          <span className="text-[11px] font-medium text-stone-400 shrink-0 uppercase tracking-wider">
+                          <span className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider shrink-0">
                             {prop.type}
                           </span>
                         </div>
-
-                        {/* 2. Location in one muted, compact line */}
-                        <div className="flex items-center gap-1 text-xs text-stone-500 mt-0.5">
-                          <MapPin className="w-3 h-3 text-stone-400 shrink-0" />
-                          <span className="truncate">{prop.location}</span>
-                        </div>
-                      </div>
-
-                      {/* 3. Price and one short pricing qualifier */}
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-xl font-bold text-stone-900 tracking-tight">
-                          {prop.price}
-                        </span>
-                        <span className="text-xs text-stone-500 font-normal">
-                          · All inclusive
-                        </span>
-                        {prop.rentPrice && (
-                          <span className="text-xs text-stone-400 font-normal ml-auto">
-                            Rent: {prop.rentPrice}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* 4. A single row of three key specifications */}
-                      <div className="text-xs text-stone-600 flex items-center gap-1.5 py-1 px-2.5 rounded-lg bg-stone-50 border border-stone-200/60">
-                        <span className="font-medium text-stone-800">{prop.beds} Beds</span>
-                        <span className="text-stone-300">·</span>
-                        <span className="font-medium text-stone-800">{prop.baths || '4 Baths'}</span>
-                        <span className="text-stone-300">·</span>
-                        <span className="font-medium text-stone-800">{prop.area}</span>
-                      </div>
-
-                      {/* 5. Optional short property description (max 2 lines) */}
-                      {prop.description && (
-                        <p className="text-xs text-stone-500 line-clamp-2 leading-relaxed">
-                          {prop.description}
+                        <p className="text-xs text-stone-500 truncate mt-0.5">
+                          {prop.location}
                         </p>
-                      )}
+                      </div>
 
-                      {/* 6. Primary Action & Compare */}
-                      <div className="pt-1 flex items-center justify-between gap-3">
-                        <label className="flex items-center gap-1.5 text-xs text-stone-500 hover:text-stone-800 cursor-pointer select-none">
-                          <input
-                            type="checkbox"
-                            checked={isCompared}
-                            onChange={() => toggleCompare(prop)}
-                            className="w-3.5 h-3.5 rounded-xs accent-stone-900 cursor-pointer"
-                          />
-                          <span>Compare</span>
-                        </label>
+                      {/* Clean Inline Specs (no box/border) */}
+                      <div className="text-xs text-stone-600 font-medium flex items-center gap-1.5">
+                        <span>{prop.beds} Beds</span>
+                        <span className="text-stone-300">·</span>
+                        <span>{prop.baths || '4 Baths'}</span>
+                        <span className="text-stone-300">·</span>
+                        <span>{prop.area}</span>
+                      </div>
 
-                        <Link
-                          href={`/property/${prop.slug || prop.id}`}
-                          className="h-9 px-4 rounded-lg bg-stone-900 hover:bg-black text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-xs active:scale-98"
-                        >
-                          <span>Explore</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </Link>
+                      {/* Price & Actions Row */}
+                      <div className="pt-1 flex items-center justify-between gap-2">
+                        <div>
+                          <div className="text-lg font-black text-stone-900 tracking-tight leading-none">
+                            {prop.price}
+                          </div>
+                          <div className="text-[10px] text-stone-400 font-normal mt-0.5">
+                            All inclusive
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => toggleCompare(prop)}
+                            className={`h-8 px-2.5 rounded-lg text-xs font-medium transition cursor-pointer border ${
+                              isCompared
+                                ? 'bg-stone-900 text-white border-stone-900'
+                                : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'
+                            }`}
+                          >
+                            {isCompared ? 'Added' : 'Compare'}
+                          </button>
+
+                          <Link
+                            href={`/property/${prop.slug || prop.id}`}
+                            className="h-8 px-3.5 rounded-lg bg-stone-900 hover:bg-black text-white text-xs font-semibold flex items-center gap-1 transition shadow-xs active:scale-95 shrink-0"
+                          >
+                            <span>Explore</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </Link>
+                        </div>
                       </div>
                     </div>
 
