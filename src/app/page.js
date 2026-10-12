@@ -421,8 +421,8 @@ export default function HomePage() {
                   type="button"
                   onClick={() => toggleDropdown('city')}
                   className={`press focus-ring flex items-center justify-between gap-2.5 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-colors cursor-pointer w-full sm:w-auto bg-stone-50/80 sm:bg-transparent ${activeDropdown === 'city'
-                      ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 ring-1 ring-stone-300'
-                      : 'text-stone-800 hover:bg-stone-100/70 sm:hover:bg-stone-50 dark:hover:bg-stone-100'
+                    ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 ring-1 ring-stone-300'
+                    : 'text-stone-800 hover:bg-stone-100/70 sm:hover:bg-stone-50 dark:hover:bg-stone-100'
                     }`}
                 >
                   <span className="flex items-center gap-2">
@@ -459,8 +459,8 @@ export default function HomePage() {
                             setActiveDropdown(null);
                           }}
                           className={`focus-ring focus-visible:bg-stone-50 dark:focus-visible:bg-stone-100 w-full px-3.5 py-2.5 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedCity === city
-                              ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
-                              : 'text-stone-600 dark:hover:bg-stone-100'
+                            ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
+                            : 'text-stone-600 dark:hover:bg-stone-100'
                             }`}
                         >
                           <div className="flex items-center gap-2">
@@ -536,11 +536,11 @@ export default function HomePage() {
                   <div className="relative shrink-0">
                     <div
                       className={`inline-flex items-center rounded-xl sm:rounded-full text-xs font-medium border transition-[color,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${selectedLocation !== 'Locations' &&
-                          selectedLocation !== 'All Locations'
-                          ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
-                          : activeDropdown === 'location'
-                            ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
-                            : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
+                        selectedLocation !== 'All Locations'
+                        ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                        : activeDropdown === 'location'
+                          ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
+                          : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
                         }`}
                     >
                       <button
@@ -590,8 +590,8 @@ export default function HomePage() {
                                 setActiveDropdown(null);
                               }}
                               className={`focus-ring focus-visible:bg-stone-50 dark:focus-visible:bg-stone-100 w-full px-3.5 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedLocation === loc
-                                  ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
-                                  : 'text-stone-600 dark:hover:bg-stone-100'
+                                ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
+                                : 'text-stone-600 dark:hover:bg-stone-100'
                                 }`}
                             >
                               <div className="flex items-center gap-2">
@@ -614,10 +614,10 @@ export default function HomePage() {
                   <div className="relative shrink-0">
                     <div
                       className={`inline-flex items-center rounded-xl sm:rounded-full text-xs font-medium border transition-[color,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${selectedBhk !== 'BHK' && selectedBhk !== 'All BHK'
-                          ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
-                          : activeDropdown === 'bhk'
-                            ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
-                            : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
+                        ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                        : activeDropdown === 'bhk'
+                          ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
+                          : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
                         }`}
                     >
                       <button
@@ -664,8 +664,8 @@ export default function HomePage() {
                                 setActiveDropdown(null);
                               }}
                               className={`focus-ring focus-visible:bg-stone-50 dark:focus-visible:bg-stone-100 w-full px-3.5 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedBhk === bhk
-                                  ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
-                                  : 'text-stone-600 dark:hover:bg-stone-100'
+                                ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
+                                : 'text-stone-600 dark:hover:bg-stone-100'
                                 }`}
                             >
                               <div className="flex items-center gap-2">
@@ -688,11 +688,11 @@ export default function HomePage() {
                   <div className="relative shrink-0">
                     <div
                       className={`inline-flex items-center rounded-xl sm:rounded-full text-xs font-medium border transition-[color,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${selectedBudget !== 'Budget' &&
-                          selectedBudget !== 'Any Budget'
-                          ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
-                          : activeDropdown === 'budget'
-                            ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
-                            : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
+                        selectedBudget !== 'Any Budget'
+                        ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                        : activeDropdown === 'budget'
+                          ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
+                          : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
                         }`}
                     >
                       <button
@@ -739,8 +739,8 @@ export default function HomePage() {
                               setActiveDropdown(null);
                             }}
                             className={`focus-ring focus-visible:bg-stone-50 dark:focus-visible:bg-stone-100 w-full px-3.5 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedBudget === budget
-                                ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
-                                : 'text-stone-600 dark:hover:bg-stone-100'
+                              ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
+                              : 'text-stone-600 dark:hover:bg-stone-100'
                               }`}
                           >
                             <span>{budget}</span>
@@ -757,11 +757,11 @@ export default function HomePage() {
                   <div className="relative shrink-0">
                     <div
                       className={`inline-flex items-center rounded-xl sm:rounded-full text-xs font-medium border transition-[color,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${selectedPossession !== 'Possession' &&
-                          selectedPossession !== 'All Possession'
-                          ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
-                          : activeDropdown === 'possession'
-                            ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
-                            : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
+                        selectedPossession !== 'All Possession'
+                        ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                        : activeDropdown === 'possession'
+                          ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
+                          : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
                         }`}
                     >
                       <button
@@ -811,8 +811,8 @@ export default function HomePage() {
                                 setActiveDropdown(null);
                               }}
                               className={`focus-ring focus-visible:bg-stone-50 dark:focus-visible:bg-stone-100 w-full px-3.5 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedPossession === pos
-                                  ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
-                                  : 'text-stone-600 dark:hover:bg-stone-100'
+                                ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
+                                : 'text-stone-600 dark:hover:bg-stone-100'
                                 }`}
                             >
                               <div className="flex items-center gap-2">
@@ -835,11 +835,11 @@ export default function HomePage() {
                   <div className="relative shrink-0">
                     <div
                       className={`inline-flex items-center rounded-xl sm:rounded-full text-xs font-medium border transition-[color,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${selectedType !== 'Property Type' &&
-                          selectedType !== 'All Types'
-                          ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
-                          : activeDropdown === 'type'
-                            ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
-                            : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
+                        selectedType !== 'All Types'
+                        ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
+                        : activeDropdown === 'type'
+                          ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
+                          : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
                         }`}
                     >
                       <button
@@ -889,8 +889,8 @@ export default function HomePage() {
                                 setActiveDropdown(null);
                               }}
                               className={`focus-ring focus-visible:bg-stone-50 dark:focus-visible:bg-stone-100 w-full px-3.5 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedType === typ
-                                  ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
-                                  : 'text-stone-600 dark:hover:bg-stone-100'
+                                ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
+                                : 'text-stone-600 dark:hover:bg-stone-100'
                                 }`}
                             >
                               <div className="flex items-center gap-2">
@@ -915,8 +915,8 @@ export default function HomePage() {
                       type="button"
                       onClick={() => toggleDropdown('more')}
                       className={`press focus-ring px-2.5 sm:px-3 py-1.5 rounded-xl sm:rounded-full text-xs font-medium border transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${activeDropdown === 'more'
-                          ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
-                          : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
+                        ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
+                        : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
                         }`}
                     >
                       <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -1149,59 +1149,59 @@ export default function HomePage() {
       {/* Seller & Property Listing Banner (Unified Responsive Layout) */}
       <section className="py-10 sm:py-16 px-4 sm:px-6 bg-white border-t border-stone-200/60">
         <Reveal>
-        <div className="max-w-6xl mx-auto">
-          
-          <div className="light-scope relative rounded-2xl sm:rounded-3xl overflow-hidden border border-stone-200/80 bg-[#edf6ee] min-h-[220px] sm:min-h-[320px] md:min-h-[360px] flex items-center shadow-xs dark:brightness-[0.85] dark:ring-1 dark:ring-white/10">
-            {/* Background Graphic Asset with Advisor & Villa */}
-            <img
-              src="/seller-banner-bg.png"
-              alt="Sell your property on Dwarkesh"
-              className="absolute inset-0 w-full h-full object-cover object-[85%_center] sm:object-right pointer-events-none"
-            />
-            {/* Soft gradient fade so the left side text stays 100% legible */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#edf6ee] via-[#edf6ee]/95 to-transparent w-[68%] sm:w-[58%] pointer-events-none" />
+          <div className="max-w-6xl mx-auto">
 
-            {/* Left Content */}
-            <div className="relative z-10 max-w-[62%] sm:max-w-lg lg:max-w-xl p-4 sm:p-8 md:p-12">
-              <h2 className="text-balance text-base sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-stone-900 tracking-tight leading-snug sm:leading-tight mb-1 sm:mb-2.5">
-                Sell or rent faster at the right price
-              </h2>
-              <p className="text-pretty text-[11px] sm:text-sm text-stone-600 mb-3 sm:mb-6 leading-relaxed line-clamp-2 sm:line-clamp-none max-w-md">
-                Post your property for free and connect with verified buyers.
-              </p>
+            <div className="light-scope relative rounded-2xl sm:rounded-3xl overflow-hidden border border-stone-200/80 bg-[#edf6ee] min-h-[220px] sm:min-h-[320px] md:min-h-[360px] flex items-center shadow-xs dark:brightness-[0.85] dark:ring-1 dark:ring-white/10">
+              {/* Background Graphic Asset with Advisor & Villa */}
+              <img
+                src="/seller-banner-bg.png"
+                alt="Sell your property on Dwarkesh"
+                className="absolute inset-0 w-full h-full object-cover object-[85%_center] sm:object-right pointer-events-none"
+              />
+              {/* Soft gradient fade so the left side text stays 100% legible */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#edf6ee] via-[#edf6ee]/95 to-transparent w-[68%] sm:w-[58%] pointer-events-none" />
 
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
-                <Link
-                  href="/profile"
-                  className="press focus-ring inline-flex items-center justify-center gap-1.5 sm:gap-2 px-4 py-2 sm:px-6 sm:py-3 rounded-xl bg-stone-900 hover:bg-black text-white text-[11px] sm:text-sm font-semibold transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer"
-                >
-                  <span>Post Property, It&apos;s Free</span>
-                  <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                </Link>
+              {/* Left Content */}
+              <div className="relative z-10 max-w-[62%] sm:max-w-lg lg:max-w-xl p-4 sm:p-8 md:p-12">
+                <h2 className="text-balance text-base sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-stone-900 tracking-tight leading-snug sm:leading-tight mb-1 sm:mb-2.5">
+                  Sell or rent faster at the right price
+                </h2>
+                <p className="text-pretty text-[11px] sm:text-sm text-stone-600 mb-3 sm:mb-6 leading-relaxed line-clamp-2 sm:line-clamp-none max-w-md">
+                  Post your property for free and connect with verified buyers.
+                </p>
 
-                <a
-                  href="https://wa.me/919876543210?text=Hi%2C%20I%20want%20to%20list%20my%20property%20on%20Dwarkesh"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="press focus-ring inline-flex items-center gap-2 px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-xl bg-white hover:bg-emerald-50 text-stone-900 border border-stone-300 hover:border-emerald-500 shadow-xs hover:shadow transition-colors text-[11px] sm:text-sm font-semibold whitespace-nowrap shrink-0 cursor-pointer"
-                >
-                  <span className="w-5 h-5 sm:w-5.5 sm:h-5.5 flex items-center justify-center shrink-0">
-                    <svg className="w-5 h-5 sm:w-5.5 sm:h-5.5 shrink-0" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="11.5" fill="#25D366" />
-                      <path
-                        d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.39-1.48-.88-.78-1.48-1.76-1.65-2.06-.18-.3-.02-.45.13-.6.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.2-.24-.59-.49-.5-.67-.52-.18 0-.37-.01-.57-.01-.2 0-.52.08-.8.37-.26.3-1.03 1.02-1.03 2.48 0 1.46 1.06 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.11.57-.08 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35zM12.05 19.34h-.01c-1.5 0-2.97-.4-4.25-1.16l-.3-.18-3.15.83.84-3.07-.2-.31a8.3 8.3 0 01-1.27-4.43c0-4.59 3.73-8.32 8.33-8.32 2.22 0 4.31.87 5.88 2.44a8.27 8.27 0 012.44 5.88c0 4.59-3.73 8.32-8.33 8.32z"
-                        fill="white"
-                      />
-                    </svg>
-                  </span>
-                  <span>Post via WhatsApp</span>
-                  <span className="text-emerald-700 font-bold">→</span>
-                </a>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
+                  <Link
+                    href="/profile"
+                    className="press focus-ring inline-flex items-center justify-center gap-1.5 sm:gap-2 px-4 py-2 sm:px-6 sm:py-3 rounded-xl bg-stone-900 hover:bg-black text-white text-[11px] sm:text-sm font-semibold transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer"
+                  >
+                    <span>Post Property, It&apos;s Free</span>
+                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  </Link>
+
+                  <a
+                    href="https://wa.me/919876543210?text=Hi%2C%20I%20want%20to%20list%20my%20property%20on%20Dwarkesh"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="press focus-ring inline-flex items-center gap-2 px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-xl bg-white hover:bg-emerald-50 text-stone-900 border border-stone-300 hover:border-emerald-500 shadow-xs hover:shadow transition-colors text-[11px] sm:text-sm font-semibold whitespace-nowrap shrink-0 cursor-pointer"
+                  >
+                    <span className="w-5 h-5 sm:w-5.5 sm:h-5.5 flex items-center justify-center shrink-0">
+                      <svg className="w-5 h-5 sm:w-5.5 sm:h-5.5 shrink-0" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="11.5" fill="#25D366" />
+                        <path
+                          d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.39-1.48-.88-.78-1.48-1.76-1.65-2.06-.18-.3-.02-.45.13-.6.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.2-.24-.59-.49-.5-.67-.52-.18 0-.37-.01-.57-.01-.2 0-.52.08-.8.37-.26.3-1.03 1.02-1.03 2.48 0 1.46 1.06 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.63.71.22 1.36.19 1.87.11.57-.08 1.76-.72 2.01-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35zM12.05 19.34h-.01c-1.5 0-2.97-.4-4.25-1.16l-.3-.18-3.15.83.84-3.07-.2-.31a8.3 8.3 0 01-1.27-4.43c0-4.59 3.73-8.32 8.33-8.32 2.22 0 4.31.87 5.88 2.44a8.27 8.27 0 012.44 5.88c0 4.59-3.73 8.32-8.33 8.32z"
+                          fill="white"
+                        />
+                      </svg>
+                    </span>
+                    <span>Post via WhatsApp</span>
+                    <span className="text-emerald-700 font-bold">→</span>
+                  </a>
+                </div>
               </div>
             </div>
-          </div>
 
-        </div>
+          </div>
         </Reveal>
       </section>
 
@@ -1211,58 +1211,58 @@ export default function HomePage() {
       {/* Find Your Perfect Property Promotional Banner */}
       <section className="pb-12 sm:pb-16 px-4 sm:px-6 max-w-6xl mx-auto w-full">
         <Reveal>
-        <Link
-          href="/#collection"
-          className="light-scope focus-ring group block relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-xs hover:shadow-md transition-[box-shadow,filter] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] border border-stone-200/70 bg-white dark:brightness-[0.85] dark:hover:brightness-95 dark:ring-1 dark:ring-white/10"
-        >
-          <img
-            src="/property-banner.png"
-            alt="Find Your Perfect Property - Buy, Sell or Rent with Ease"
-            className="w-full h-auto object-cover rounded-2xl sm:rounded-3xl motion-safe:group-hover:scale-[1.01] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
-          />
-        </Link>
+          <Link
+            href="/#collection"
+            className="light-scope focus-ring group block relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-xs hover:shadow-md transition-[box-shadow,filter] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] border border-stone-200/70 bg-white dark:brightness-[0.85] dark:hover:brightness-95 dark:ring-1 dark:ring-white/10"
+          >
+            <img
+              src="/property-banner.png"
+              alt="Find Your Perfect Property - Buy, Sell or Rent with Ease"
+              className="w-full h-auto object-cover rounded-2xl sm:rounded-3xl motion-safe:group-hover:scale-[1.01] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+            />
+          </Link>
         </Reveal>
       </section>
 
       {/* Clean Callout Section with Background Image */}
       <section className="py-20 px-4 sm:px-6 max-w-5xl mx-auto w-full">
         <Reveal>
-        <div className="light-scope rounded-3xl text-white p-10 sm:p-16 text-center relative overflow-hidden shadow-2xl border border-stone-800/20 min-h-[340px] sm:min-h-[380px] flex flex-col justify-center items-center">
-          {/* Background Image */}
-          <img
-            src="/cta-banner-bg.png"
-            alt="Dwarkesh Luxury Properties and Residences"
-            className="reveal-photo absolute inset-0 w-full h-full object-cover object-[center_35%]"
-          />
+          <div className="light-scope rounded-3xl text-white p-10 sm:p-16 text-center relative overflow-hidden shadow-2xl border border-stone-800/20 min-h-[340px] sm:min-h-[380px] flex flex-col justify-center items-center">
+            {/* Background Image */}
+            <img
+              src="/cta-banner-bg.png"
+              alt="Dwarkesh Luxury Properties and Residences"
+              className="reveal-photo absolute inset-0 w-full h-full object-cover object-[center_35%]"
+            />
 
-          {/* Balanced Luxury Overlay: Keeps the bright sky, buildings, and garden visible */}
-          <div className="absolute inset-0 bg-stone-950/30" />
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/30 to-stone-950/15" />
-          <div className="absolute inset-0 bg-gradient-to-r from-stone-950/40 via-transparent to-stone-950/40" />
+            {/* Balanced Luxury Overlay: Keeps the bright sky, buildings, and garden visible */}
+            <div className="absolute inset-0 bg-stone-950/30" />
+            <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/30 to-stone-950/15" />
+            <div className="absolute inset-0 bg-gradient-to-r from-stone-950/40 via-transparent to-stone-950/40" />
 
-          {/* Content */}
-          <h2 className="text-balance text-3xl sm:text-5xl font-serif font-medium text-white mb-4 relative z-10 drop-shadow-[0_3px_12px_rgba(0,0,0,0.85)] tracking-tight">
-            Find or sell your dream home.
-          </h2>
-          <p className="text-pretty text-base sm:text-lg text-white/95 max-w-xl mx-auto mb-8 font-light relative z-10 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-relaxed">
-            Sign in to view verified prices, detailed floor plans, and book free home visits.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 relative z-10 w-full sm:w-auto">
-            <Link
-              href="/auth"
-              className="press focus-ring w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white text-stone-900 text-sm font-semibold hover:bg-stone-100 transition shadow-xl flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.99] duration-200"
-            >
-              <span>Get Started</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link
-              href="/profile"
-              className="press focus-ring w-full sm:w-auto px-8 py-3.5 rounded-xl border border-white/50 bg-stone-950/60 backdrop-blur-md text-white text-sm font-medium hover:bg-white/20 hover:border-white transition text-center cursor-pointer hover:scale-[1.02] active:scale-[0.99] duration-200 shadow-xl"
-            >
-              <span>Post Your Property</span>
-            </Link>
+            {/* Content */}
+            <h2 className="text-balance text-3xl sm:text-5xl font-serif font-medium text-white mb-4 relative z-10 drop-shadow-[0_3px_12px_rgba(0,0,0,0.85)] tracking-tight">
+              Find or sell your dream home.
+            </h2>
+            <p className="text-pretty text-base sm:text-lg text-white/95 max-w-xl mx-auto mb-8 font-light relative z-10 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-relaxed">
+              Sign in to view verified prices, detailed floor plans, and book free home visits.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 relative z-10 w-full sm:w-auto">
+              <Link
+                href="/auth"
+                className="press focus-ring w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white text-stone-900 text-sm font-semibold hover:bg-stone-100 transition shadow-xl flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.99] duration-200"
+              >
+                <span>Get Started</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/profile"
+                className="press focus-ring w-full sm:w-auto px-8 py-3.5 rounded-xl border border-white/50 bg-stone-950/60 backdrop-blur-md text-white text-sm font-medium hover:bg-white/20 hover:border-white transition text-center cursor-pointer hover:scale-[1.02] active:scale-[0.99] duration-200 shadow-xl"
+              >
+                <span>Post Your Property</span>
+              </Link>
+            </div>
           </div>
-        </div>
         </Reveal>
       </section>
 
