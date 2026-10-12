@@ -31,6 +31,7 @@ import {
   ZoomIn,
   Bed,
   Bath,
+  ShieldCheck,
 } from 'lucide-react';
 
 // Price helper
@@ -752,11 +753,10 @@ function SearchContent() {
                   key={tab.id}
                   type="button"
                   onClick={() => setSortBy(tab.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium shrink-0 transition-all cursor-pointer ${
-                    isActive
-                      ? 'bg-stone-900 text-white font-semibold shadow-xs'
-                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200/70 hover:text-stone-900'
-                  }`}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium shrink-0 transition-all cursor-pointer ${isActive
+                    ? 'bg-stone-900 text-white font-semibold shadow-xs'
+                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200/70 hover:text-stone-900'
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -818,10 +818,10 @@ function SearchContent() {
                           className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
                         />
 
-                        {/* Top Left Tag */}
+                        {/* Top Left Tag: RERA Verified */}
                         <div className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md bg-stone-900/85 backdrop-blur-xs text-white text-[11px] font-semibold flex items-center gap-1.5 shadow-xs">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
-                          <span>{prop.tag || 'Verified Estate'}</span>
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>RERA Verified</span>
                         </div>
 
                         {/* Wishlist Heart */}
@@ -836,9 +836,8 @@ function SearchContent() {
                           aria-label="Save to wishlist"
                         >
                           <Heart
-                            className={`w-4 h-4 ${
-                              isFav ? 'text-red-500 fill-red-500' : 'text-stone-500'
-                            }`}
+                            className={`w-4 h-4 ${isFav ? 'text-red-500 fill-red-500' : 'text-stone-500'
+                              }`}
                           />
                         </button>
 
@@ -872,11 +871,10 @@ function SearchContent() {
                                   setActiveImgMap((prev) => ({ ...prev, [prop.id]: thumbUrl }));
                                 }
                               }}
-                              className={`relative aspect-[4/3] rounded-lg overflow-hidden border transition-all cursor-pointer group/thumb ${
-                                isSelected
-                                  ? 'ring-2 ring-stone-900 border-stone-900 shadow-xs'
-                                  : 'border-stone-200 hover:border-stone-400 opacity-80 hover:opacity-100'
-                              }`}
+                              className={`relative aspect-[4/3] rounded-lg overflow-hidden border transition-all cursor-pointer group/thumb ${isSelected
+                                ? 'ring-2 ring-stone-900 border-stone-900 shadow-xs'
+                                : 'border-stone-200 hover:border-stone-400 opacity-80 hover:opacity-100'
+                                }`}
                               title={isMoreOverlay ? 'View all photos' : `Switch to view ${idx + 1}`}
                             >
                               <img
@@ -917,12 +915,7 @@ function SearchContent() {
                         {/* Top Badges & Status */}
                         <div className="flex items-center justify-between gap-2 mb-2 pt-1 md:pt-0">
                           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[11px] font-semibold tracking-wide">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                              {prop.possession || 'Ready to Move'}
-                            </span>
-                            <span className="text-xs text-stone-300">•</span>
-                            <span className="text-xs font-medium text-stone-500 truncate max-w-[160px] sm:max-w-none">{prop.type}</span>
+                            <span className="text-xs font-semibold text-stone-700 tracking-wide">{prop.type}</span>
                           </div>
 
                           <span className="text-xs text-stone-500 font-medium shrink-0">Zero Brokerage</span>
@@ -1015,8 +1008,8 @@ function SearchContent() {
                           {(prop.city?.toLowerCase().includes('kasauli')
                             ? ['Valley View', 'Indoor Sun Deck', 'Fireplace', 'Heated Plunge Pool']
                             : prop.city?.toLowerCase().includes('alibaug')
-                            ? ['Beach Access', 'Private Pool', 'Landscaped Lawn', 'Gated Estate']
-                            : ['Private Courtyard Pool', 'Landscaped Lawn', 'Italian Marble', '24/7 Gated Security']
+                              ? ['Beach Access', 'Private Pool', 'Landscaped Lawn', 'Gated Estate']
+                              : ['Private Courtyard Pool', 'Landscaped Lawn', 'Italian Marble', '24/7 Gated Security']
                           ).map((tag, idx) => (
                             <span
                               key={idx}
@@ -1028,59 +1021,24 @@ function SearchContent() {
                         </div>
                       </div>
 
-                      {/* Clean Bottom Bar: Architect & Action CTAs */}
-                      <div className="pt-3 border-t border-stone-200/80 flex flex-col gap-2.5 sm:gap-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-100 border border-stone-200 text-stone-700 font-bold text-[11px] sm:text-xs flex items-center justify-center">
-                              {(prop.builder || 'SL').slice(0, 2).toUpperCase()}
+                      {/* Clean Bottom Bar: Architect (Left) & Action CTAs (Right) */}
+                      <div className="pt-3 border-t border-stone-200/80 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-100 border border-stone-200 text-stone-700 font-bold text-[11px] sm:text-xs flex items-center justify-center shrink-0">
+                            {(prop.builder || 'SL').slice(0, 2).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-stone-400 font-semibold leading-none">
+                              Architect / Developer
                             </div>
-                            <div>
-                              <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-stone-400 font-semibold leading-none">
-                                Architect / Developer
-                              </div>
-                              <div className="text-xs font-bold text-stone-900 leading-tight mt-0.5">
-                                {prop.builder || 'Dwarkesh Group'}
-                              </div>
+                            <div className="text-xs font-bold text-stone-900 leading-tight mt-0.5 truncate">
+                              {prop.builder || 'Dwarkesh Group'}
                             </div>
                           </div>
-
-                          <span className="text-[11px] text-stone-400 font-mono hidden sm:inline">RERA Verified</span>
                         </div>
 
-                        {/* CTA Buttons: Official WhatsApp, Call, Brochure, See More */}
-                        <div className="grid grid-cols-[auto_auto_1fr_1fr] sm:flex sm:items-center gap-2 w-full">
-                          {/* Official WhatsApp Icon Button */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const msg = encodeURIComponent(`Hello, I am interested in ${prop.title} (${prop.price}) in ${prop.location}. Please share floor plans and details.`);
-                              window.open(`https://wa.me/919876543210?text=${msg}`, '_blank');
-                            }}
-                            className="w-10 h-10 rounded-lg border border-[#25D366] bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] flex items-center justify-center transition cursor-pointer shadow-xs shrink-0"
-                            title="Chat on WhatsApp"
-                            aria-label="Chat on WhatsApp"
-                          >
-                            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true">
-                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.885m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                            </svg>
-                          </button>
-
-                          {/* Phone Call */}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setContactModalProp(prop);
-                              setContactType('call');
-                              setContactSubmitted(false);
-                            }}
-                            className="w-10 h-10 rounded-lg border border-stone-300 text-stone-700 hover:bg-stone-50 flex items-center justify-center transition cursor-pointer"
-                            title="Call Representative"
-                            aria-label="Call Representative"
-                          >
-                            <Phone className="w-4 h-4" />
-                          </button>
-
+                        {/* CTA Buttons: Brochure, Explore */}
+                        <div className="flex items-center justify-end gap-2 shrink-0">
                           {/* Brochure Download Button */}
                           <button
                             type="button"
@@ -1089,18 +1047,18 @@ function SearchContent() {
                               setContactType('brochure');
                               setContactSubmitted(false);
                             }}
-                            className="h-10 px-3 rounded-lg border border-stone-300 hover:border-stone-800 text-stone-800 bg-white hover:bg-stone-50 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+                            className="h-9 sm:h-10 px-3 sm:px-3.5 rounded-lg border border-stone-300 hover:border-stone-800 text-stone-800 bg-white hover:bg-stone-50 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
                           >
                             <Download className="w-3.5 h-3.5" />
-                            <span className="truncate">Brochure</span>
+                            <span>Brochure</span>
                           </button>
 
-                          {/* See More Black Button */}
+                          {/* Explore Button */}
                           <Link
                             href={`/property/${prop.slug || prop.id}`}
-                            className="h-10 px-3 rounded-lg bg-stone-900 hover:bg-black text-white text-xs font-semibold transition cursor-pointer shadow-xs flex items-center justify-center gap-1 shrink-0"
+                            className="h-9 sm:h-10 px-3 sm:px-4 rounded-lg bg-stone-900 hover:bg-black text-white text-xs font-semibold transition cursor-pointer shadow-xs flex items-center justify-center gap-1 shrink-0"
                           >
-                            <span className="truncate">See More</span>
+                            <span>Explore</span>
                             <ChevronRight className="w-3.5 h-3.5 shrink-0" />
                           </Link>
                         </div>
@@ -1165,11 +1123,10 @@ function SearchContent() {
                   key={idx}
                   type="button"
                   onClick={() => setLightboxImg(img)}
-                  className={`relative w-16 h-12 rounded-md overflow-hidden shrink-0 border-2 transition ${
-                    (lightboxImg || lightboxProp.image) === img
-                      ? 'border-white scale-105'
-                      : 'border-transparent opacity-60 hover:opacity-100'
-                  }`}
+                  className={`relative w-16 h-12 rounded-md overflow-hidden shrink-0 border-2 transition ${(lightboxImg || lightboxProp.image) === img
+                    ? 'border-white scale-105'
+                    : 'border-transparent opacity-60 hover:opacity-100'
+                    }`}
                 >
                   <img src={img} alt="thumb" className="w-full h-full object-cover" />
                 </button>
@@ -1192,7 +1149,7 @@ function SearchContent() {
                   href={`/property/${lightboxProp.slug || lightboxProp.id}`}
                   className="px-4 py-2 bg-stone-900 hover:bg-black text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 border border-stone-700"
                 >
-                  <span>See More</span>
+                  <span>Explore</span>
                   <ChevronRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
@@ -1287,8 +1244,8 @@ function SearchContent() {
                   {contactType === 'brochure'
                     ? 'Download Official Brochure'
                     : contactType === 'whatsapp'
-                    ? 'WhatsApp Agent Connect'
-                    : 'Instant Property Enquiry'}
+                      ? 'WhatsApp Agent Connect'
+                      : 'Instant Property Enquiry'}
                 </h3>
                 <p className="text-xs text-stone-300 truncate max-w-[280px]">
                   {contactModalProp.title} • {contactModalProp.price}
