@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import EMICalculator from '@/components/EMICalculator';
 import PropertyCard from '@/components/PropertyCard';
+import Reveal from '@/components/Reveal';
 import PropertyGallery from '@/components/property/PropertyGallery';
 import KeyFacts from '@/components/property/KeyFacts';
 import SectionNav from '@/components/property/SectionNav';
@@ -141,7 +142,10 @@ function PropertyContent({ property, detail }) {
                 <span className="px-3 py-1 rounded-full bg-white border border-stone-200 text-xs font-semibold text-stone-900 shadow-sm">
                   {property.badge}
                 </span>
-                <span className="px-2.5 py-1 rounded-full bg-emerald-700 text-white text-xs font-medium shadow-sm">{property.tag}</span>
+                {/* Light palette in both themes, like the card chips. On a wrapper: .light-scope sets color, which would beat text-white. */}
+                <span className="light-scope contents">
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-700 text-white text-xs font-medium shadow-sm">{property.tag}</span>
+                </span>
               </div>
               <h1 className="mt-4 text-3xl sm:text-4xl md:text-5xl font-serif text-stone-900 tracking-tight text-balance">
                 {property.title}
@@ -152,8 +156,10 @@ function PropertyContent({ property, detail }) {
               </p>
             </div>
             <div className="shrink-0 lg:hidden">
-              <span className="inline-block px-4 py-2 rounded-2xl bg-stone-900 text-white font-serif font-bold text-2xl shadow-sm">
-                {property.price}
+              <span className="light-scope contents">
+                <span className="inline-block px-4 py-2 rounded-2xl bg-stone-900 text-white font-serif font-bold text-2xl tabular-nums shadow-sm dark:ring-1 dark:ring-white/15">
+                  {property.price}
+                </span>
               </span>
               <p className="mt-1 text-xs text-stone-500">or {property.rentPrice} to rent</p>
             </div>
@@ -178,7 +184,7 @@ function PropertyContent({ property, detail }) {
                   <Amenities amenities={detail.amenities} />
                 </Section>
               ) : null}
-              <Section id="location" title="Location and nearby">
+              <Section id="location" title="Location and neighbourhood">
                 <Location property={property} detail={detail} />
               </Section>
             </div>
@@ -201,17 +207,20 @@ function PropertyContent({ property, detail }) {
             </div>
 
             <section aria-labelledby="similar-title" className="mt-16 pt-10 border-t border-stone-200/80">
-              <h2 id="similar-title" className="text-2xl sm:text-3xl font-serif text-stone-900 tracking-tight">
+              <h2 id="similar-title" className="text-2xl sm:text-3xl font-serif text-stone-900 tracking-tight text-balance">
                 Similar properties
               </h2>
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                {similarTo(property).map((item) => (
-                  <PropertyCard key={item.slug} property={item} price={item.price} />
+              {/* Cards rise in one after another the first time they scroll into view. */}
+              <Reveal className="reveal-stagger mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                {similarTo(property).map((item, index) => (
+                  <div key={item.slug} style={{ '--i': index }} className="grid">
+                    <PropertyCard property={item} price={item.price} />
+                  </div>
                 ))}
-              </div>
+              </Reveal>
             </section>
 
-            <p className="mt-12 text-xs text-stone-400 text-pretty">
+            <p className="mt-12 text-xs text-stone-500 text-pretty">
               Prices, areas and amenities are indicative and must be confirmed before booking. Photos marked
               &ldquo;Representative photo&rdquo; show the kind of amenity, not this property.
             </p>

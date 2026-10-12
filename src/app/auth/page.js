@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw, Mail, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { getSupabaseClient, getSupabaseConfig } from '@/lib/supabase/client';
+import ThemeToggle from '@/components/ThemeToggle';
 
 // ─── Country Codes ─────────────────────────────────────────────────────────────
 const COUNTRY_CODES = [
@@ -92,8 +93,8 @@ function OtpBoxes({ digits, setDigits, onComplete, shaking }) {
           onKeyDown={e => handleKeyDown(i, e)}
           onPaste={handlePaste}
           onFocus={e => e.target.select()}
-          className={`w-11 h-12 text-center text-lg font-semibold rounded-xl border-2 outline-none transition-all duration-150 light-input
-            ${d ? 'border-black bg-white text-black shadow-sm animate-otp-bounce'
+          className={`w-11 h-12 text-center text-lg font-semibold rounded-xl border-2 outline-none transition-[border-color,background-color,box-shadow] duration-150 focus:ring-2 focus:ring-zinc-400 light-input
+            ${d ? 'border-black bg-white text-black shadow-sm'
                 : 'border-zinc-200 bg-zinc-50 text-black focus:border-black focus:bg-white'}`}
           aria-label={`OTP digit ${i + 1}`}
         />
@@ -734,14 +735,14 @@ function AuthContent() {
     }
   };
 
-  const inputBase = "w-full px-4 py-3 rounded-xl border border-zinc-200 bg-white text-black placeholder-zinc-400 text-[15px] outline-none transition-all duration-150 focus:border-black focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)] light-input";
+  const inputBase = "w-full px-4 py-3 rounded-xl border border-zinc-200 bg-white text-black placeholder-zinc-400 text-[15px] outline-none transition-[border-color,box-shadow] duration-150 focus:border-black focus:shadow-[0_0_0_3px_rgba(0,0,0,0.06)] dark:focus:shadow-[0_0_0_3px_rgb(255_255_255/0.12)] light-input";
 
   return (
     <div className="min-h-screen bg-white bg-grid-light flex flex-col selection:bg-black selection:text-white">
       {/* Top bar */}
       <header className="border-b border-zinc-200/80 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
+          <Link href="/" className="flex items-center gap-3 group rounded-lg focus-ring">
             <img
               src="/dwarkesh-logo-transparent.png"
               alt="Dwarkesh Real Estate Group"
@@ -757,10 +758,11 @@ function AuthContent() {
             </div>
           </Link>
 
-          <div className="flex items-center">
-            <Link href="/" className="text-xs font-mono text-zinc-500 hover:text-black flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-zinc-100 transition">
+          <div className="flex items-center gap-2">
+            <Link href="/" className="text-xs font-mono text-zinc-500 hover:text-black flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-zinc-100 transition focus-ring">
               <ArrowLeft className="w-3.5 h-3.5" /> Home
             </Link>
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -774,10 +776,10 @@ function AuthContent() {
             <div className="auth-panel rounded-3xl border border-zinc-200/80 shadow-[0_20px_50px_rgba(0,0,0,0.06)] p-8 animate-fade-in-up">
               {/* Title */}
               <div className="mb-7 text-center">
-                <h1 className="text-[28px] font-bold tracking-tight text-black mb-1">
+                <h1 className="text-[28px] font-bold tracking-tight text-black mb-1 text-balance">
                   Sign in to Dwarkesh
                 </h1>
-                <p className="text-sm text-zinc-500 font-light">
+                <p className="text-sm text-zinc-500 font-light text-pretty">
                   Find &amp; manage your dream home
                 </p>
               </div>
@@ -786,7 +788,7 @@ function AuthContent() {
               <button
                 onClick={handleGoogle}
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-black text-[15px] font-medium transition-all duration-150 hover:shadow-sm mb-5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 dark:hover:bg-zinc-100 text-black text-[15px] font-medium transition-[background-color,box-shadow] duration-150 hover:shadow-sm mb-5 cursor-pointer focus-ring disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -800,7 +802,7 @@ function AuthContent() {
               {/* Divider */}
               <div className="flex items-center gap-3 mb-5">
                 <div className="flex-1 h-px bg-zinc-100" />
-                <span className="text-xs text-zinc-400 font-medium">or</span>
+                <span className="text-xs text-zinc-500 font-medium">or</span>
                 <div className="flex-1 h-px bg-zinc-100" />
               </div>
 
@@ -809,7 +811,7 @@ function AuthContent() {
                 <button
                   type="button"
                   onClick={() => { setHomeTab('email'); clearMessages(); }}
-                  className={`flex-1 py-2.5 text-sm font-medium transition-all cursor-pointer ${
+                  className={`flex-1 py-2.5 text-sm font-medium transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-400 ${
                     homeTab === 'email'
                       ? 'bg-black text-white'
                       : 'bg-white text-zinc-500 hover:text-black'
@@ -820,7 +822,7 @@ function AuthContent() {
                 <button
                   type="button"
                   onClick={() => { setHomeTab('phone'); clearMessages(); }}
-                  className={`flex-1 py-2.5 text-sm font-medium transition-all cursor-pointer ${
+                  className={`flex-1 py-2.5 text-sm font-medium transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-400 ${
                     homeTab === 'phone'
                       ? 'bg-black text-white'
                       : 'bg-white text-zinc-500 hover:text-black'
@@ -832,27 +834,27 @@ function AuthContent() {
 
               {/* Phone input */}
               {homeTab === 'phone' && (
-                <form onSubmit={handlePhoneContinue} className="space-y-3 animate-slide-in">
+                <form onSubmit={handlePhoneContinue} className="space-y-3 tab-swap">
                   <div className="flex gap-2">
                     {/* Country selector */}
                     <div className="relative">
                       <button
                         type="button"
                         onClick={() => setShowCountries(!showCountries)}
-                        className="flex items-center gap-1.5 h-full px-3 rounded-xl border border-zinc-200 bg-white text-black text-sm font-medium hover:border-black transition min-w-[80px] justify-center whitespace-nowrap"
+                        className="flex items-center gap-1.5 h-full px-3 rounded-xl border border-zinc-200 bg-white text-black text-sm font-medium hover:border-black transition min-w-[80px] justify-center whitespace-nowrap focus-ring"
                       >
                         <span className="text-base">{country.flag}</span>
                         <span>{country.dial}</span>
                         <span className="text-zinc-400 text-xs">▾</span>
                       </button>
                       {showCountries && (
-                        <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-zinc-200 rounded-2xl shadow-xl overflow-hidden min-w-[220px]">
+                        <div className="absolute top-full left-0 mt-1 z-50 surface-raised border border-zinc-200 rounded-2xl shadow-xl overflow-hidden min-w-[220px]">
                           {COUNTRY_CODES.map((c, i) => (
                             <button
                               key={c.code + c.dial}
                               type="button"
                               onClick={() => { setCountryIdx(i); setShowCountries(false); }}
-                              className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left hover:bg-zinc-50 transition ${i === countryIdx ? 'font-semibold text-black' : 'text-zinc-700'}`}
+                              className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left hover:bg-zinc-50 dark:hover:bg-zinc-200 transition outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-400 ${i === countryIdx ? 'font-semibold text-black' : 'text-zinc-700'}`}
                             >
                               <span className="text-base">{c.flag}</span>
                               <span className="flex-1">{c.name}</span>
@@ -872,14 +874,14 @@ function AuthContent() {
                       required
                     />
                   </div>
-                  <button type="button" className="text-sm text-zinc-500 hover:text-black underline underline-offset-2 transition">
+                  <button type="button" className="text-sm text-zinc-500 hover:text-black underline underline-offset-2 transition rounded-sm focus-ring">
                     Lost access to phone number
                   </button>
                   {error && <p className="text-[13px] text-red-600">{error}</p>}
                   <button
                     type="submit"
                     disabled={loading || !phone.trim() || phoneCooldown > 0}
-                    className="w-full py-3 rounded-xl bg-black text-white text-[15px] font-semibold transition-all hover:bg-zinc-800 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    className="w-full py-3 rounded-xl bg-black text-white text-[15px] font-semibold transition-[background-color,scale] hover:bg-zinc-800 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer focus-ring"
                   >
                     {loading ? <RefreshCw className="w-4 h-4 animate-spin mx-auto" /> : phoneCooldown > 0 ? `Wait (${phoneCooldown}s)` : 'Continue'}
                   </button>
@@ -888,7 +890,7 @@ function AuthContent() {
 
               {/* Email input */}
               {homeTab === 'email' && (
-                <form onSubmit={handleEmailContinue} className="space-y-3 animate-slide-in">
+                <form onSubmit={handleEmailContinue} className="space-y-3 tab-swap">
                   <input
                     type="email"
                     value={email}
@@ -905,7 +907,7 @@ function AuthContent() {
                         <button
                           type="button"
                           onClick={() => { clearMessages(); go('SIGNUP'); }}
-                          className="text-xs text-black font-semibold underline underline-offset-2 text-left hover:opacity-80 transition cursor-pointer"
+                          className="text-xs text-black font-semibold underline underline-offset-2 text-left hover:opacity-80 transition cursor-pointer rounded-sm focus-ring"
                         >
                           Sign up with this email instead →
                         </button>
@@ -915,7 +917,7 @@ function AuthContent() {
                   <button
                     type="submit"
                     disabled={loading || !email.trim()}
-                    className="w-full py-3 rounded-xl bg-black text-white text-[15px] font-semibold transition-all hover:bg-zinc-800 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    className="w-full py-3 rounded-xl bg-black text-white text-[15px] font-semibold transition-[background-color,scale] hover:bg-zinc-800 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer focus-ring"
                   >
                     {loading ? <RefreshCw className="w-4 h-4 animate-spin mx-auto" /> : 'Continue with email'}
                   </button>
@@ -925,7 +927,7 @@ function AuthContent() {
               {/* Footer */}
               <p className="text-center text-sm text-zinc-500 mt-6">
                 Don&apos;t have an account?{' '}
-                <button onClick={() => go('SIGNUP')} className="text-black font-semibold hover:underline underline-offset-2">
+                <button onClick={() => go('SIGNUP')} className="text-black font-semibold hover:underline underline-offset-2 rounded-sm focus-ring">
                   Sign up
                 </button>
               </p>
@@ -935,12 +937,12 @@ function AuthContent() {
           {/* ──── SCREEN: EMAIL + PASSWORD (Sign in) ──── */}
           {screen === 'EMAIL_PASS' && (
             <div className="auth-panel rounded-3xl border border-zinc-200/80 shadow-[0_20px_50px_rgba(0,0,0,0.06)] p-8 animate-fade-in-up">
-              <button onClick={() => { setHomeTab('email'); go('HOME'); }} className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-black transition mb-6">
+              <button onClick={() => { setHomeTab('email'); go('HOME'); }} className="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-black transition mb-6 rounded-sm focus-ring">
                 <ArrowLeft className="w-4 h-4" /> Back
               </button>
 
-              <h1 className="text-[26px] font-bold tracking-tight text-black mb-1">Welcome back</h1>
-              <p className="text-sm text-zinc-500 mb-6">Signed in as <span className="font-medium text-black">{email}</span></p>
+              <h1 className="text-[26px] font-bold tracking-tight text-black mb-1 text-balance">Welcome back</h1>
+              <p className="text-sm text-zinc-500 mb-6 text-pretty">Signed in as <span className="font-medium text-black">{email}</span></p>
 
               {error && (
                 <div className="mb-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-[13px] text-red-600 animate-shake flex flex-col gap-1.5 text-left">
@@ -949,7 +951,7 @@ function AuthContent() {
                     <button
                       type="button"
                       onClick={() => { clearMessages(); go('SIGNUP'); }}
-                      className="text-xs text-black font-semibold underline underline-offset-2 text-left hover:opacity-80 transition cursor-pointer"
+                      className="text-xs text-black font-semibold underline underline-offset-2 text-left hover:opacity-80 transition cursor-pointer rounded-sm focus-ring"
                     >
                       Sign up with this email instead →
                     </button>
@@ -973,14 +975,14 @@ function AuthContent() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-black transition text-xs font-medium"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-black transition text-xs font-medium rounded-sm focus-ring"
                   >
                     {showPassword ? 'Hide' : 'Show'}
                   </button>
                 </div>
 
                 <div className="flex justify-end">
-                  <button type="button" onClick={() => go('FORGOT')} className="text-sm text-zinc-500 hover:text-black underline underline-offset-2 transition">
+                  <button type="button" onClick={() => go('FORGOT')} className="text-sm text-zinc-500 hover:text-black underline underline-offset-2 transition rounded-sm focus-ring">
                     Forgot password?
                   </button>
                 </div>
@@ -988,7 +990,7 @@ function AuthContent() {
                 <button
                   type="submit"
                   disabled={loading || !password || signinCooldown > 0}
-                  className="w-full py-3 rounded-xl bg-black text-white text-[15px] font-semibold transition-all hover:bg-zinc-800 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  className="w-full py-3 rounded-xl bg-black text-white text-[15px] font-semibold transition-[background-color,scale] hover:bg-zinc-800 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer focus-ring"
                 >
                   {loading ? <RefreshCw className="w-4 h-4 animate-spin mx-auto" /> : signinCooldown > 0 ? `Wait (${signinCooldown}s)` : 'Sign in'}
                 </button>
@@ -996,7 +998,7 @@ function AuthContent() {
 
               <p className="text-center text-sm text-zinc-500 mt-6">
                 New here?{' '}
-                <button onClick={() => go('SIGNUP')} className="text-black font-semibold hover:underline underline-offset-2">
+                <button onClick={() => go('SIGNUP')} className="text-black font-semibold hover:underline underline-offset-2 rounded-sm focus-ring">
                   Create account
                 </button>
               </p>
@@ -1006,12 +1008,12 @@ function AuthContent() {
           {/* ──── SCREEN: SIGN UP ──── */}
           {screen === 'SIGNUP' && (
             <div className="auth-panel rounded-3xl border border-zinc-200/80 shadow-[0_20px_50px_rgba(0,0,0,0.06)] p-8 animate-fade-in-up">
-              <button onClick={() => { setHomeTab('email'); go('HOME'); }} className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-black transition mb-6">
+              <button onClick={() => { setHomeTab('email'); go('HOME'); }} className="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-black transition mb-6 rounded-sm focus-ring">
                 <ArrowLeft className="w-4 h-4" /> Back
               </button>
 
-              <h1 className="text-[26px] font-bold tracking-tight text-black mb-1">Create your account</h1>
-              <p className="text-sm text-zinc-500 mb-6">Join Dwarkesh today.</p>
+              <h1 className="text-[26px] font-bold tracking-tight text-black mb-1 text-balance">Create your account</h1>
+              <p className="text-sm text-zinc-500 mb-6 text-pretty">Join Dwarkesh today.</p>
 
               {error && <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-100 text-[13px] text-red-600">{error}</div>}
               {success && <div className="mb-4 p-3 rounded-xl bg-green-50 border border-green-100 text-[13px] text-green-700">{success}</div>}
@@ -1020,7 +1022,7 @@ function AuthContent() {
               <button
                 onClick={handleGoogle}
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-black text-[15px] font-medium transition mb-4 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 dark:hover:bg-zinc-100 text-black text-[15px] font-medium transition mb-4 cursor-pointer focus-ring disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -1033,7 +1035,7 @@ function AuthContent() {
 
               <div className="flex items-center gap-3 mb-4">
                 <div className="flex-1 h-px bg-zinc-100" />
-                <span className="text-xs text-zinc-400 font-medium">or</span>
+                <span className="text-xs text-zinc-500 font-medium">or</span>
                 <div className="flex-1 h-px bg-zinc-100" />
               </div>
 
@@ -1069,7 +1071,7 @@ function AuthContent() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-black transition text-xs font-medium"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-black transition text-xs font-medium rounded-sm focus-ring"
                   >
                     {showPassword ? 'Hide' : 'Show'}
                   </button>
@@ -1087,7 +1089,7 @@ function AuthContent() {
                   <button
                     type="button"
                     onClick={() => setShowConfirm(!showConfirm)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-black transition text-xs font-medium"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-black transition text-xs font-medium rounded-sm focus-ring"
                   >
                     {showConfirm ? 'Hide' : 'Show'}
                   </button>
@@ -1097,8 +1099,8 @@ function AuthContent() {
                   <div className="space-y-1 pt-0.5">
                     <div className="flex gap-1">
                       {[1,2,3,4].map(n => (
-                        <div key={n} className="flex-1 h-1 rounded-full transition-all duration-300"
-                          style={{ backgroundColor: strength >= n ? strengthColors[strength] : '#e5e7eb' }} />
+                        <div key={n} className="flex-1 h-1 rounded-full transition-colors duration-300"
+                          style={{ backgroundColor: strength >= n ? strengthColors[strength] : 'var(--color-zinc-200)' }} />
                       ))}
                     </div>
                     <div className="flex justify-between items-center text-xs">
@@ -1106,7 +1108,7 @@ function AuthContent() {
                         {strengthLabel[strength]} password
                       </span>
                       {confirmPwd && password !== confirmPwd && (
-                        <span className="text-red-500 font-medium">Passwords do not match</span>
+                        <span className="text-red-600 font-medium">Passwords do not match</span>
                       )}
                       {confirmPwd && password === confirmPwd && (
                         <span className="text-emerald-600 font-medium">Passwords match ✓</span>
@@ -1117,7 +1119,7 @@ function AuthContent() {
                 <button
                   type="submit"
                   disabled={loading || signupCooldown > 0}
-                  className="w-full py-3 rounded-xl bg-black text-white text-[15px] font-semibold transition-all hover:bg-zinc-800 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  className="w-full py-3 rounded-xl bg-black text-white text-[15px] font-semibold transition-[background-color,scale] hover:bg-zinc-800 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer focus-ring"
                 >
                   {loading ? <RefreshCw className="w-4 h-4 animate-spin mx-auto" /> : signupCooldown > 0 ? `Wait (${signupCooldown}s)` : 'Create account'}
                 </button>
@@ -1125,11 +1127,11 @@ function AuthContent() {
 
               <p className="text-center text-sm text-zinc-500 mt-5">
                 Already have an account?{' '}
-                <button onClick={() => { setHomeTab('email'); go('HOME'); }} className="text-black font-semibold hover:underline underline-offset-2 cursor-pointer">
+                <button onClick={() => { setHomeTab('email'); go('HOME'); }} className="text-black font-semibold hover:underline underline-offset-2 cursor-pointer rounded-sm focus-ring">
                   Sign in
                 </button>
               </p>
-              <p className="text-center text-[11px] text-zinc-400 mt-3">
+              <p className="text-center text-[11px] text-zinc-500 mt-3">
                 By creating an account you agree to our{' '}
                 <span className="underline underline-offset-2 cursor-pointer hover:text-black">Terms</span>
                 {' '}&amp;{' '}
@@ -1146,20 +1148,20 @@ function AuthContent() {
                 <Mail className="w-8 h-8" />
               </div>
 
-              <h1 className="text-[26px] font-bold text-black tracking-tight mb-2">
+              <h1 className="text-[26px] font-bold text-black tracking-tight mb-2 text-balance">
                 Check your inbox
               </h1>
-              <p className="text-sm text-zinc-500 leading-relaxed mb-6">
+              <p className="text-sm text-zinc-500 leading-relaxed mb-6 text-pretty">
                 We sent a verification link to:<br />
                 <span className="font-semibold text-black break-all">{email}</span>
               </p>
 
-              <div className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200/80 text-left mb-6 text-xs text-zinc-600 space-y-1.5">
+              <div className="p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-100 border border-zinc-200/80 text-left mb-6 text-xs text-zinc-600 space-y-1.5">
                 <p className="font-semibold text-black flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                   Click the link to activate your account
                 </p>
-                <p className="text-zinc-500">
+                <p className="text-zinc-500 text-pretty">
                   Clicking the confirmation link will activate your account and log you in.
                 </p>
               </div>
@@ -1182,11 +1184,11 @@ function AuthContent() {
                   href="https://mail.google.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-3.5 px-4 rounded-xl bg-black text-white text-[15px] font-semibold transition-all hover:bg-zinc-800 flex items-center justify-center gap-2 shadow-sm active:scale-[0.99] cursor-pointer"
+                  className="w-full py-3.5 px-4 rounded-xl bg-black text-white text-[15px] font-semibold transition-[background-color,scale] hover:bg-zinc-800 flex items-center justify-center gap-2 shadow-sm active:scale-[0.99] cursor-pointer focus-ring"
                 >
                   <Mail className="w-4 h-4" />
                   <span>Open Gmail</span>
-                  <ExternalLink className="w-3.5 h-3.5 text-zinc-400 ml-0.5" />
+                  <ExternalLink className="w-3.5 h-3.5 opacity-60 ml-0.5" />
                 </a>
 
                 {/* Verified Button */}
@@ -1207,7 +1209,7 @@ function AuthContent() {
                     }
                     setError('Account not yet confirmed. Please click the link in your email.');
                   }}
-                  className="w-full py-3 px-4 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 text-black text-sm font-medium transition cursor-pointer"
+                  className="w-full py-3 px-4 rounded-xl border border-zinc-200 bg-white hover:bg-zinc-50 dark:hover:bg-zinc-100 text-black text-sm font-medium transition cursor-pointer focus-ring"
                 >
                   I&apos;ve verified my email →
                 </button>
@@ -1221,12 +1223,12 @@ function AuthContent() {
                     type="button"
                     onClick={handleResendEmailLink}
                     disabled={loading}
-                    className="text-black font-semibold hover:underline underline-offset-2 disabled:opacity-50 cursor-pointer"
+                    className="text-black font-semibold hover:underline underline-offset-2 disabled:opacity-50 cursor-pointer rounded-sm focus-ring"
                   >
                     Resend confirmation link
                   </button>
                 ) : (
-                  <span className="text-zinc-400">
+                  <span className="text-zinc-500">
                     Resend in <span className="font-mono font-semibold text-black">{Math.max(countdown, resendCooldown)}s</span>
                   </span>
                 )}
@@ -1235,7 +1237,7 @@ function AuthContent() {
               <button
                 type="button"
                 onClick={() => go('SIGNUP')}
-                className="mt-6 flex items-center gap-1.5 text-sm text-zinc-400 hover:text-black transition mx-auto cursor-pointer"
+                className="mt-6 flex items-center gap-1.5 text-sm text-zinc-500 hover:text-black transition mx-auto cursor-pointer rounded-sm focus-ring"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Wrong email? Change email
               </button>
@@ -1246,10 +1248,10 @@ function AuthContent() {
           {screen === 'OTP' && (
             <div className="auth-panel rounded-3xl border border-zinc-200/80 shadow-[0_20px_50px_rgba(0,0,0,0.06)] p-8 text-center animate-fade-in-up">
               <div className="mb-7">
-                <h1 className="text-[28px] font-bold text-black tracking-tight mb-2">
+                <h1 className="text-[28px] font-bold text-black tracking-tight mb-2 text-balance">
                   {otpContext === 'phone' ? 'We texted you a code' : 'We emailed you a code'}
                 </h1>
-                <p className="text-sm text-zinc-500 leading-relaxed">
+                <p className="text-sm text-zinc-500 leading-relaxed text-pretty">
                   Enter the verification code sent to:<br />
                   <span className="font-semibold text-black">
                     {otpContext === 'phone'
@@ -1284,7 +1286,7 @@ function AuthContent() {
                   <button
                     onClick={handleResend}
                     disabled={loading}
-                    className="text-black font-semibold hover:underline underline-offset-2 disabled:opacity-50 cursor-pointer"
+                    className="text-black font-semibold hover:underline underline-offset-2 disabled:opacity-50 cursor-pointer rounded-sm focus-ring"
                   >
                     Send a new code
                   </button>
@@ -1300,7 +1302,7 @@ function AuthContent() {
                   if (otpContext === 'phone') setHomeTab('phone');
                   go(otpContext === 'phone' ? 'HOME' : 'SIGNUP');
                 }}
-                className="mt-5 flex items-center gap-1 text-sm text-zinc-400 hover:text-black transition mx-auto cursor-pointer"
+                className="mt-5 flex items-center gap-1 text-sm text-zinc-400 hover:text-black transition mx-auto cursor-pointer rounded-sm focus-ring"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Change {otpContext === 'phone' ? 'phone number' : 'email'}
               </button>
@@ -1310,12 +1312,12 @@ function AuthContent() {
           {/* ──── SCREEN: FORGOT PASSWORD ──── */}
           {screen === 'FORGOT' && (
             <div className="auth-panel rounded-3xl border border-zinc-200/80 shadow-[0_20px_50px_rgba(0,0,0,0.06)] p-8 animate-fade-in-up">
-              <button onClick={() => go('EMAIL_PASS')} className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-black transition mb-6">
+              <button onClick={() => go('EMAIL_PASS')} className="flex items-center gap-1.5 text-sm text-zinc-400 hover:text-black transition mb-6 rounded-sm focus-ring">
                 <ArrowLeft className="w-4 h-4" /> Back
               </button>
 
-              <h1 className="text-[26px] font-bold tracking-tight text-black mb-1">Reset your password</h1>
-              <p className="text-sm text-zinc-500 mb-6">
+              <h1 className="text-[26px] font-bold tracking-tight text-black mb-1 text-balance">Reset your password</h1>
+              <p className="text-sm text-zinc-500 mb-6 text-pretty">
                 Enter your registered email and we&apos;ll send you a recovery link.
               </p>
 
@@ -1326,7 +1328,7 @@ function AuthContent() {
                     <button
                       type="button"
                       onClick={() => { clearMessages(); go('SIGNUP'); }}
-                      className="text-xs text-black font-semibold underline underline-offset-2 text-left hover:opacity-80 transition cursor-pointer"
+                      className="text-xs text-black font-semibold underline underline-offset-2 text-left hover:opacity-80 transition cursor-pointer rounded-sm focus-ring"
                     >
                       Sign up with this email instead →
                     </button>
@@ -1349,7 +1351,7 @@ function AuthContent() {
                 <button
                   type="submit"
                   disabled={loading || !email || forgotCooldown > 0}
-                  className="w-full py-3 rounded-xl bg-black text-white text-[15px] font-semibold transition-all hover:bg-zinc-800 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  className="w-full py-3 rounded-xl bg-black text-white text-[15px] font-semibold transition-[background-color,scale] hover:bg-zinc-800 active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer focus-ring"
                 >
                   {loading ? <RefreshCw className="w-4 h-4 animate-spin mx-auto" /> : forgotCooldown > 0 ? `Wait (${forgotCooldown}s)` : 'Send recovery link'}
                 </button>
@@ -1362,7 +1364,7 @@ function AuthContent() {
 
 
       {/* Bottom brand footer */}
-      <footer className="py-6 text-center text-xs font-mono text-zinc-400 border-t border-zinc-200/60 bg-white">
+      <footer className="py-6 text-center text-xs font-mono text-zinc-500 border-t border-zinc-200/60 bg-white">
         © 2026 Dwarkesh Real Estate Group • Verified Properties
       </footer>
     </div>

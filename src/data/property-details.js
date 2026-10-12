@@ -1,9 +1,22 @@
 // SAMPLE detail data for the property pages, keyed by slug. Highlights,
 // amenities and nearby distances are placeholders until each listing's real
 // details arrive. A missing field simply hides its section.
+//
+// Map fields: coordinates are the LOCALITY centre (locationPrecision
+// 'approximate'), never a specific building. viewerDefault picks the first
+// mode of the neighbourhood viewer ('3d' or 'map'). streetView is filled in by
+// a one-off check against the Street View metadata endpoint once there's an
+// API key; commuteClaims holds the builder's advertised times, e.g.
+// [{ to: 'Cyber City', minutes: 15 }].
 
 export const propertyDetails = {
   'the-courtyard-villa': {
+    // Locality centre, not the building (sample).
+    coordinates: { lat: 28.406, lng: 77.093 },
+    locationPrecision: 'approximate',
+    viewerDefault: '3d',
+    streetView: false,
+    commuteClaims: [],
     highlights: ['Private swimming pool', 'Open central courtyard', 'Natural stone and wood finishes'],
     amenities: ['pool', 'garden', 'gym', 'clubhouse', 'security', 'power-backup', 'parking', 'cctv'],
     nearby: [
@@ -15,6 +28,12 @@ export const propertyDetails = {
     ],
   },
   'the-mountain-villa': {
+    // Locality centre, not the building (sample).
+    coordinates: { lat: 30.901, lng: 76.965 },
+    locationPrecision: 'approximate',
+    viewerDefault: 'map',
+    streetView: false,
+    commuteClaims: [],
     highlights: ['Himalayan valley views', 'Indoor sun deck', 'Pine forest setting'],
     amenities: ['garden', 'jogging', 'security', 'power-backup', 'parking'],
     nearby: [
@@ -25,6 +44,12 @@ export const propertyDetails = {
     ],
   },
   'the-garden-villa': {
+    // Locality centre, not the building (sample).
+    coordinates: { lat: 18.744, lng: 72.868 },
+    locationPrecision: 'approximate',
+    viewerDefault: 'map',
+    streetView: false,
+    commuteClaims: [],
     highlights: ['Among coconut groves', 'Eco-friendly build', 'Minutes from Awas beach'],
     amenities: ['pool', 'garden', 'security', 'power-backup', 'parking'],
     nearby: [
@@ -35,6 +60,12 @@ export const propertyDetails = {
     ],
   },
   'the-courtyard-apartment': {
+    // Locality centre, not the building (sample).
+    coordinates: { lat: 23.039, lng: 72.511 },
+    locationPrecision: 'approximate',
+    viewerDefault: '3d',
+    streetView: false,
+    commuteClaims: [],
     highlights: ['Clay lattice screens', 'Landscaped courtyard garden', 'Prime Bodakdev address'],
     amenities: ['gym', 'clubhouse', 'garden', 'kids-play', 'security', 'power-backup', 'parking', 'cctv'],
     nearby: [
@@ -46,6 +77,12 @@ export const propertyDetails = {
     ],
   },
   'the-horizon-penthouse': {
+    // Locality centre, not the building (sample).
+    coordinates: { lat: 19.0105, lng: 72.8145 },
+    locationPrecision: 'approximate',
+    viewerDefault: '3d',
+    streetView: false,
+    commuteClaims: [],
     highlights: ['Sea-facing sky villa', 'Private terrace', 'Double-height living room'],
     amenities: ['pool', 'gym', 'clubhouse', 'spa', 'security', 'power-backup', 'parking', 'cctv'],
     nearby: [
@@ -56,6 +93,12 @@ export const propertyDetails = {
     ],
   },
   'the-palm-villa': {
+    // Locality centre, not the building (sample).
+    coordinates: { lat: 15.596, lng: 73.766 },
+    locationPrecision: 'approximate',
+    viewerDefault: 'map',
+    streetView: false,
+    commuteClaims: [],
     highlights: ['Indo-Portuguese design', 'Shaded palm garden', 'Private plunge pool'],
     amenities: ['pool', 'garden', 'security', 'power-backup', 'parking'],
     nearby: [

@@ -62,7 +62,8 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
   const getSliderStyle = (val, min, max) => {
     const pct = Math.min(100, Math.max(0, ((val - min) / (max - min)) * 100));
     return {
-      background: `linear-gradient(to right, #000000 ${pct}%, #e7e5e4 ${pct}%)`,
+      // Palette variables, so the track follows light/dark mode.
+      background: `linear-gradient(to right, var(--color-stone-800) ${pct}%, var(--color-stone-200) ${pct}%)`,
     };
   };
 
@@ -128,29 +129,29 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
   return (
     <section
       id="emi-calculator"
-      className="w-full py-12 sm:py-16 bg-stone-50/60 border-t border-stone-200/60 scroll-mt-20 font-sans"
+      className="w-full py-12 sm:py-16 bg-stone-50/60 dark:bg-white border-t border-stone-200/60 scroll-mt-20 font-sans"
     >
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
 
         {/* Clean Header */}
         <div className="text-center mb-6 sm:mb-8">
-          <h2 className="text-2xl sm:text-3xl font-serif text-stone-900 tracking-tight mb-2">
+          <h2 className="text-2xl sm:text-3xl font-serif text-stone-900 tracking-tight text-balance mb-2">
             Property Calculators
           </h2>
-          <p className="text-xs sm:text-sm text-stone-500">
+          <p className="text-xs sm:text-sm text-stone-500 text-pretty">
             Simple tools to calculate your loan EMI, land conversion, and home budget.
           </p>
         </div>
 
         {/* Minimal Segmented Tabs */}
         <div className="flex justify-center mb-6">
-          <div className="inline-flex p-1 bg-stone-200/80 rounded-xl gap-1 border border-stone-200">
+          <div className="inline-flex p-1 bg-stone-200/80 dark:bg-stone-100 rounded-xl gap-1 border border-stone-200">
             <button
               type="button"
               onClick={() => setActiveTab('emi')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+              className={`press flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer focus-ring ${
                 activeTab === 'emi'
-                  ? 'bg-white text-stone-900 shadow-2xs'
+                  ? 'bg-white dark:bg-stone-300 text-stone-900 shadow-2xs'
                   : 'text-stone-600 hover:text-stone-900'
               }`}
             >
@@ -161,9 +162,9 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
             <button
               type="button"
               onClick={() => setActiveTab('land')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+              className={`press flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer focus-ring ${
                 activeTab === 'land'
-                  ? 'bg-white text-stone-900 shadow-2xs'
+                  ? 'bg-white dark:bg-stone-300 text-stone-900 shadow-2xs'
                   : 'text-stone-600 hover:text-stone-900'
               }`}
             >
@@ -174,9 +175,9 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
             <button
               type="button"
               onClick={() => setActiveTab('budget')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+              className={`press flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer focus-ring ${
                 activeTab === 'budget'
-                  ? 'bg-white text-stone-900 shadow-2xs'
+                  ? 'bg-white dark:bg-stone-300 text-stone-900 shadow-2xs'
                   : 'text-stone-600 hover:text-stone-900'
               }`}
             >
@@ -187,13 +188,14 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
         </div>
 
         {/* Main Card */}
-        <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/90 shadow-sm p-5 sm:p-8">
+        <div className="bg-white dark:bg-stone-50 rounded-2xl sm:rounded-3xl border border-stone-200/90 dark:border-stone-300 shadow-sm p-5 sm:p-8">
           <div className="grid lg:grid-cols-12 gap-6 sm:gap-8 items-start">
 
             {/* ================================================================ */}
             {/* LEFT COLUMN: SIMPLE CONTROLS (lg:col-span-7)                      */}
             {/* ================================================================ */}
-            <div className="lg:col-span-7 space-y-5">
+            {/* Keyed on the tab: switching remounts the panel and its content clears in (globals.css .tab-swap). */}
+            <div key={`controls-${activeTab}`} className="tab-swap lg:col-span-7 space-y-5">
 
               {/* 1. EMI Controls */}
               {activeTab === 'emi' && (
@@ -201,7 +203,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                   <div>
                     <div className="flex justify-between items-center mb-1.5">
                       <span className="text-xs font-semibold text-stone-700">Loan Amount</span>
-                      <span className="text-xs font-bold text-stone-900 bg-stone-100 px-2 py-0.5 rounded-md">
+                      <span className="text-xs font-bold text-stone-900 tabular-nums bg-stone-100 px-2 py-0.5 rounded-md">
                         {formatCompactINR(loanAmount)}
                       </span>
                     </div>
@@ -220,7 +222,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                   <div>
                     <div className="flex justify-between items-center mb-1.5">
                       <span className="text-xs font-semibold text-stone-700">Interest Rate</span>
-                      <span className="text-xs font-bold text-stone-900 bg-stone-100 px-2 py-0.5 rounded-md">
+                      <span className="text-xs font-bold text-stone-900 tabular-nums bg-stone-100 px-2 py-0.5 rounded-md">
                         {interestRate}%
                       </span>
                     </div>
@@ -239,7 +241,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                   <div>
                     <div className="flex justify-between items-center mb-1.5">
                       <span className="text-xs font-semibold text-stone-700">Loan Tenure</span>
-                      <span className="text-xs font-bold text-stone-900 bg-stone-100 px-2 py-0.5 rounded-md">
+                      <span className="text-xs font-bold text-stone-900 tabular-nums bg-stone-100 px-2 py-0.5 rounded-md">
                         {tenureYears} Years
                       </span>
                     </div>
@@ -269,7 +271,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                       min="1"
                       value={landValue}
                       onChange={(e) => setLandValue(Math.max(0, Number(e.target.value)))}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm font-semibold text-stone-900 bg-stone-50/50 focus:bg-white focus:outline-none focus:border-stone-900"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-sm font-semibold text-stone-900 tabular-nums bg-stone-50/50 focus:bg-white focus:outline-none focus:border-stone-900"
                       placeholder="e.g. 1000"
                     />
                   </div>
@@ -282,7 +284,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                       <select
                         value={fromUnit}
                         onChange={(e) => setFromUnit(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl border border-stone-300 text-xs sm:text-sm font-semibold bg-white cursor-pointer focus:outline-none focus:border-stone-900"
+                        className="w-full px-3 py-2.5 rounded-xl border border-stone-300 text-xs sm:text-sm font-semibold text-stone-900 bg-white dark:bg-stone-50 cursor-pointer focus:outline-none focus:border-stone-900 focus-ring"
                       >
                         {LAND_UNITS.map((u) => (
                           <option key={u.id} value={u.id}>
@@ -296,7 +298,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                       type="button"
                       onClick={swapLandUnits}
                       title="Swap units"
-                      className="h-[42px] w-[42px] flex-shrink-0 flex items-center justify-center rounded-xl bg-stone-100 hover:bg-stone-200 border border-stone-200 text-stone-700 cursor-pointer shadow-xs transition"
+                      className="press h-[42px] w-[42px] flex-shrink-0 flex items-center justify-center rounded-xl bg-stone-100 hover:bg-stone-200 border border-stone-200 text-stone-700 cursor-pointer shadow-xs transition-colors focus-ring"
                     >
                       <ArrowLeftRight className="w-4 h-4" />
                     </button>
@@ -308,7 +310,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                       <select
                         value={toUnit}
                         onChange={(e) => setToUnit(e.target.value)}
-                        className="w-full px-3 py-2.5 rounded-xl border border-stone-300 text-xs sm:text-sm font-semibold bg-white cursor-pointer focus:outline-none focus:border-stone-900"
+                        className="w-full px-3 py-2.5 rounded-xl border border-stone-300 text-xs sm:text-sm font-semibold text-stone-900 bg-white dark:bg-stone-50 cursor-pointer focus:outline-none focus:border-stone-900 focus-ring"
                       >
                         {LAND_UNITS.map((u) => (
                           <option key={u.id} value={u.id}>
@@ -327,7 +329,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                   <div>
                     <div className="flex justify-between items-center mb-1.5">
                       <span className="text-xs font-semibold text-stone-700">Monthly Net Income</span>
-                      <span className="text-xs font-bold text-stone-900 bg-stone-100 px-2 py-0.5 rounded-md">
+                      <span className="text-xs font-bold text-stone-900 tabular-nums bg-stone-100 px-2 py-0.5 rounded-md">
                         {formatCompactINR(monthlyIncome)} / mo
                       </span>
                     </div>
@@ -346,7 +348,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                   <div>
                     <div className="flex justify-between items-center mb-1.5">
                       <span className="text-xs font-semibold text-stone-700">Down Payment (Savings)</span>
-                      <span className="text-xs font-bold text-stone-900 bg-stone-100 px-2 py-0.5 rounded-md">
+                      <span className="text-xs font-bold text-stone-900 tabular-nums bg-stone-100 px-2 py-0.5 rounded-md">
                         {formatCompactINR(downPayment)}
                       </span>
                     </div>
@@ -365,7 +367,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                   <div>
                     <div className="flex justify-between items-center mb-1.5">
                       <span className="text-xs font-semibold text-stone-700">Loan Tenure</span>
-                      <span className="text-xs font-bold text-stone-900 bg-stone-100 px-2 py-0.5 rounded-md">
+                      <span className="text-xs font-bold text-stone-900 tabular-nums bg-stone-100 px-2 py-0.5 rounded-md">
                         {budgetTenure} Years
                       </span>
                     </div>
@@ -388,23 +390,23 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
             {/* ================================================================ */}
             {/* RIGHT COLUMN: SIGNATURE RESULT CARD (lg:col-span-5)              */}
             {/* ================================================================ */}
-            <div className="lg:col-span-5 w-full">
-              <div className="p-5 sm:p-6 rounded-2xl bg-stone-900 text-white shadow-lg">
+            <div className="light-scope lg:col-span-5 w-full">
+              <div key={`result-${activeTab}`} className="tab-swap p-5 sm:p-6 rounded-2xl bg-stone-900 text-white shadow-lg dark:ring-1 dark:ring-stone-700">
 
                 {/* TAB 1 RESULT: EMI */}
                 {activeTab === 'emi' && (
                   <>
                     <div className="mb-4">
-                      <span className="text-[10px] uppercase tracking-wider text-stone-400 font-semibold block">
+                      <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-stone-400 block">
                         Monthly EMI
                       </span>
-                      <div className="text-2xl sm:text-3xl font-bold tracking-tight text-white mt-0.5">
+                      <div className="text-2xl sm:text-3xl font-bold tracking-tight tabular-nums text-white mt-0.5">
                         {formatINR(emi)}
                         <span className="text-xs font-normal text-stone-400 ml-1">/ month</span>
                       </div>
                     </div>
 
-                    <div className="space-y-2 py-3 border-y border-stone-800 text-xs">
+                    <div className="space-y-2 py-3 border-y border-stone-800 text-xs tabular-nums">
                       <div className="flex justify-between text-stone-300">
                         <span>Principal Amount</span>
                         <span className="font-semibold text-white">{formatCompactINR(loanAmount)}</span>
@@ -422,7 +424,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                     <div className="mt-4">
                       <Link
                         href="/profile"
-                        className="w-full py-2.5 px-3 rounded-xl bg-white text-stone-900 text-xs font-semibold text-center hover:bg-stone-100 transition flex items-center justify-center gap-1.5 shadow-sm"
+                        className="press w-full py-2.5 px-3 rounded-xl bg-white text-stone-900 text-xs font-semibold text-center hover:bg-stone-100 transition-colors flex items-center justify-center gap-1.5 shadow-sm focus-ring"
                       >
                         <span>Check Loan Eligibility</span>
                         <ArrowRight className="w-3.5 h-3.5" />
@@ -435,16 +437,16 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                 {activeTab === 'land' && (
                   <>
                     <div className="py-1">
-                      <span className="text-[10px] uppercase tracking-wider text-stone-400 font-semibold block">
+                      <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-stone-400 block">
                         Converted Area
                       </span>
-                      <div className="text-3xl sm:text-4xl font-bold tracking-tight text-white mt-1 truncate">
+                      <div className="text-3xl sm:text-4xl font-bold tracking-tight tabular-nums text-white mt-1 truncate">
                         {convertedLandValue >= 1000
                           ? convertedLandValue.toLocaleString('en-IN', { maximumFractionDigits: 2 })
                           : convertedLandValue.toLocaleString('en-IN', { maximumFractionDigits: 3 })}
                         <span className="text-sm font-normal text-stone-400 ml-2">{toObj.short}</span>
                       </div>
-                      <p className="text-xs text-stone-400 mt-2">
+                      <p className="text-xs text-stone-400 tabular-nums mt-2">
                         {landValue} {fromObj.short} = {convertedLandValue >= 1000 ? convertedLandValue.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : convertedLandValue.toLocaleString('en-IN', { maximumFractionDigits: 3 })} {toObj.short}
                       </p>
                     </div>
@@ -452,7 +454,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                     <div className="mt-6 pt-4 border-t border-stone-800">
                       <Link
                         href="/#collection"
-                        className="w-full py-2.5 px-3 rounded-xl bg-white text-stone-900 text-xs font-semibold text-center hover:bg-stone-100 transition flex items-center justify-center gap-1.5 shadow-sm"
+                        className="press w-full py-2.5 px-3 rounded-xl bg-white text-stone-900 text-xs font-semibold text-center hover:bg-stone-100 transition-colors flex items-center justify-center gap-1.5 shadow-sm focus-ring"
                       >
                         <span>Browse Verified Plots</span>
                         <ArrowRight className="w-3.5 h-3.5" />
@@ -465,18 +467,18 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                 {activeTab === 'budget' && (
                   <>
                     <div className="mb-4">
-                      <span className="text-[10px] uppercase tracking-wider text-stone-400 font-semibold block">
+                      <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-stone-400 block">
                         Affordable Property Budget
                       </span>
-                      <div className="text-2xl sm:text-3xl font-bold tracking-tight text-white mt-0.5">
+                      <div className="text-2xl sm:text-3xl font-bold tracking-tight tabular-nums text-white mt-0.5">
                         {formatCompactINR(budget.maxBudget)}
                       </div>
-                      <p className="text-[11px] text-stone-400 mt-1">
+                      <p className="text-[11px] text-stone-400 tabular-nums mt-1">
                         Savings of {formatCompactINR(downPayment)} + eligible loan
                       </p>
                     </div>
 
-                    <div className="space-y-2 py-3 border-y border-stone-800 text-xs">
+                    <div className="space-y-2 py-3 border-y border-stone-800 text-xs tabular-nums">
                       <div className="flex justify-between text-stone-300">
                         <span>Max Eligible Loan</span>
                         <span className="font-semibold text-white">{formatCompactINR(budget.maxLoan)}</span>
@@ -494,7 +496,7 @@ export default function EMICalculator({ initialLoanAmount = 5000000 }) {
                     <div className="mt-4">
                       <Link
                         href="/#collection"
-                        className="w-full py-2.5 px-3 rounded-xl bg-white text-stone-900 text-xs font-semibold text-center hover:bg-stone-100 transition flex items-center justify-center gap-1.5 shadow-sm"
+                        className="press w-full py-2.5 px-3 rounded-xl bg-white text-stone-900 text-xs font-semibold text-center hover:bg-stone-100 transition-colors flex items-center justify-center gap-1.5 shadow-sm focus-ring"
                       >
                         <span>Browse Homes in this Budget</span>
                         <ArrowRight className="w-3.5 h-3.5" />

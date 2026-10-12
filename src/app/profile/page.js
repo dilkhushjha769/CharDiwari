@@ -19,6 +19,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { getSupabaseClient } from '@/lib/supabase/client';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -91,10 +92,30 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center bg-white text-stone-900 font-sans text-xs">
-        <div className="flex flex-col items-center gap-3">
-          <RefreshCw className="w-5 h-5 animate-spin text-stone-900" />
-          <p className="text-stone-500">Loading your profile...</p>
+      // Skeleton in the shape of the page (header, profile card, two cards,
+      // a strip), so it fills in rather than swapping from a spinner.
+      <div className="min-h-screen bg-stone-50/40 dark:bg-white flex flex-col font-sans" aria-busy="true">
+        <span className="sr-only" role="status">Loading your profile…</span>
+        <div className="border-b border-stone-200/80 bg-white/90 h-16" />
+        <div className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-10 motion-safe:animate-pulse">
+          <div className="rounded-3xl border border-stone-200/80 dark:border-stone-300 bg-white dark:bg-stone-50 p-6 sm:p-8 mb-8 flex items-center gap-5">
+            <div className="w-16 h-16 rounded-full bg-stone-100" />
+            <div className="flex-1 space-y-3">
+              <div className="h-5 w-48 max-w-full rounded bg-stone-100" />
+              <div className="h-3.5 w-64 max-w-full rounded bg-stone-100" />
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            {[0, 1].map((card) => (
+              <div key={card} className="h-56 rounded-2xl border border-stone-200/80 dark:border-stone-300 bg-white dark:bg-stone-50 p-6 space-y-4">
+                <div className="h-4 w-32 rounded bg-stone-100" />
+                <div className="h-3 w-full rounded bg-stone-100" />
+                <div className="h-3 w-5/6 rounded bg-stone-100" />
+                <div className="h-3 w-2/3 rounded bg-stone-100" />
+              </div>
+            ))}
+          </div>
+          <div className="h-24 rounded-2xl border border-stone-200/80 dark:border-stone-300 bg-white dark:bg-stone-50" />
         </div>
       </div>
     );
@@ -111,11 +132,11 @@ export default function ProfilePage() {
     : 'Recent';
 
   return (
-    <div className="min-h-screen bg-stone-50/40 text-stone-900 flex flex-col font-sans selection:bg-stone-900 selection:text-white">
+    <div className="min-h-screen bg-stone-50/40 dark:bg-white text-stone-900 flex flex-col font-sans selection:bg-stone-900 selection:text-white">
       {/* Navigation Header */}
       <header className="border-b border-stone-200/80 bg-white/90 backdrop-blur-xl sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
+          <Link href="/" className="flex items-center gap-3 group rounded-lg focus-ring">
             <img
               src="/dwarkesh-logo-transparent.png"
               alt="Dwarkesh Real Estate Group"
@@ -131,10 +152,10 @@ export default function ProfilePage() {
             </div>
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/"
-              className="text-xs font-semibold text-stone-600 hover:text-stone-900 px-3 py-1.5 rounded-lg hover:bg-stone-100 transition"
+              className="text-xs font-semibold text-stone-600 hover:text-stone-900 px-3 py-1.5 rounded-lg hover:bg-stone-100 transition focus-ring"
             >
               Browse Properties
             </Link>
@@ -142,7 +163,7 @@ export default function ProfilePage() {
             <button
               onClick={handleLogout}
               disabled={loggingOut}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-stone-100 text-stone-800 border border-stone-200 transition cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-stone-100 text-stone-800 border border-stone-200 transition cursor-pointer disabled:opacity-50 focus-ring"
             >
               {loggingOut ? (
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -151,6 +172,8 @@ export default function ProfilePage() {
               )}
               <span>Sign Out</span>
             </button>
+
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -158,7 +181,7 @@ export default function ProfilePage() {
       {/* Main Content */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-10">
         {/* User Greeting & Header Card */}
-        <div className="bg-white rounded-3xl border border-stone-200/80 p-6 sm:p-8 shadow-sm mb-8">
+        <div className="bg-white dark:bg-stone-50 rounded-3xl border border-stone-200/80 dark:border-stone-300 p-6 sm:p-8 shadow-sm mb-8">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-2xl bg-stone-900 text-white flex items-center justify-center font-serif text-2xl font-bold shadow-sm">
@@ -174,7 +197,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-2xl sm:text-3xl font-serif text-stone-900 font-normal">
+                  <h1 className="text-2xl sm:text-3xl font-serif text-stone-900 font-normal text-balance">
                     {user.name}
                   </h1>
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border border-emerald-200 bg-emerald-50 text-[10px] font-semibold text-emerald-700">
@@ -191,7 +214,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-2">
               <Link
                 href="/#collection"
-                className="px-4 py-2 rounded-xl bg-stone-900 hover:bg-black text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-sm"
+                className="px-4 py-2 rounded-xl bg-stone-900 hover:bg-black text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-sm focus-ring"
               >
                 <Home className="w-3.5 h-3.5" />
                 <span>Explore Homes</span>
@@ -203,7 +226,7 @@ export default function ProfilePage() {
         {/* Content Grid */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           {/* Card 1: Account Credentials */}
-          <div className="rounded-2xl border border-stone-200/80 bg-white p-6 shadow-sm flex flex-col justify-between">
+          <div className="rounded-2xl border border-stone-200/80 dark:border-stone-300 bg-white dark:bg-stone-50 p-6 shadow-sm flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between border-b border-stone-100 pb-3 mb-4">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-stone-400">
@@ -213,7 +236,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-3.5 text-xs">
-                <div className="flex items-center justify-between py-1.5 border-b border-stone-50">
+                <div className="flex items-center justify-between py-1.5 border-b border-stone-100">
                   <span className="text-stone-500 flex items-center gap-2">
                     <Mail className="w-3.5 h-3.5 text-stone-400" />
                     <span>Email Address</span>
@@ -223,7 +246,7 @@ export default function ProfilePage() {
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between py-1.5 border-b border-stone-50">
+                <div className="flex items-center justify-between py-1.5 border-b border-stone-100">
                   <span className="text-stone-500 flex items-center gap-2">
                     <User className="w-3.5 h-3.5 text-stone-400" />
                     <span>Display Name</span>
@@ -231,7 +254,7 @@ export default function ProfilePage() {
                   <span className="text-stone-900 font-medium">{user.name}</span>
                 </div>
 
-                <div className="flex items-center justify-between py-1.5 border-b border-stone-50">
+                <div className="flex items-center justify-between py-1.5 border-b border-stone-100">
                   <span className="text-stone-500 flex items-center gap-2">
                     <Calendar className="w-3.5 h-3.5 text-stone-400" />
                     <span>Member Since</span>
@@ -251,7 +274,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Card 2: Saved Properties & Preferences */}
-          <div className="rounded-2xl border border-stone-200/80 bg-white p-6 shadow-sm flex flex-col justify-between">
+          <div className="rounded-2xl border border-stone-200/80 dark:border-stone-300 bg-white dark:bg-stone-50 p-6 shadow-sm flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between border-b border-stone-100 pb-3 mb-4">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-stone-400">
@@ -267,12 +290,12 @@ export default function ProfilePage() {
                 <p className="text-xs font-semibold text-stone-900 mb-1">
                   No saved properties yet
                 </p>
-                <p className="text-[11px] text-stone-500 max-w-xs mb-4">
+                <p className="text-[11px] text-stone-500 max-w-xs mb-4 text-pretty">
                   Browse our curated collections of luxury villas and penthouses to save your favorites.
                 </p>
                 <Link
                   href="/#collection"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-stone-100 hover:bg-stone-200 text-stone-900 transition"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-stone-100 hover:bg-stone-200 text-stone-900 transition focus-ring"
                 >
                   <span>Browse Collection</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -283,18 +306,18 @@ export default function ProfilePage() {
         </div>
 
         {/* Free Consultation Callout */}
-        <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="rounded-2xl border border-stone-200 dark:border-stone-300 bg-white dark:bg-stone-50 p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-stone-900">
+            <h3 className="text-sm font-semibold text-stone-900 text-balance">
               Need personal property advisory?
             </h3>
-            <p className="text-xs text-stone-500 mt-0.5">
+            <p className="text-xs text-stone-500 mt-0.5 text-pretty">
               Connect directly with our senior relationship managers for free advisory.
             </p>
           </div>
           <a
             href="tel:+919876543210"
-            className="px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-900 text-xs font-semibold flex items-center gap-2 transition whitespace-nowrap cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-900 text-xs font-semibold flex items-center gap-2 transition whitespace-nowrap cursor-pointer focus-ring"
           >
             <Phone className="w-3.5 h-3.5 text-stone-700" />
             <span>Call +91 98765 43210</span>

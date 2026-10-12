@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useSyncExternalStore } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ChevronDown,
   ArrowRight,
@@ -37,6 +38,17 @@ import {
   LogOut,
 } from 'lucide-react';
 import { getSupabaseClient } from '@/lib/supabase/client';
+import ThemeToggle from '@/components/ThemeToggle';
+
+// The header is transparent at the very top and frosts once the page scrolls.
+// Read through useSyncExternalStore: the server snapshot (false) matches the
+// first client render, so hydration never mismatches.
+function subscribeToScroll(callback) {
+  window.addEventListener('scroll', callback, { passive: true });
+  return () => window.removeEventListener('scroll', callback);
+}
+const getScrolledSnapshot = () => window.scrollY > 8;
+const getScrolledServerSnapshot = () => false;
 
 export default function Navbar() {
   const [activeMenu, setActiveMenu] = useState(null); // 'buy' | 'rent' | 'sell' | 'pg' | 'emi' | null
@@ -58,6 +70,15 @@ export default function Navbar() {
   const navRef = useRef(null);
   const timeoutRef = useRef(null);
   const profileDropdownRef = useRef(null);
+
+  const scrolled = useSyncExternalStore(subscribeToScroll, getScrolledSnapshot, getScrolledServerSnapshot);
+  // Solid while a menu hangs off the header, frosted once scrolled, clear at the top.
+  const anyMenuOpen = Boolean(activeMenu) || mobileMenuOpen || profileDropdownOpen;
+  const headerSurface = anyMenuOpen
+    ? 'bg-white border-stone-200/80'
+    : scrolled
+      ? 'bg-white/80 backdrop-blur-md border-stone-200/80'
+      : 'bg-transparent border-transparent';
 
   // Track current URL for redirect back after login
   useEffect(() => {
@@ -187,16 +208,21 @@ export default function Navbar() {
   return (
     <div ref={navRef} className="sticky top-0 z-50 w-full" onMouseLeave={handleMouseLeave}>
       {/* Top Header */}
-      <header className="border-b border-stone-200/80 bg-white/95 backdrop-blur-md relative z-50">
+      <header className={`border-b relative z-50 transition-[background-color,border-color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] ${headerSurface}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
 
           {/* Logo & Main Nav */}
           <div className="flex items-center gap-10 h-full">
-            <Link href="/" className="flex items-center gap-3 group">
-              <img
+            <Link href="/" className="focus-ring flex items-center gap-3 group rounded-xl">
+              <Image
                 src="/dwarkesh-logo-transparent.png"
                 alt="Dwarkesh Real Estate Group"
-                className="h-8 sm:h-9 w-auto max-w-[58px] object-contain transition-transform duration-200 group-hover:scale-105 drop-shadow-xs"
+                width={1024}
+                height={551}
+                sizes="58px"
+                loading="eager"
+                fetchPriority="high"
+                className="h-8 sm:h-9 w-auto max-w-[58px] object-contain transition-transform duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105 drop-shadow-xs"
               />
               <div className="flex flex-col">
                 <span className="font-serif font-bold tracking-[0.14em] text-stone-900 text-base sm:text-[17px] uppercase leading-none">
@@ -218,21 +244,21 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setActiveMenu(activeMenu === 'buy' ? null : 'buy')}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer ${activeMenu === 'buy'
+                  className={`press focus-ring flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-[color,background-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer ${activeMenu === 'buy'
                     ? 'bg-stone-100 text-stone-900 font-semibold'
-                    : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+                    : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50 dark:hover:bg-stone-100'
                     }`}
                 >
                   <span>Buy</span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-200 ${activeMenu === 'buy' ? 'rotate-180 text-stone-900' : ''
+                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeMenu === 'buy' ? 'rotate-180 text-stone-900' : ''
                       }`}
                   />
                 </button>
 
                 {activeMenu === 'buy' && (
-                  <div className="absolute left-0 top-full pt-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="w-[450px] bg-white rounded-2xl border border-stone-200/90 shadow-2xl p-3.5">
+                  <div className="absolute left-0 top-full pt-2 z-50 animate-popover origin-top-left">
+                    <div className="w-[450px] surface-raised rounded-2xl border border-stone-200/90 shadow-2xl p-3.5">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-stone-400 px-2.5 py-1 mb-1">
                         Select Property Type
                       </div>
@@ -271,7 +297,7 @@ export default function Navbar() {
                         <Link
                           href="/#collection"
                           onClick={() => setActiveMenu(null)}
-                          className="text-stone-900 font-semibold hover:underline inline-flex items-center gap-1"
+                          className="focus-ring rounded-md text-stone-900 font-semibold hover:underline inline-flex items-center gap-1"
                         >
                           <span>Browse All</span>
                           <ArrowUpRight className="w-3.5 h-3.5" />
@@ -290,21 +316,21 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setActiveMenu(activeMenu === 'rent' ? null : 'rent')}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer ${activeMenu === 'rent'
+                  className={`press focus-ring flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-[color,background-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer ${activeMenu === 'rent'
                     ? 'bg-stone-100 text-stone-900 font-semibold'
-                    : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+                    : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50 dark:hover:bg-stone-100'
                     }`}
                 >
                   <span>Rent</span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-200 ${activeMenu === 'rent' ? 'rotate-180 text-stone-900' : ''
+                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeMenu === 'rent' ? 'rotate-180 text-stone-900' : ''
                       }`}
                   />
                 </button>
 
                 {activeMenu === 'rent' && (
-                  <div className="absolute left-0 top-full pt-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="w-[340px] bg-white rounded-2xl border border-stone-200/90 shadow-2xl p-3.5">
+                  <div className="absolute left-0 top-full pt-2 z-50 animate-popover origin-top-left">
+                    <div className="w-[340px] surface-raised rounded-2xl border border-stone-200/90 shadow-2xl p-3.5">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-stone-400 px-2.5 py-1 mb-1">
                         Rental Homes
                       </div>
@@ -336,7 +362,7 @@ export default function Navbar() {
                         <Link
                           href="/#collection"
                           onClick={() => setActiveMenu(null)}
-                          className="text-stone-900 font-semibold hover:underline inline-flex items-center gap-1"
+                          className="focus-ring rounded-md text-stone-900 font-semibold hover:underline inline-flex items-center gap-1"
                         >
                           <span>View Rentals</span>
                           <ArrowUpRight className="w-3.5 h-3.5" />
@@ -355,21 +381,21 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setActiveMenu(activeMenu === 'sell' ? null : 'sell')}
-                  className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer ${activeMenu === 'sell'
+                  className={`press focus-ring flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-medium transition-[color,background-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer ${activeMenu === 'sell'
                     ? 'bg-stone-100 text-stone-900 font-semibold'
-                    : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+                    : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50 dark:hover:bg-stone-100'
                     }`}
                 >
                   <span>Sell</span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-200 ${activeMenu === 'sell' ? 'rotate-180 text-stone-900' : ''
+                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeMenu === 'sell' ? 'rotate-180 text-stone-900' : ''
                       }`}
                   />
                 </button>
 
                 {activeMenu === 'sell' && (
-                  <div className="absolute left-0 top-full pt-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                    <div className="w-[360px] bg-white rounded-2xl border border-stone-200/90 shadow-2xl p-3.5">
+                  <div className="absolute left-0 top-full pt-2 z-50 animate-popover origin-top-left">
+                    <div className="w-[360px] surface-raised rounded-2xl border border-stone-200/90 shadow-2xl p-3.5">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-stone-400 px-2.5 py-1 mb-1">
                         Seller Services
                       </div>
@@ -381,14 +407,15 @@ export default function Navbar() {
                           href="/profile"
                           onClick={() => setActiveMenu(null)}
                         />
-                        <div
+                        <button
+                          type="button"
                           onClick={() => {
                             setActiveMenu(null);
                             setExpertModalOpen(true);
                           }}
-                          className="flex items-start gap-3 p-2 rounded-xl hover:bg-stone-50 transition-colors group cursor-pointer"
+                          className="focus-ring w-full text-left flex items-start gap-3 p-2 rounded-xl hover:bg-stone-50 dark:hover:bg-stone-100 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] group cursor-pointer"
                         >
-                          <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center shrink-0 group-hover:bg-stone-900 text-stone-700 group-hover:text-white transition-colors [&>svg]:text-stone-700 group-hover:[&>svg]:text-white [&>svg]:transition-colors">
+                          <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center shrink-0 group-hover:bg-stone-900 text-stone-700 group-hover:text-white dark:group-hover:bg-stone-200 dark:group-hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] [&>svg]:text-stone-700 group-hover:[&>svg]:text-white dark:group-hover:[&>svg]:text-stone-900 [&>svg]:transition-colors">
                             <PhoneCall className="w-4 h-4" />
                           </div>
                           <div className="min-w-0 flex-1">
@@ -399,7 +426,7 @@ export default function Navbar() {
                               Free consultation on pricing & sale
                             </p>
                           </div>
-                        </div>
+                        </button>
                         <DropdownItem
                           icon={<TrendingUp className="w-4 h-4" />}
                           title="My Profile"
@@ -413,7 +440,7 @@ export default function Navbar() {
                         <Link
                           href="/profile"
                           onClick={() => setActiveMenu(null)}
-                          className="text-stone-900 font-semibold hover:underline inline-flex items-center gap-1"
+                          className="focus-ring rounded-md text-stone-900 font-semibold hover:underline inline-flex items-center gap-1"
                         >
                           <span>Go to Profile</span>
                           <ArrowRight className="w-3.5 h-3.5" />
@@ -429,7 +456,7 @@ export default function Navbar() {
                 <a
                   href="#emi-calculator"
                   onClick={() => setActiveMenu(null)}
-                  className="relative flex items-center px-3.5 py-2 rounded-xl text-sm font-medium text-stone-600 hover:text-stone-900 hover:bg-stone-50 transition-all duration-150 cursor-pointer"
+                  className="press focus-ring relative flex items-center px-3.5 py-2 rounded-xl text-sm font-medium text-stone-600 hover:text-stone-900 hover:bg-stone-50 dark:hover:bg-stone-100 transition-[color,background-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer"
                 >
                   <span>EMI Calculator</span>
                 </a>
@@ -441,16 +468,17 @@ export default function Navbar() {
           <div className="hidden sm:flex items-center gap-2.5">
             <Link
               href="/profile"
-              className="group text-sm font-medium text-white bg-stone-900 hover:bg-black transition-all px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm"
+              className="press focus-ring group text-sm font-medium text-white bg-stone-900 hover:bg-black transition-[color,background-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm"
             >
               <span>Post Property</span>
-              <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+              <ArrowRight className="w-3.5 h-3.5 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0.5" />
             </Link>
+            <ThemeToggle />
             {/* Call Us button */}
             <button
               type="button"
               onClick={() => setExpertModalOpen(true)}
-              className="group flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium text-stone-700 hover:text-stone-950 bg-stone-50 hover:bg-stone-100 border border-stone-200/90 hover:border-stone-300 transition-all cursor-pointer shadow-2xs"
+              className="press focus-ring group flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium text-stone-700 hover:text-stone-950 bg-stone-50 hover:bg-stone-100 border border-stone-200/90 hover:border-stone-300 transition-[color,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer shadow-2xs"
               title="Talk directly with our property experts"
             >
               <Phone className="w-3.5 h-3.5 text-stone-500 group-hover:text-stone-900 transition-colors" />
@@ -463,7 +491,7 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-100 transition cursor-pointer border border-stone-200/80 bg-stone-50/60"
+                  className="press focus-ring flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-100 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer border border-stone-200/80 bg-stone-50/60"
                   aria-label="User Profile"
                 >
                   <div className="w-6 h-6 rounded-full bg-stone-900 text-white flex items-center justify-center text-xs font-semibold overflow-hidden shrink-0">
@@ -474,11 +502,11 @@ export default function Navbar() {
                     )}
                   </div>
                   <span className="font-semibold text-stone-900 text-xs sm:text-sm">Profile</span>
-                  <ChevronDown className={`w-3.5 h-3.5 text-stone-400 transition-transform ${profileDropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${profileDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {profileDropdownOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl border border-stone-200 shadow-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute right-0 top-full mt-2 w-56 surface-raised rounded-2xl border border-stone-200 shadow-xl p-2 z-50 animate-popover origin-top-right">
                     <div className="px-3 py-2 border-b border-stone-100">
                       <p className="text-xs font-bold text-stone-900 truncate">{user.name}</p>
                       <p className="text-[11px] text-stone-500 truncate">{user.email}</p>
@@ -487,7 +515,7 @@ export default function Navbar() {
                       <Link
                         href="/profile"
                         onClick={() => setProfileDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-50 transition"
+                        className="focus-ring flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-50 dark:hover:bg-stone-100 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                       >
                         <User className="w-3.5 h-3.5 text-stone-500" />
                         <span>My Profile</span>
@@ -495,7 +523,7 @@ export default function Navbar() {
                       <Link
                         href="/#collection"
                         onClick={() => setProfileDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-50 transition"
+                        className="focus-ring flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-50 dark:hover:bg-stone-100 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                       >
                         <Home className="w-3.5 h-3.5 text-stone-500" />
                         <span>Saved Homes</span>
@@ -505,7 +533,7 @@ export default function Navbar() {
                       <button
                         type="button"
                         onClick={handleSignOut}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-rose-600 hover:bg-rose-50 transition text-left cursor-pointer"
+                        className="focus-ring w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] text-left cursor-pointer"
                       >
                         <LogOut className="w-3.5 h-3.5 text-rose-500" />
                         <span>Sign Out</span>
@@ -517,29 +545,33 @@ export default function Navbar() {
             ) : (
               <Link
                 href={`/auth?redirect=${encodeURIComponent(currentUrl)}`}
-                className="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors px-3.5 py-2 rounded-xl hover:bg-stone-100/80"
+                className="press focus-ring text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] px-3.5 py-2 rounded-xl hover:bg-stone-100/80"
               >
                 Sign In
               </Link>
             )}
           </div>
 
-          {/* Mobile Menu Toggle Button */}
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
-            aria-label="Toggle Navigation Menu"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+          {/* Phones: theme toggle beside the menu button (from sm up it sits with the actions) */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <ThemeToggle className="sm:hidden" />
+            {/* Mobile Menu Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="press focus-ring p-2 rounded-xl text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer"
+              aria-label="Toggle Navigation Menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Backdrop overlay for desktop menu */}
       {activeMenu && (
         <div
-          className="hidden lg:block fixed inset-0 top-16 bg-stone-900/10 backdrop-blur-[1px] z-40 transition-opacity"
+          className="hidden lg:block fixed inset-0 top-16 scrim opacity-50 backdrop-blur-[1px] z-40"
           onClick={() => setActiveMenu(null)}
         />
       )}
@@ -550,21 +582,21 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <>
           <div
-            className="lg:hidden fixed inset-0 top-[65px] bg-stone-950/20 backdrop-blur-[2px] z-40 transition-opacity"
+            className="lg:hidden fixed inset-0 top-[65px] scrim backdrop-blur-[2px] z-40"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="lg:hidden relative z-50 bg-white border-b border-stone-200 px-6 py-6 animate-fade-in shadow-2xl max-h-[85vh] overflow-y-auto">
+          <div className="lg:hidden relative z-50 surface-raised border-b border-stone-200 px-6 py-6 origin-top animate-fade-in shadow-2xl max-h-[85vh] overflow-y-auto">
             <div className="space-y-4">
               {/* 1. Mobile Buy Accordion */}
               <div className="border-b border-stone-100 pb-3">
                 <button
                   type="button"
                   onClick={() => setMobileAccordion(mobileAccordion === 'buy' ? null : 'buy')}
-                  className="w-full flex items-center justify-between py-2 text-sm font-semibold text-stone-900 cursor-pointer"
+                  className="focus-ring rounded-lg w-full flex items-center justify-between py-2 text-sm font-semibold text-stone-900 cursor-pointer"
                 >
                   <span>Buy Homes</span>
                   <ChevronDown
-                    className={`w-4 h-4 transition-transform ${mobileAccordion === 'buy' ? 'rotate-180' : ''}`}
+                    className={`w-4 h-4 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${mobileAccordion === 'buy' ? 'rotate-180' : ''}`}
                   />
                 </button>
                 {mobileAccordion === 'buy' && (
@@ -572,28 +604,28 @@ export default function Navbar() {
                     <Link
                       href="/#collection"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block py-1 hover:text-stone-900"
+                      className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       • Villas & Estates
                     </Link>
                     <Link
                       href="/#collection"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block py-1 hover:text-stone-900"
+                      className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       • Apartments
                     </Link>
                     <Link
                       href="/#collection"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block py-1 hover:text-stone-900"
+                      className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       • Penthouses
                     </Link>
                     <Link
                       href="/#collection"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block py-1 hover:text-stone-900"
+                      className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       • Plots & Land
                     </Link>
@@ -606,11 +638,11 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setMobileAccordion(mobileAccordion === 'rent' ? null : 'rent')}
-                  className="w-full flex items-center justify-between py-2 text-sm font-semibold text-stone-900 cursor-pointer"
+                  className="focus-ring rounded-lg w-full flex items-center justify-between py-2 text-sm font-semibold text-stone-900 cursor-pointer"
                 >
                   <span>Rent Homes</span>
                   <ChevronDown
-                    className={`w-4 h-4 transition-transform ${mobileAccordion === 'rent' ? 'rotate-180' : ''}`}
+                    className={`w-4 h-4 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${mobileAccordion === 'rent' ? 'rotate-180' : ''}`}
                   />
                 </button>
                 {mobileAccordion === 'rent' && (
@@ -618,21 +650,21 @@ export default function Navbar() {
                     <Link
                       href="/#collection"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block py-1 hover:text-stone-900"
+                      className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       • Furnished Apartments
                     </Link>
                     <Link
                       href="/#collection"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block py-1 hover:text-stone-900"
+                      className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       • Luxury Villas
                     </Link>
                     <Link
                       href="/#collection"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block py-1 hover:text-stone-900"
+                      className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       • Penthouses & Duplexes
                     </Link>
@@ -645,11 +677,11 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setMobileAccordion(mobileAccordion === 'sell' ? null : 'sell')}
-                  className="w-full flex items-center justify-between py-2 text-sm font-semibold text-stone-900 cursor-pointer"
+                  className="focus-ring rounded-lg w-full flex items-center justify-between py-2 text-sm font-semibold text-stone-900 cursor-pointer"
                 >
                   <span>Sell Property</span>
                   <ChevronDown
-                    className={`w-4 h-4 transition-transform ${mobileAccordion === 'sell' ? 'rotate-180' : ''}`}
+                    className={`w-4 h-4 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${mobileAccordion === 'sell' ? 'rotate-180' : ''}`}
                   />
                 </button>
                 {mobileAccordion === 'sell' && (
@@ -657,7 +689,7 @@ export default function Navbar() {
                     <Link
                       href="/profile"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block py-1 hover:text-stone-900"
+                      className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       • Post Property (Free)
                     </Link>
@@ -667,14 +699,14 @@ export default function Navbar() {
                         setMobileMenuOpen(false);
                         setExpertModalOpen(true);
                       }}
-                      className="block py-1 text-left hover:text-stone-900 cursor-pointer"
+                      className="focus-ring rounded-md block py-1 text-left hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer"
                     >
                       • Talk to Property Expert
                     </button>
                     <Link
                       href="/profile"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block py-1 hover:text-stone-900"
+                      className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
                       • My Profile
                     </Link>
@@ -687,7 +719,7 @@ export default function Navbar() {
                 <a
                   href="#emi-calculator"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full flex items-center justify-between py-2 text-sm font-semibold text-stone-900 hover:text-black cursor-pointer"
+                  className="focus-ring rounded-lg w-full flex items-center justify-between py-2 text-sm font-semibold text-stone-900 hover:text-black transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer"
                 >
                   <span>EMI Calculator</span>
                   <ArrowRight className="w-4 h-4 text-stone-400" />
@@ -702,7 +734,7 @@ export default function Navbar() {
                     setMobileMenuOpen(false);
                     setExpertModalOpen(true);
                   }}
-                  className="w-full flex items-center justify-center gap-2 py-3 text-sm font-medium rounded-xl border border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-900 transition shadow-2xs cursor-pointer"
+                  className="press focus-ring w-full flex items-center justify-center gap-2 py-3 text-sm font-medium rounded-xl border border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-900 transition-colors shadow-2xs cursor-pointer"
                 >
                   <Phone className="w-4 h-4 text-stone-700" />
                   <span>Call Us</span>
@@ -727,7 +759,7 @@ export default function Navbar() {
                       <Link
                         href="/profile"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="block py-2.5 text-center text-xs font-semibold rounded-xl bg-stone-900 text-white hover:bg-black transition"
+                        className="press focus-ring block py-2.5 text-center text-xs font-semibold rounded-xl bg-stone-900 text-white hover:bg-black transition-colors"
                       >
                         Profile
                       </Link>
@@ -737,7 +769,7 @@ export default function Navbar() {
                           handleSignOut();
                           setMobileMenuOpen(false);
                         }}
-                        className="block py-2.5 text-center text-xs font-semibold rounded-xl border border-stone-200 text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                        className="press focus-ring block py-2.5 text-center text-xs font-semibold rounded-xl border border-stone-200 text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                       >
                         Sign Out
                       </button>
@@ -748,14 +780,14 @@ export default function Navbar() {
                     <Link
                       href={`/auth?redirect=${encodeURIComponent(currentUrl)}`}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block py-2.5 text-center text-sm font-medium rounded-xl border border-stone-200 text-stone-900 hover:bg-stone-50 transition"
+                      className="press focus-ring block py-2.5 text-center text-sm font-medium rounded-xl border border-stone-200 text-stone-900 hover:bg-stone-50 dark:hover:bg-stone-100 transition-colors"
                     >
                       Sign In
                     </Link>
                     <Link
                       href="/profile"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block py-2.5 text-center text-sm font-medium rounded-xl border border-stone-200 bg-stone-100 text-stone-900 hover:bg-stone-200 transition"
+                      className="press focus-ring block py-2.5 text-center text-sm font-medium rounded-xl border border-stone-200 bg-stone-100 text-stone-900 hover:bg-stone-200 transition-colors"
                     >
                       Post Property
                     </Link>
@@ -773,7 +805,7 @@ export default function Navbar() {
       {/* ============================================================== */}
       {expertModalOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-stone-950/60 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 scrim backdrop-blur-sm animate-scrim-in"
           role="dialog"
           aria-modal="true"
           aria-labelledby="call-us-title"
@@ -785,7 +817,7 @@ export default function Navbar() {
           />
 
           {/* Modal Container */}
-          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-stone-200 overflow-hidden z-10 flex flex-col p-6 sm:p-7 space-y-5">
+          <div className="relative w-full max-w-md surface-raised rounded-3xl shadow-2xl border border-stone-200 overflow-hidden z-10 flex flex-col p-6 sm:p-7 space-y-5 animate-fade-in">
             {/* Header */}
             <div className="flex items-start justify-between">
               <div>
@@ -802,7 +834,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setExpertModalOpen(false)}
-                className="p-2 -mr-1 -mt-1 rounded-full text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
+                className="press focus-ring p-2 -mr-1 -mt-1 rounded-full text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-colors cursor-pointer"
                 aria-label="Close modal"
               >
                 <X className="w-4 h-4" />
@@ -812,10 +844,10 @@ export default function Navbar() {
             {/* Direct Dial Hero Card */}
             <a
               href="tel:+919876543210"
-              className="group flex items-center justify-between p-4 rounded-2xl bg-stone-900 text-white hover:bg-black transition-all shadow-sm"
+              className="light-scope press focus-ring group flex items-center justify-between p-4 rounded-2xl bg-stone-900 text-white hover:bg-black ring-1 ring-white/15 transition-[color,background-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-sm"
             >
               <div className="flex items-center gap-3.5">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
+                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]">
                   <Phone className="w-4 h-4" />
                 </div>
                 <div>
@@ -827,7 +859,7 @@ export default function Navbar() {
                   </span>
                 </div>
               </div>
-              <div className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white text-stone-950 flex items-center gap-1 group-hover:bg-stone-100 transition-colors">
+              <div className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white text-stone-950 flex items-center gap-1 group-hover:bg-stone-100 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]">
                 <span>Call Now</span>
                 <ArrowRight className="w-3 h-3" />
               </div>
@@ -836,7 +868,7 @@ export default function Navbar() {
             {/* Subtle Divider */}
             <div className="relative flex items-center justify-center py-0.5">
               <div className="w-full border-t border-stone-100" />
-              <span className="absolute bg-white px-3 text-[10px] font-medium uppercase tracking-widest text-stone-400">
+              <span className="absolute bg-white dark:bg-stone-50 px-3 text-[10px] font-medium uppercase tracking-widest text-stone-400">
                 Or Schedule Callback
               </span>
             </div>
@@ -858,10 +890,10 @@ export default function Navbar() {
                         setSelectedTiming(slot.id);
                         setCustomTiming('');
                       }}
-                      className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer ${
+                      className={`press focus-ring p-2.5 rounded-xl border text-center transition-[color,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] cursor-pointer ${
                         isSelected
                           ? 'border-stone-900 bg-stone-900 text-white shadow-xs'
-                          : 'border-stone-200 bg-white hover:bg-stone-50 text-stone-700'
+                          : 'border-stone-200 bg-white hover:bg-stone-50 dark:hover:bg-stone-100 text-stone-700'
                       }`}
                     >
                       <span className="block text-xs font-semibold">{slot.title}</span>
@@ -881,7 +913,7 @@ export default function Navbar() {
                   value={customTiming}
                   onChange={(e) => setCustomTiming(e.target.value)}
                   placeholder="Or custom time: e.g. Sunday 11 AM"
-                  className="w-full pl-8.5 pr-3 py-2 text-xs rounded-xl border border-stone-200 bg-stone-50/50 focus:bg-white focus:outline-none focus:border-stone-900 text-stone-900 placeholder:text-stone-400 transition"
+                  className="w-full pl-8.5 pr-3 py-2 text-xs rounded-xl border border-stone-200 bg-stone-50/50 focus:bg-white focus:outline-none focus:border-stone-900 text-stone-900 placeholder:text-stone-400 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                 />
               </div>
             </div>
@@ -897,7 +929,7 @@ export default function Navbar() {
                   window.open(url, '_blank');
                   setExpertModalOpen(false);
                 }}
-                className="w-full py-3 rounded-xl border border-stone-300 hover:border-stone-900 hover:bg-stone-50 text-stone-900 text-xs font-semibold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
+                className="press focus-ring w-full py-3 rounded-xl border border-stone-300 hover:border-stone-900 hover:bg-stone-50 dark:hover:bg-stone-100 text-stone-900 text-xs font-semibold uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
                   <circle cx="12" cy="12" r="11.5" fill="#25D366" />
@@ -926,9 +958,9 @@ function DropdownItem({ icon, title, description, href, onClick }) {
     <Link
       href={href}
       onClick={onClick}
-      className="flex items-start gap-3 p-2 rounded-xl hover:bg-stone-50 transition-colors group cursor-pointer"
+      className="focus-ring flex items-start gap-3 p-2 rounded-xl hover:bg-stone-50 dark:hover:bg-stone-100 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] group cursor-pointer"
     >
-      <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center shrink-0 group-hover:bg-stone-900 text-stone-700 group-hover:text-white transition-colors [&>svg]:text-stone-700 group-hover:[&>svg]:text-white [&>svg]:transition-colors">
+      <div className="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center shrink-0 group-hover:bg-stone-900 text-stone-700 group-hover:text-white dark:group-hover:bg-stone-200 dark:group-hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] [&>svg]:text-stone-700 group-hover:[&>svg]:text-white dark:group-hover:[&>svg]:text-stone-900 [&>svg]:transition-colors">
         {icon}
       </div>
       <div className="min-w-0 flex-1">

@@ -29,6 +29,7 @@ import EMICalculator from '@/components/EMICalculator';
 import PropertyCard from '@/components/PropertyCard';
 import Footer from '@/components/Footer';
 import SearchAutocomplete from '@/components/SearchAutocomplete';
+import Reveal from '@/components/Reveal';
 import { useUserLocation } from '@/lib/useUserLocation';
 import { properties } from '@/data/properties';
 import { useRouter } from 'next/navigation';
@@ -358,26 +359,28 @@ export default function HomePage() {
           <img
             src="/hero-header-bg.png"
             alt="Dwarkesh Properties Header"
-            className="w-full h-full object-cover object-[80%_center] sm:object-right"
+            className="w-full h-full object-cover object-[80%_center] sm:object-right dark:brightness-[0.38] dark:saturate-[0.6]"
           />
           {/* Subtle gradient overlay to keep architectural image fully visible on mobile & desktop */}
           <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-white/40 to-transparent sm:from-white/85 sm:via-white/40 sm:to-white/10" />
           <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white via-white/70 to-transparent" />
+          {/* Faint architectural grid, dark mode only */}
+          <div className="absolute inset-0 hidden dark:block bg-grid-light [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_70%,transparent)]" />
         </div>
 
         <div className="max-w-5xl mx-auto flex flex-col items-center text-center relative z-10">
           {/* Live Auto-detected Location Pill */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-stone-200/90 shadow-xs text-[11px] sm:text-xs text-stone-700 mb-3 sm:mb-4 transition-all hover:border-stone-300">
+          <div style={{ "--i": 0 }} className="hero-enter inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-stone-200/90 shadow-xs text-[11px] sm:text-xs text-stone-700 mb-3 sm:mb-4 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-stone-300">
             <span className="relative flex h-2 w-2 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
             <MapPin className="w-3.5 h-3.5 text-stone-800 shrink-0" />
             {locationLoading ? (
-              <span className="text-stone-400 font-medium animate-pulse">Detecting your location...</span>
+              <span className="text-stone-400 font-medium">Detecting your location...</span>
             ) : userLocation ? (
               <div className="flex items-center gap-1 truncate max-w-[210px] sm:max-w-none">
-                <span className="text-stone-400 font-normal">Location:</span>
+                <span className="text-stone-500 font-normal">Location:</span>
                 <span className="font-semibold text-stone-900 truncate">{userLocation.display}</span>
               </div>
             ) : (
@@ -387,7 +390,7 @@ export default function HomePage() {
               type="button"
               onClick={refreshGpsLocation}
               title="Pinpoint live GPS location"
-              className="ml-0.5 p-0.5 rounded-full text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition cursor-pointer shrink-0"
+              className="focus-ring ml-0.5 p-0.5 rounded-full text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition cursor-pointer shrink-0"
               aria-label="Refresh GPS location"
             >
               <Navigation className="w-3 h-3" />
@@ -395,19 +398,20 @@ export default function HomePage() {
           </div>
 
           {/* Hero Headline */}
-          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-stone-900 tracking-tight leading-tight sm:leading-[1.15] mb-2 sm:mb-3 max-w-4xl">
+          <h1 style={{ "--i": 1 }} className="hero-enter text-balance text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold text-stone-900 tracking-tight leading-tight sm:leading-[1.15] mb-2 sm:mb-3 max-w-4xl">
             #DhundteRehJaoge
           </h1>
 
           {/* Hero Subtitle with Balanced Mobile Typography */}
-          <p className="text-xs sm:text-base md:text-lg text-stone-700 sm:text-stone-600 font-normal max-w-xs sm:max-w-xl mx-auto mb-5 sm:mb-7 leading-relaxed tracking-normal">
+          <p style={{ "--i": 2 }} className="hero-enter text-pretty text-xs sm:text-base md:text-lg text-stone-700 sm:text-stone-600 font-normal max-w-xs sm:max-w-xl mx-auto mb-5 sm:mb-7 leading-relaxed tracking-normal">
             Discover 100+ curated villas, plots, and apartments across Alibaug, Ahmedabad & Gurugram.
           </p>
 
           {/* Master Search & Filter Console Card */}
           <div
             ref={searchContainerRef}
-            className="w-full max-w-4xl bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-4 border border-stone-200/90 shadow-2xl shadow-stone-900/5 text-left transition-all relative z-40 ring-1 ring-stone-900/5"
+            style={{ "--i": 3 }}
+            className="hero-enter w-full max-w-4xl bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-4 border border-stone-200/90 shadow-2xl shadow-stone-900/5 text-left transition-[box-shadow,border-color] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] relative z-40 ring-1 ring-stone-900/5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-stone-400/60 dark:bg-stone-50 dark:shadow-none dark:border-stone-300"
           >
             {/* TOP ROW: City Selector + Vertical Divider + Search Input */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center pb-3 border-b border-stone-100 gap-2 sm:gap-0 relative">
@@ -416,9 +420,9 @@ export default function HomePage() {
                 <button
                   type="button"
                   onClick={() => toggleDropdown('city')}
-                  className={`flex items-center justify-between gap-2.5 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer w-full sm:w-auto bg-stone-50/80 sm:bg-transparent ${activeDropdown === 'city'
-                      ? 'bg-stone-100 text-stone-900 ring-1 ring-stone-300'
-                      : 'text-stone-800 hover:bg-stone-100/70 sm:hover:bg-stone-50'
+                  className={`press focus-ring flex items-center justify-between gap-2.5 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-colors cursor-pointer w-full sm:w-auto bg-stone-50/80 sm:bg-transparent ${activeDropdown === 'city'
+                      ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 ring-1 ring-stone-300'
+                      : 'text-stone-800 hover:bg-stone-100/70 sm:hover:bg-stone-50 dark:hover:bg-stone-100'
                     }`}
                 >
                   <span className="flex items-center gap-2">
@@ -426,16 +430,16 @@ export default function HomePage() {
                     <span className="truncate max-w-[140px]">{selectedCity}</span>
                   </span>
                   <ChevronDown
-                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-200 ${activeDropdown === 'city' ? 'rotate-180' : ''
+                    className={`w-3.5 h-3.5 text-stone-400 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'city' ? 'rotate-180' : ''
                       }`}
                   />
                 </button>
 
                 {/* City Menu */}
                 {activeDropdown === 'city' && (
-                  <div className="absolute left-0 top-full mt-2 w-full sm:w-60 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="absolute left-0 top-full mt-2 w-full sm:w-60 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto surface-raised bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-popover origin-top-left">
                     {userLocation?.display && (
-                      <div className="mx-2 mb-1.5 px-2.5 py-1.5 rounded-xl bg-stone-50 border border-stone-200/80 flex items-center justify-between text-[11px]">
+                      <div className="mx-2 mb-1.5 px-2.5 py-1.5 rounded-xl bg-stone-50 dark:bg-stone-100 border border-stone-200/80 flex items-center justify-between text-[11px]">
                         <span className="text-stone-500">Live Location:</span>
                         <span className="font-semibold text-stone-900 truncate max-w-[110px]">{userLocation.display}</span>
                       </div>
@@ -454,9 +458,9 @@ export default function HomePage() {
                             setSelectedCity(city);
                             setActiveDropdown(null);
                           }}
-                          className={`w-full px-3.5 py-2.5 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedCity === city
-                              ? 'text-stone-900 font-semibold bg-stone-50'
-                              : 'text-stone-600'
+                          className={`focus-ring focus-visible:bg-stone-50 dark:focus-visible:bg-stone-100 w-full px-3.5 py-2.5 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedCity === city
+                              ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
+                              : 'text-stone-600 dark:hover:bg-stone-100'
                             }`}
                         >
                           <div className="flex items-center gap-2">
@@ -524,30 +528,30 @@ export default function HomePage() {
             </div>
 
             {/* BOTTOM REFINEMENT SHELF */}
-            <div className="-mx-3 -mb-3 sm:-mx-4 sm:-mb-4 mt-3 px-3 sm:px-4 py-2.5 bg-stone-50/70 border-t border-stone-100 rounded-b-2xl sm:rounded-b-3xl">
+            <div className="-mx-3 -mb-3 sm:-mx-4 sm:-mb-4 mt-3 px-3 sm:px-4 py-2.5 bg-stone-50/70 dark:bg-stone-100/60 border-t border-stone-100 dark:border-stone-200 rounded-b-2xl sm:rounded-b-3xl">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 {/* Filter Pills Group */}
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                   {/* 1. Locations Pill */}
                   <div className="relative shrink-0">
                     <div
-                      className={`inline-flex items-center rounded-xl sm:rounded-full text-xs font-medium border transition-all ${selectedLocation !== 'Locations' &&
+                      className={`inline-flex items-center rounded-xl sm:rounded-full text-xs font-medium border transition-[color,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${selectedLocation !== 'Locations' &&
                           selectedLocation !== 'All Locations'
                           ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
                           : activeDropdown === 'location'
-                            ? 'bg-stone-100 text-stone-900 border-stone-300'
-                            : 'bg-white text-stone-700 border-stone-200/90 hover:bg-stone-50 hover:border-stone-300'
+                            ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
+                            : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
                         }`}
                     >
                       <button
                         type="button"
                         onClick={() => toggleDropdown('location')}
-                        className="px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        className="press focus-ring rounded-xl sm:rounded-full px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                       >
                         <Compass className="w-3.5 h-3.5" />
                         <span>{selectedLocation}</span>
                         <ChevronDown
-                          className={`w-3 h-3 opacity-60 transition-transform ${activeDropdown === 'location' ? 'rotate-180' : ''
+                          className={`w-3 h-3 opacity-60 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'location' ? 'rotate-180' : ''
                             }`}
                         />
                       </button>
@@ -559,7 +563,7 @@ export default function HomePage() {
                               e.stopPropagation();
                               setSelectedLocation('Locations');
                             }}
-                            className="pr-2.5 pl-0.5 hover:text-stone-300 transition-colors cursor-pointer"
+                            className="focus-ring rounded-full pr-2.5 pl-0.5 hover:text-stone-300 transition-colors cursor-pointer"
                             title="Clear location filter"
                           >
                             <X className="w-3 h-3" />
@@ -568,7 +572,7 @@ export default function HomePage() {
                     </div>
 
                     {activeDropdown === 'location' && (
-                      <div className="absolute left-0 top-full mt-2 w-64 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="absolute left-0 top-full mt-2 w-64 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto surface-raised bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-popover origin-top-left">
                         <div className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-stone-400 flex items-center justify-between">
                           <span>Popular Areas</span>
                           <span>Listings</span>
@@ -585,9 +589,9 @@ export default function HomePage() {
                                 );
                                 setActiveDropdown(null);
                               }}
-                              className={`w-full px-3.5 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedLocation === loc
-                                  ? 'text-stone-900 font-semibold bg-stone-50'
-                                  : 'text-stone-600'
+                              className={`focus-ring focus-visible:bg-stone-50 dark:focus-visible:bg-stone-100 w-full px-3.5 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedLocation === loc
+                                  ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
+                                  : 'text-stone-600 dark:hover:bg-stone-100'
                                 }`}
                             >
                               <div className="flex items-center gap-2">
@@ -609,22 +613,22 @@ export default function HomePage() {
                   {/* 2. BHK Pill */}
                   <div className="relative shrink-0">
                     <div
-                      className={`inline-flex items-center rounded-xl sm:rounded-full text-xs font-medium border transition-all ${selectedBhk !== 'BHK' && selectedBhk !== 'All BHK'
+                      className={`inline-flex items-center rounded-xl sm:rounded-full text-xs font-medium border transition-[color,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${selectedBhk !== 'BHK' && selectedBhk !== 'All BHK'
                           ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
                           : activeDropdown === 'bhk'
-                            ? 'bg-stone-100 text-stone-900 border-stone-300'
-                            : 'bg-white text-stone-700 border-stone-200/90 hover:bg-stone-50 hover:border-stone-300'
+                            ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
+                            : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
                         }`}
                     >
                       <button
                         type="button"
                         onClick={() => toggleDropdown('bhk')}
-                        className="px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        className="press focus-ring rounded-xl sm:rounded-full px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                       >
                         <Bed className="w-3.5 h-3.5" />
                         <span>{selectedBhk}</span>
                         <ChevronDown
-                          className={`w-3 h-3 opacity-60 transition-transform ${activeDropdown === 'bhk' ? 'rotate-180' : ''
+                          className={`w-3 h-3 opacity-60 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'bhk' ? 'rotate-180' : ''
                             }`}
                         />
                       </button>
@@ -635,7 +639,7 @@ export default function HomePage() {
                             e.stopPropagation();
                             setSelectedBhk('BHK');
                           }}
-                          className="pr-2.5 pl-0.5 hover:text-stone-300 transition-colors cursor-pointer"
+                          className="focus-ring rounded-full pr-2.5 pl-0.5 hover:text-stone-300 transition-colors cursor-pointer"
                           title="Clear BHK filter"
                         >
                           <X className="w-3 h-3" />
@@ -644,7 +648,7 @@ export default function HomePage() {
                     </div>
 
                     {activeDropdown === 'bhk' && (
-                      <div className="absolute left-0 top-full mt-2 w-52 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="absolute left-0 top-full mt-2 w-52 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto surface-raised bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-popover origin-top-left">
                         <div className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-stone-400 flex items-center justify-between">
                           <span>Bedrooms</span>
                           <span>Listings</span>
@@ -659,9 +663,9 @@ export default function HomePage() {
                                 setSelectedBhk(bhk === 'All BHK' ? 'BHK' : bhk);
                                 setActiveDropdown(null);
                               }}
-                              className={`w-full px-3.5 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedBhk === bhk
-                                  ? 'text-stone-900 font-semibold bg-stone-50'
-                                  : 'text-stone-600'
+                              className={`focus-ring focus-visible:bg-stone-50 dark:focus-visible:bg-stone-100 w-full px-3.5 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedBhk === bhk
+                                  ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
+                                  : 'text-stone-600 dark:hover:bg-stone-100'
                                 }`}
                             >
                               <div className="flex items-center gap-2">
@@ -683,23 +687,23 @@ export default function HomePage() {
                   {/* 3. Budget Pill */}
                   <div className="relative shrink-0">
                     <div
-                      className={`inline-flex items-center rounded-xl sm:rounded-full text-xs font-medium border transition-all ${selectedBudget !== 'Budget' &&
+                      className={`inline-flex items-center rounded-xl sm:rounded-full text-xs font-medium border transition-[color,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${selectedBudget !== 'Budget' &&
                           selectedBudget !== 'Any Budget'
                           ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
                           : activeDropdown === 'budget'
-                            ? 'bg-stone-100 text-stone-900 border-stone-300'
-                            : 'bg-white text-stone-700 border-stone-200/90 hover:bg-stone-50 hover:border-stone-300'
+                            ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
+                            : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
                         }`}
                     >
                       <button
                         type="button"
                         onClick={() => toggleDropdown('budget')}
-                        className="px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        className="press focus-ring rounded-xl sm:rounded-full px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                       >
                         <Landmark className="w-3.5 h-3.5" />
                         <span>{selectedBudget}</span>
                         <ChevronDown
-                          className={`w-3 h-3 opacity-60 transition-transform ${activeDropdown === 'budget' ? 'rotate-180' : ''
+                          className={`w-3 h-3 opacity-60 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'budget' ? 'rotate-180' : ''
                             }`}
                         />
                       </button>
@@ -711,7 +715,7 @@ export default function HomePage() {
                               e.stopPropagation();
                               setSelectedBudget('Budget');
                             }}
-                            className="pr-2.5 pl-0.5 hover:text-stone-300 transition-colors cursor-pointer"
+                            className="focus-ring rounded-full pr-2.5 pl-0.5 hover:text-stone-300 transition-colors cursor-pointer"
                             title="Clear budget filter"
                           >
                             <X className="w-3 h-3" />
@@ -720,7 +724,7 @@ export default function HomePage() {
                     </div>
 
                     {activeDropdown === 'budget' && (
-                      <div className="absolute left-0 top-full mt-2 w-56 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="absolute left-0 top-full mt-2 w-56 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto surface-raised bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-popover origin-top-left">
                         <div className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-stone-400">
                           Price Range
                         </div>
@@ -734,9 +738,9 @@ export default function HomePage() {
                               );
                               setActiveDropdown(null);
                             }}
-                            className={`w-full px-3.5 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedBudget === budget
-                                ? 'text-stone-900 font-semibold bg-stone-50'
-                                : 'text-stone-600'
+                            className={`focus-ring focus-visible:bg-stone-50 dark:focus-visible:bg-stone-100 w-full px-3.5 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedBudget === budget
+                                ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
+                                : 'text-stone-600 dark:hover:bg-stone-100'
                               }`}
                           >
                             <span>{budget}</span>
@@ -752,23 +756,23 @@ export default function HomePage() {
                   {/* 4. Possession Pill */}
                   <div className="relative shrink-0">
                     <div
-                      className={`inline-flex items-center rounded-xl sm:rounded-full text-xs font-medium border transition-all ${selectedPossession !== 'Possession' &&
+                      className={`inline-flex items-center rounded-xl sm:rounded-full text-xs font-medium border transition-[color,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${selectedPossession !== 'Possession' &&
                           selectedPossession !== 'All Possession'
                           ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
                           : activeDropdown === 'possession'
-                            ? 'bg-stone-100 text-stone-900 border-stone-300'
-                            : 'bg-white text-stone-700 border-stone-200/90 hover:bg-stone-50 hover:border-stone-300'
+                            ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
+                            : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
                         }`}
                     >
                       <button
                         type="button"
                         onClick={() => toggleDropdown('possession')}
-                        className="px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        className="press focus-ring rounded-xl sm:rounded-full px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                       >
                         <Key className="w-3.5 h-3.5" />
                         <span>{selectedPossession}</span>
                         <ChevronDown
-                          className={`w-3 h-3 opacity-60 transition-transform ${activeDropdown === 'possession' ? 'rotate-180' : ''
+                          className={`w-3 h-3 opacity-60 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'possession' ? 'rotate-180' : ''
                             }`}
                         />
                       </button>
@@ -780,7 +784,7 @@ export default function HomePage() {
                               e.stopPropagation();
                               setSelectedPossession('Possession');
                             }}
-                            className="pr-2.5 pl-0.5 hover:text-stone-300 transition-colors cursor-pointer"
+                            className="focus-ring rounded-full pr-2.5 pl-0.5 hover:text-stone-300 transition-colors cursor-pointer"
                             title="Clear possession filter"
                           >
                             <X className="w-3 h-3" />
@@ -789,7 +793,7 @@ export default function HomePage() {
                     </div>
 
                     {activeDropdown === 'possession' && (
-                      <div className="absolute left-0 sm:left-0 top-full mt-2 w-56 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="absolute left-0 sm:left-0 top-full mt-2 w-56 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto surface-raised bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-popover origin-top-left">
                         <div className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-stone-400 flex items-center justify-between">
                           <span>Possession Timeline</span>
                           <span>Listings</span>
@@ -806,9 +810,9 @@ export default function HomePage() {
                                 );
                                 setActiveDropdown(null);
                               }}
-                              className={`w-full px-3.5 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedPossession === pos
-                                  ? 'text-stone-900 font-semibold bg-stone-50'
-                                  : 'text-stone-600'
+                              className={`focus-ring focus-visible:bg-stone-50 dark:focus-visible:bg-stone-100 w-full px-3.5 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedPossession === pos
+                                  ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
+                                  : 'text-stone-600 dark:hover:bg-stone-100'
                                 }`}
                             >
                               <div className="flex items-center gap-2">
@@ -830,23 +834,23 @@ export default function HomePage() {
                   {/* 5. Property Type Pill */}
                   <div className="relative shrink-0">
                     <div
-                      className={`inline-flex items-center rounded-xl sm:rounded-full text-xs font-medium border transition-all ${selectedType !== 'Property Type' &&
+                      className={`inline-flex items-center rounded-xl sm:rounded-full text-xs font-medium border transition-[color,background-color,border-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${selectedType !== 'Property Type' &&
                           selectedType !== 'All Types'
                           ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
                           : activeDropdown === 'type'
-                            ? 'bg-stone-100 text-stone-900 border-stone-300'
-                            : 'bg-white text-stone-700 border-stone-200/90 hover:bg-stone-50 hover:border-stone-300'
+                            ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
+                            : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
                         }`}
                     >
                       <button
                         type="button"
                         onClick={() => toggleDropdown('type')}
-                        className="px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        className="press focus-ring rounded-xl sm:rounded-full px-2.5 sm:px-3 py-1.5 flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                       >
                         <Home className="w-3.5 h-3.5" />
                         <span>{selectedType}</span>
                         <ChevronDown
-                          className={`w-3 h-3 opacity-60 transition-transform ${activeDropdown === 'type' ? 'rotate-180' : ''
+                          className={`w-3 h-3 opacity-60 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] ${activeDropdown === 'type' ? 'rotate-180' : ''
                             }`}
                         />
                       </button>
@@ -858,7 +862,7 @@ export default function HomePage() {
                               e.stopPropagation();
                               setSelectedType('Property Type');
                             }}
-                            className="pr-2.5 pl-0.5 hover:text-stone-300 transition-colors cursor-pointer"
+                            className="focus-ring rounded-full pr-2.5 pl-0.5 hover:text-stone-300 transition-colors cursor-pointer"
                             title="Clear type filter"
                           >
                             <X className="w-3 h-3" />
@@ -867,7 +871,7 @@ export default function HomePage() {
                     </div>
 
                     {activeDropdown === 'type' && (
-                      <div className="absolute right-0 top-full mt-2 w-60 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="absolute right-0 top-full mt-2 w-60 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto surface-raised bg-white rounded-2xl border border-stone-200 shadow-2xl py-2 z-50 animate-popover origin-top-right">
                         <div className="px-3.5 py-1.5 text-[10px] uppercase font-bold tracking-wider text-stone-400 flex items-center justify-between">
                           <span>Property Type</span>
                           <span>Listings</span>
@@ -884,9 +888,9 @@ export default function HomePage() {
                                 );
                                 setActiveDropdown(null);
                               }}
-                              className={`w-full px-3.5 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedType === typ
-                                  ? 'text-stone-900 font-semibold bg-stone-50'
-                                  : 'text-stone-600'
+                              className={`focus-ring focus-visible:bg-stone-50 dark:focus-visible:bg-stone-100 w-full px-3.5 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-stone-50 transition-colors cursor-pointer ${selectedType === typ
+                                  ? 'text-stone-900 font-semibold bg-stone-50 dark:bg-stone-200'
+                                  : 'text-stone-600 dark:hover:bg-stone-100'
                                 }`}
                             >
                               <div className="flex items-center gap-2">
@@ -910,9 +914,9 @@ export default function HomePage() {
                     <button
                       type="button"
                       onClick={() => toggleDropdown('more')}
-                      className={`px-2.5 sm:px-3 py-1.5 rounded-xl sm:rounded-full text-xs font-medium border transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${activeDropdown === 'more'
-                          ? 'bg-stone-100 text-stone-900 border-stone-300'
-                          : 'bg-white text-stone-700 border-stone-200/90 hover:bg-stone-50 hover:border-stone-300'
+                      className={`press focus-ring px-2.5 sm:px-3 py-1.5 rounded-xl sm:rounded-full text-xs font-medium border transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${activeDropdown === 'more'
+                          ? 'bg-stone-100 dark:bg-stone-200 text-stone-900 border-stone-300'
+                          : 'bg-white dark:bg-stone-100 text-stone-700 border-stone-200/90 hover:bg-stone-50 dark:hover:bg-stone-200 hover:border-stone-300'
                         }`}
                     >
                       <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -920,30 +924,30 @@ export default function HomePage() {
                     </button>
 
                     {activeDropdown === 'more' && (
-                      <div className="absolute right-0 top-full mt-2 w-64 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto bg-white rounded-2xl border border-stone-200 shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 duration-150">
+                      <div className="absolute right-0 top-full mt-2 w-64 max-w-[calc(100vw-2.5rem)] max-h-72 overflow-y-auto surface-raised bg-white rounded-2xl border border-stone-200 shadow-2xl p-3 z-50 animate-popover origin-top-right">
                         <div className="text-[10px] uppercase font-bold tracking-wider text-stone-400 mb-2">
                           Popular Features
                         </div>
                         <div className="space-y-1 text-xs text-stone-700">
-                          <label className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-stone-50 cursor-pointer">
+                          <label className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-stone-50 dark:hover:bg-stone-100 transition-colors cursor-pointer">
                             <input
                               type="checkbox"
                               defaultChecked
-                              className="rounded accent-stone-900"
+                              className="focus-ring rounded accent-stone-900"
                             />
                             <span>Verified RERA Approved</span>
                           </label>
-                          <label className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-stone-50 cursor-pointer">
+                          <label className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-stone-50 dark:hover:bg-stone-100 transition-colors cursor-pointer">
                             <input
                               type="checkbox"
-                              className="rounded accent-stone-900"
+                              className="focus-ring rounded accent-stone-900"
                             />
                             <span>Swimming Pool</span>
                           </label>
-                          <label className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-stone-50 cursor-pointer">
+                          <label className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-stone-50 dark:hover:bg-stone-100 transition-colors cursor-pointer">
                             <input
                               type="checkbox"
-                              className="rounded accent-stone-900"
+                              className="focus-ring rounded accent-stone-900"
                             />
                             <span>Private Terrace / Balcony</span>
                           </label>
@@ -958,7 +962,7 @@ export default function HomePage() {
                   <button
                     type="button"
                     onClick={resetAllFilters}
-                    className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-rose-600 hover:text-rose-800 hover:bg-rose-50 transition-all cursor-pointer ml-auto"
+                    className="press focus-ring flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-rose-600 hover:text-rose-800 hover:bg-rose-50 transition-colors cursor-pointer ml-auto"
                   >
                     <RotateCcw className="w-3.5 h-3.5 text-rose-500" />
                     <span>Reset All</span>
@@ -970,8 +974,8 @@ export default function HomePage() {
 
           {/* Active Filter Tags Bar (Only rendered when filters are active, Quick Picks removed) */}
           {hasActiveFilters && (
-            <div className="w-full max-w-4xl flex flex-wrap items-center gap-2 text-xs text-stone-600 mt-3 mb-1 px-1">
-              <span className="text-[11px] font-medium text-stone-400 uppercase tracking-wider mr-1">
+            <div className="enter-down w-full max-w-4xl flex flex-wrap items-center gap-2 text-xs text-stone-600 mt-3 mb-1 px-1">
+              <span className="text-[11px] font-medium text-stone-500 uppercase tracking-wider mr-1">
                 Active Filters:
               </span>
               {selectedCity !== 'All Cities' && (
@@ -979,8 +983,9 @@ export default function HomePage() {
                   <span>City: {selectedCity}</span>
                   <button
                     type="button"
+                    aria-label="Remove city filter"
                     onClick={() => setSelectedCity('All Cities')}
-                    className="hover:text-stone-900 cursor-pointer"
+                    className="focus-ring rounded-full hover:text-stone-900 transition-colors cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -991,8 +996,9 @@ export default function HomePage() {
                   <span>Area: {selectedLocation}</span>
                   <button
                     type="button"
+                    aria-label="Remove area filter"
                     onClick={() => setSelectedLocation('Locations')}
-                    className="hover:text-stone-900 cursor-pointer"
+                    className="focus-ring rounded-full hover:text-stone-900 transition-colors cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -1003,8 +1009,9 @@ export default function HomePage() {
                   <span>{selectedBhk}</span>
                   <button
                     type="button"
+                    aria-label="Remove BHK filter"
                     onClick={() => setSelectedBhk('BHK')}
-                    className="hover:text-stone-900 cursor-pointer"
+                    className="focus-ring rounded-full hover:text-stone-900 transition-colors cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -1015,8 +1022,9 @@ export default function HomePage() {
                   <span>{selectedBudget}</span>
                   <button
                     type="button"
+                    aria-label="Remove budget filter"
                     onClick={() => setSelectedBudget('Budget')}
-                    className="hover:text-stone-900 cursor-pointer"
+                    className="focus-ring rounded-full hover:text-stone-900 transition-colors cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -1027,8 +1035,9 @@ export default function HomePage() {
                   <span>{selectedPossession}</span>
                   <button
                     type="button"
+                    aria-label="Remove possession filter"
                     onClick={() => setSelectedPossession('Possession')}
-                    className="hover:text-stone-900 cursor-pointer"
+                    className="focus-ring rounded-full hover:text-stone-900 transition-colors cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -1039,8 +1048,9 @@ export default function HomePage() {
                   <span>{selectedType}</span>
                   <button
                     type="button"
+                    aria-label="Remove property type filter"
                     onClick={() => setSelectedType('Property Type')}
-                    className="hover:text-stone-900 cursor-pointer"
+                    className="focus-ring rounded-full hover:text-stone-900 transition-colors cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -1051,8 +1061,9 @@ export default function HomePage() {
                   <span>&quot;{searchQuery}&quot;</span>
                   <button
                     type="button"
+                    aria-label="Clear search text"
                     onClick={() => setSearchQuery('')}
-                    className="hover:text-stone-900 cursor-pointer"
+                    className="focus-ring rounded-full hover:text-stone-900 transition-colors cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -1061,7 +1072,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={resetAllFilters}
-                className="text-xs font-semibold text-rose-600 hover:text-rose-800 hover:underline cursor-pointer ml-1 inline-flex items-center gap-1"
+                className="focus-ring rounded-md text-xs font-semibold text-rose-600 hover:text-rose-800 hover:underline transition-colors cursor-pointer ml-1 inline-flex items-center gap-1"
               >
                 <RotateCcw className="w-3 h-3" />
                 <span>Reset All</span>
@@ -1075,7 +1086,7 @@ export default function HomePage() {
       <section id="collection" className="pt-2 sm:pt-6 pb-16 sm:pb-20 px-4 sm:px-6 max-w-7xl mx-auto w-full">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4">
           <div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif text-stone-900 tracking-tight">
+            <h2 className="text-balance text-2xl sm:text-3xl md:text-4xl font-serif text-stone-900 tracking-tight">
               Featured Properties
             </h2>
           </div>
@@ -1087,7 +1098,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={resetAllFilters}
-                className="text-stone-900 font-semibold hover:underline inline-flex items-center gap-1 cursor-pointer"
+                className="focus-ring rounded-md text-stone-900 font-semibold hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Reset Filters</span>
@@ -1095,7 +1106,7 @@ export default function HomePage() {
             )}
             <Link
               href="/auth"
-              className="text-stone-900 font-semibold hover:underline inline-flex items-center gap-1"
+              className="focus-ring rounded-md text-stone-900 font-semibold hover:underline inline-flex items-center gap-1"
             >
               <span>View All</span>
               <ArrowRight className="w-4 h-4" />
@@ -1115,18 +1126,18 @@ export default function HomePage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 px-6 bg-stone-50/70 rounded-3xl border border-dashed border-stone-200">
-            <div className="w-12 h-12 rounded-2xl bg-white border border-stone-200 flex items-center justify-center mx-auto mb-4 text-stone-500 shadow-sm">
+          <div className="enter-scale text-center py-16 px-6 bg-stone-50/70 dark:bg-stone-50 rounded-3xl border border-dashed border-stone-200">
+            <div className="w-12 h-12 rounded-2xl bg-white dark:bg-stone-100 border border-stone-200 flex items-center justify-center mx-auto mb-4 text-stone-500 shadow-sm">
               <Search className="w-5 h-5" />
             </div>
-            <h3 className="text-lg font-serif text-stone-900 mb-2">No Properties Match Your Search</h3>
-            <p className="text-sm text-stone-500 max-w-md mx-auto mb-6">
+            <h3 className="text-balance text-lg font-serif text-stone-900 mb-2">No Properties Match Your Search</h3>
+            <p className="text-pretty text-sm text-stone-500 max-w-md mx-auto mb-6">
               We verify and add new homes regularly. Try changing your location, budget, or bedroom filters to see more properties.
             </p>
             <button
               type="button"
               onClick={resetAllFilters}
-              className="px-5 py-2.5 rounded-full bg-stone-900 text-white text-xs font-semibold hover:bg-black transition-all cursor-pointer inline-flex items-center gap-2"
+              className="press focus-ring px-5 py-2.5 rounded-full bg-stone-900 text-white text-xs font-semibold hover:bg-black transition-colors cursor-pointer inline-flex items-center gap-2"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Reset All Filters</span>
@@ -1137,9 +1148,10 @@ export default function HomePage() {
 
       {/* Seller & Property Listing Banner (Unified Responsive Layout) */}
       <section className="py-10 sm:py-16 px-4 sm:px-6 bg-white border-t border-stone-200/60">
+        <Reveal>
         <div className="max-w-6xl mx-auto">
           
-          <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-stone-200/80 bg-[#edf6ee] min-h-[220px] sm:min-h-[320px] md:min-h-[360px] flex items-center shadow-xs">
+          <div className="light-scope relative rounded-2xl sm:rounded-3xl overflow-hidden border border-stone-200/80 bg-[#edf6ee] min-h-[220px] sm:min-h-[320px] md:min-h-[360px] flex items-center shadow-xs dark:brightness-[0.85] dark:ring-1 dark:ring-white/10">
             {/* Background Graphic Asset with Advisor & Villa */}
             <img
               src="/seller-banner-bg.png"
@@ -1151,17 +1163,17 @@ export default function HomePage() {
 
             {/* Left Content */}
             <div className="relative z-10 max-w-[62%] sm:max-w-lg lg:max-w-xl p-4 sm:p-8 md:p-12">
-              <h2 className="text-base sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-stone-900 tracking-tight leading-snug sm:leading-tight mb-1 sm:mb-2.5">
+              <h2 className="text-balance text-base sm:text-2xl md:text-3xl lg:text-4xl font-serif font-bold text-stone-900 tracking-tight leading-snug sm:leading-tight mb-1 sm:mb-2.5">
                 Sell or rent faster at the right price
               </h2>
-              <p className="text-[11px] sm:text-sm text-stone-600 mb-3 sm:mb-6 leading-relaxed line-clamp-2 sm:line-clamp-none max-w-md">
+              <p className="text-pretty text-[11px] sm:text-sm text-stone-600 mb-3 sm:mb-6 leading-relaxed line-clamp-2 sm:line-clamp-none max-w-md">
                 Post your property for free and connect with verified buyers.
               </p>
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
                 <Link
                   href="/profile"
-                  className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-4 py-2 sm:px-6 sm:py-3 rounded-xl bg-stone-900 hover:bg-black text-white text-[11px] sm:text-sm font-semibold transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer"
+                  className="press focus-ring inline-flex items-center justify-center gap-1.5 sm:gap-2 px-4 py-2 sm:px-6 sm:py-3 rounded-xl bg-stone-900 hover:bg-black text-white text-[11px] sm:text-sm font-semibold transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   <span>Post Property, It&apos;s Free</span>
                   <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -1171,7 +1183,7 @@ export default function HomePage() {
                   href="https://wa.me/919876543210?text=Hi%2C%20I%20want%20to%20list%20my%20property%20on%20Dwarkesh"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-xl bg-white hover:bg-emerald-50 text-stone-900 border border-stone-300 hover:border-emerald-500 shadow-xs hover:shadow transition-all text-[11px] sm:text-sm font-semibold whitespace-nowrap shrink-0 cursor-pointer"
+                  className="press focus-ring inline-flex items-center gap-2 px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-xl bg-white hover:bg-emerald-50 text-stone-900 border border-stone-300 hover:border-emerald-500 shadow-xs hover:shadow transition-colors text-[11px] sm:text-sm font-semibold whitespace-nowrap shrink-0 cursor-pointer"
                 >
                   <span className="w-5 h-5 sm:w-5.5 sm:h-5.5 flex items-center justify-center shrink-0">
                     <svg className="w-5 h-5 sm:w-5.5 sm:h-5.5 shrink-0" viewBox="0 0 24 24" fill="none">
@@ -1190,6 +1202,7 @@ export default function HomePage() {
           </div>
 
         </div>
+        </Reveal>
       </section>
 
       {/* Dedicated Interactive Home Loan EMI Calculator Section */}
@@ -1197,56 +1210,60 @@ export default function HomePage() {
 
       {/* Find Your Perfect Property Promotional Banner */}
       <section className="pb-12 sm:pb-16 px-4 sm:px-6 max-w-6xl mx-auto w-full">
+        <Reveal>
         <Link
           href="/#collection"
-          className="group block relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-xs hover:shadow-md transition-all duration-300 border border-stone-200/70 bg-white"
+          className="light-scope focus-ring group block relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-xs hover:shadow-md transition-[box-shadow,filter] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] border border-stone-200/70 bg-white dark:brightness-[0.85] dark:hover:brightness-95 dark:ring-1 dark:ring-white/10"
         >
           <img
             src="/property-banner.png"
             alt="Find Your Perfect Property - Buy, Sell or Rent with Ease"
-            className="w-full h-auto object-cover rounded-2xl sm:rounded-3xl group-hover:scale-[1.01] transition-transform duration-500"
+            className="w-full h-auto object-cover rounded-2xl sm:rounded-3xl motion-safe:group-hover:scale-[1.01] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
           />
         </Link>
+        </Reveal>
       </section>
 
       {/* Clean Callout Section with Background Image */}
       <section className="py-20 px-4 sm:px-6 max-w-5xl mx-auto w-full">
-        <div className="rounded-3xl text-white p-10 sm:p-16 text-center relative overflow-hidden shadow-2xl border border-stone-800/20 min-h-[340px] sm:min-h-[380px] flex flex-col justify-center items-center">
+        <Reveal>
+        <div className="light-scope rounded-3xl text-white p-10 sm:p-16 text-center relative overflow-hidden shadow-2xl border border-stone-800/20 min-h-[340px] sm:min-h-[380px] flex flex-col justify-center items-center">
           {/* Background Image */}
           <img
             src="/cta-banner-bg.png"
             alt="Dwarkesh Luxury Properties and Residences"
-            className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
+            className="reveal-photo absolute inset-0 w-full h-full object-cover object-[center_35%]"
           />
 
           {/* Balanced Luxury Overlay: Keeps the bright sky, buildings, and garden visible */}
-          <div className="absolute inset-0 bg-stone-950/50" />
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-950/85 via-stone-950/40 to-stone-950/30" />
+          <div className="absolute inset-0 bg-stone-950/30" />
+          <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-stone-950/30 to-stone-950/15" />
           <div className="absolute inset-0 bg-gradient-to-r from-stone-950/40 via-transparent to-stone-950/40" />
 
           {/* Content */}
-          <h2 className="text-3xl sm:text-5xl font-serif font-medium text-white mb-4 relative z-10 drop-shadow-[0_3px_12px_rgba(0,0,0,0.85)] tracking-tight">
+          <h2 className="text-balance text-3xl sm:text-5xl font-serif font-medium text-white mb-4 relative z-10 drop-shadow-[0_3px_12px_rgba(0,0,0,0.85)] tracking-tight">
             Find or sell your dream home.
           </h2>
-          <p className="text-base sm:text-lg text-white/95 max-w-xl mx-auto mb-8 font-light relative z-10 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-relaxed">
+          <p className="text-pretty text-base sm:text-lg text-white/95 max-w-xl mx-auto mb-8 font-light relative z-10 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] leading-relaxed">
             Sign in to view verified prices, detailed floor plans, and book free home visits.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 relative z-10 w-full sm:w-auto">
             <Link
               href="/auth"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white text-stone-900 text-sm font-semibold hover:bg-stone-100 transition shadow-xl flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.99] duration-200"
+              className="press focus-ring w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white text-stone-900 text-sm font-semibold hover:bg-stone-100 transition shadow-xl flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.99] duration-200"
             >
               <span>Get Started</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/profile"
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl border border-white/50 bg-stone-950/60 backdrop-blur-md text-white text-sm font-medium hover:bg-white/20 hover:border-white transition text-center cursor-pointer hover:scale-[1.02] active:scale-[0.99] duration-200 shadow-xl"
+              className="press focus-ring w-full sm:w-auto px-8 py-3.5 rounded-xl border border-white/50 bg-stone-950/60 backdrop-blur-md text-white text-sm font-medium hover:bg-white/20 hover:border-white transition text-center cursor-pointer hover:scale-[1.02] active:scale-[0.99] duration-200 shadow-xl"
             >
               <span>Post Your Property</span>
             </Link>
           </div>
         </div>
+        </Reveal>
       </section>
 
       {/* Clean Premium Footer */}
