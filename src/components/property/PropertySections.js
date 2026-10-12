@@ -9,22 +9,15 @@ import {
   Dumbbell,
   Flower2,
   Footprints,
-  GraduationCap,
-  Hospital,
   MapPin,
-  Plane,
   ShieldCheck,
-  Ship,
-  ShoppingBag,
   Sparkles,
-  Train,
-  TrainFront,
-  Umbrella,
   Waves,
   Zap,
 } from 'lucide-react';
 import NeighbourhoodViewer from './NeighbourhoodViewer';
 import CommuteCheck from './CommuteCheck';
+import { NearbyIcon, nearbyColor } from './nearby';
 
 // One section of the property page. scroll-mt clears the sticky navbar (65px)
 // and section nav (48px); min-w-0 keeps wide content from widening the page.
@@ -93,22 +86,11 @@ export function Amenities({ amenities }) {
   );
 }
 
-const nearbyIcons = {
-  school: GraduationCap,
-  hospital: Hospital,
-  mall: ShoppingBag,
-  metro: TrainFront,
-  railway: Train,
-  airport: Plane,
-  beach: Umbrella,
-  jetty: Ship,
-};
-
 export function Location({ property, detail }) {
   const nearby = [...(detail.nearby ?? [])].sort((a, b) => a.km - b.km);
   return (
     <div className="grid gap-4">
-      {/* 3D / Street View / Map: loads from Google only when the visitor asks. */}
+      {/* 3D and map (plus Street View with a Google key); loads only when the visitor asks. */}
       <NeighbourhoodViewer property={property} detail={detail} />
       <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
         <div className="grid content-start gap-4">
@@ -132,12 +114,12 @@ export function Location({ property, detail }) {
         {nearby.length ? (
           <ul className="divide-y divide-stone-100 rounded-3xl border border-stone-200/90 bg-white dark:bg-stone-50 shadow-sm">
             {nearby.map((place) => {
-              const Icon = nearbyIcons[place.type] ?? MapPin;
               return (
                 <li key={place.name} className="flex items-center gap-3 px-5 py-3.5 text-sm">
-                  <Icon className="w-4 h-4 shrink-0 text-stone-400" />
+                  {/* Same colour as this place's route on the map. */}
+                  <NearbyIcon type={place.type} className="w-4 h-4 shrink-0" style={{ color: nearbyColor(place.type) }} />
                   <span className="flex-1 text-stone-800">{place.name}</span>
-                  <span className="text-xs font-semibold text-stone-500 tabular-nums">{place.km} km</span>
+                  <span className="text-xs font-semibold text-stone-500 tabular-nums">{place.km} km by road</span>
                 </li>
               );
             })}
