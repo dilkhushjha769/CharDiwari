@@ -23,6 +23,7 @@ import {
   EyeOff,
   ChevronDown,
   ArrowLeftRight,
+  Layers,
 } from 'lucide-react';
 import { propertyDetail } from '@/data/property-details';
 import { properties as allProperties } from '@/data/properties';
