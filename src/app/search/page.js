@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SearchAutocomplete from '@/components/SearchAutocomplete';
+import PropertyCompareModal from '@/components/PropertyCompareModal';
 import { properties } from '@/data/properties';
 import {
   ChevronDown,
@@ -15,6 +16,7 @@ import {
   Check,
   X,
   SlidersHorizontal,
+  Layers,
   Phone,
   Building2,
   MapPin,
@@ -187,6 +189,7 @@ function SearchContent() {
 
   // Compare properties
   const [compareList, setCompareList] = useState([]);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
 
   // Wishlist
   const [favorites, setFavorites] = useState({});
@@ -1202,23 +1205,28 @@ function SearchContent() {
       {/* FLOATING COMPARE DOCK */}
       {/* ============================================================== */}
       {compareList.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-stone-300 shadow-2xl p-3">
+        <div className="fixed bottom-0 left-0 right-0 z-40 surface-raised bg-white dark:bg-stone-50 border-t border-stone-200/90 shadow-2xl p-3 sm:px-6 animate-in slide-in-from-bottom duration-200">
           <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-stone-900 hidden sm:inline">
-                COMPARE ({compareList.length} of 3):
+            <div className="flex items-center gap-3 overflow-x-auto min-w-0">
+              <span className="text-xs font-bold text-stone-900 uppercase tracking-wider shrink-0 flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-stone-600" />
+                <span>Compare ({compareList.length}/3)</span>
               </span>
               <div className="flex items-center gap-2 overflow-x-auto">
                 {compareList.map((p) => (
                   <div
                     key={p.id}
-                    className="flex items-center gap-2 bg-stone-100 rounded px-2.5 py-1 border border-stone-200 text-xs font-medium text-stone-800 shrink-0"
+                    className="flex items-center gap-2 bg-stone-100 dark:bg-stone-200/60 rounded-lg px-2.5 py-1.5 border border-stone-200 text-xs font-medium text-stone-900 shrink-0 shadow-2xs"
                   >
-                    <span className="truncate max-w-[120px]">{p.title}</span>
+                    <span className="truncate max-w-[140px] font-semibold">{p.title}</span>
+                    <span className="text-[11px] text-stone-500 font-mono hidden sm:inline">
+                      ({p.price})
+                    </span>
                     <button
                       type="button"
                       onClick={() => toggleCompare(p)}
-                      className="text-stone-400 hover:text-stone-900 cursor-pointer"
+                      className="text-stone-400 hover:text-stone-900 p-0.5 rounded cursor-pointer transition"
+                      aria-label={`Remove ${p.title} from compare`}
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -1231,27 +1239,40 @@ function SearchContent() {
               <button
                 type="button"
                 onClick={() => setCompareList([])}
-                className="text-xs text-stone-500 hover:text-stone-900 font-semibold px-2 py-1"
+                className="text-xs text-stone-500 hover:text-rose-600 font-semibold px-2.5 py-1.5 rounded-lg transition cursor-pointer"
               >
                 REMOVE ALL
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  alert(
-                    `Comparing:\n${compareList
-                      .map((p) => `• ${p.title} (${p.price} • ${p.location})`)
-                      .join('\n')}`
-                  );
-                }}
-                className="px-4 py-1.5 bg-stone-900 hover:bg-black text-white text-xs font-bold rounded shadow-xs"
+                onClick={() => setIsCompareModalOpen(true)}
+                className="px-4 py-2 bg-stone-900 hover:bg-black text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer active:scale-95 transition"
               >
-                COMPARE
+                <Layers className="w-3.5 h-3.5" />
+                <span>COMPARE ESTATES</span>
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* ============================================================== */}
+      {/* PROPERTY COMPARISON SIDE-BY-SIDE MODAL */}
+      {/* ============================================================== */}
+      <PropertyCompareModal
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+        compareList={compareList}
+        onRemoveProperty={(prop) => toggleCompare(prop)}
+        onAddProperty={(prop) => toggleCompare(prop)}
+        onClearAll={() => setCompareList([])}
+        onSelectPropertyForEnquiry={(prop) => {
+          setIsCompareModalOpen(false);
+          setContactModalProp(prop);
+          setContactType('enquiry');
+          setContactSubmitted(false);
+        }}
+      />
 
       {/* ============================================================== */}
       {/* CONTACT / ENQUIRE / BROCHURE MODAL */}
