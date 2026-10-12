@@ -1,17 +1,23 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { useLenis } from 'lenis/react';
-import { Box, Expand, Map as MapIcon, MapPin, PersonStanding, Share2, X } from 'lucide-react';
+import { Box, Expand, House, Map as MapIcon, MapPin, PersonStanding, Route, Share2, X } from 'lucide-react';
 import { MAP_ID, hasMapsKey, importMapsLibrary } from '@/lib/google-maps';
 import { whatsappShareLink } from '@/lib/contact';
+import { NearbyIcon, nearbyColor } from './nearby';
 
-// Neighbourhood viewer for a property: photorealistic 3D, Street View and a
-// map. Nothing loads from Google until the visitor asks (3D tiles are heavy
-// and every load is billed). Each mode is created the first time it is opened
-// and kept, so switching back never reloads it. Pins sit at the locality
-// centre, never a specific building.
+// Neighbourhood viewer for a property. Two engines, same frame and toolbar:
+// - With a Google Maps key: photorealistic 3D, Street View and a map. Each
+//   mode is created the first time it is opened and kept, so switching back
+//   never reloads it.
+// - Without one: a free OpenStreetMap map (MapLibre + OpenFreeMap, recoloured
+//   to the site palette) with a 3D view of building shapes and a flat map.
+//   One map instance; switching modes only moves the camera.
+// Nothing loads until the visitor asks. Pins sit at the locality centre,
+// never a specific building.
 
 const EASE = 'ease-[cubic-bezier(0.16,1,0.3,1)]';
 const MODES = [
@@ -22,6 +28,11 @@ const MODES = [
 // Where the 3D camera settles, and where the fly-in starts.
 const SETTLED = { range: 600, tilt: 65, heading: 20 };
 const ABOVE = { range: 2000, tilt: 0, heading: 0 };
+// The same framings on the free map (zoom instead of range).
+const OPEN_3D = { zoom: 15.5, pitch: 60, bearing: 20 };
+const OPEN_FLAT = { zoom: 15, pitch: 0, bearing: 0 };
+const OPEN_ABOVE = { zoom: 14, pitch: 0, bearing: 0 };
+const ORBIT_MS = 30000;
 
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -50,11 +61,45 @@ function formatImageDate(value) {
   return new Date(year, month - 1).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
 }
 
+// One nearby place on the free map: its colour and icon, the road distance,
+// and its name while in focus (hover, keyboard or tap). It grows in when its
+// route arrives.
+function NearbyPin({ pin, focused, onFocusChange }) {
+  return (
+    <button
+      type="button"
+      data-shown={pin.shown}
+      aria-label={`${pin.name}, ${pin.km} km by road`}
+      aria-pressed={focused}
+      onPointerEnter={() => onFocusChange(pin.id)}
+      onPointerLeave={() => onFocusChange(null)}
+      onFocus={() => onFocusChange(pin.id)}
+      onBlur={() => onFocusChange(null)}
+      onClick={() => onFocusChange(pin.id)}
+      className={`relative flex cursor-pointer items-center gap-1.5 rounded-full focus-ring transition-[opacity,scale] duration-200 ${EASE} before:absolute before:-inset-2 before:content-[''] data-[shown=false]:pointer-events-none data-[shown=false]:scale-90 data-[shown=false]:opacity-0 motion-reduce:data-[shown=false]:scale-100`}
+    >
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white shadow-md ring-2 ring-white" style={{ background: pin.color }}>
+        <NearbyIcon type={pin.type} className="h-3.5 w-3.5" />
+      </span>
+      <span
+        className={`max-w-[13rem] truncate rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-semibold text-stone-800 shadow-sm tabular-nums ${
+          focused ? '' : 'group-data-[compact=true]/pin:invisible'
+        }`}
+      >
+        {focused ? `${pin.name} · ${pin.km} km` : `${pin.km} km`}
+      </span>
+    </button>
+  );
+}
+
 export default function NeighbourhoodViewer({ property, detail }) {
   const coords = detail.coordinates;
   const approximate = detail.locationPrecision === 'approximate';
   const startMode = detail.viewerDefault === 'map' ? 'map' : '3d';
-  const streetAllowed = Boolean(detail.streetView);
+  const engine = hasMapsKey ? 'google' : 'open';
+  // The free map has no Street View, so its toolbar shows only 3D and Map.
+  const modes = engine === 'google' ? MODES : MODES.filter((m) => m.id !== 'street');
+  const streetAllowed = engine === 'google' && Boolean(detail.streetView);
 
   const [phase, setPhase] = useState('idle'); // idle | loading | ready | error
   const [mode, setMode] = useState(startMode);
@@ -62,11 +107,18 @@ export default function NeighbourhoodViewer({ property, detail }) {
   const [expanded, setExpanded] = useState(false);
   const [streetDate, setStreetDate] = useState(null);
   const [streetMissing, setStreetMissing] = useState(false);
+  const [nearby, setNearby] = useState('off'); // off | loading | on | error (free map only)
+  const [pins, setPins] = useState([]);
+  const [focusedPlace, setFocusedPlace] = useState(null);
+  const [homeElement, setHomeElement] = useState(null);
   // A shared link only changes the button label until the visitor clicks.
   const shared = parseSharedView(useSyncExternalStore(subscribeToNothing, readSearch, readNoSearch));
 
   const layers = useRef({});
   const instances = useRef({});
+  const stopOrbit = useRef(null); // free map: ends the fly-in / orbit
+  const mapLib = useRef(null); // free map: the loaded @/lib/maplibre module
+  const nearbyRun = useRef({ routes: null, markers: [], home: null, before: null, cancel: null, declutter: null });
   const shellRef = useRef(null);
   const expandButtonRef = useRef(null);
   const closeButtonRef = useRef(null);
@@ -174,8 +226,107 @@ export default function NeighbourhoodViewer({ property, detail }) {
     [coords, property.title]
   );
 
+  const createOpen = useCallback(
+    async (first, view) => {
+      const lib = await import('@/lib/maplibre');
+      const { default: maplibregl, loadSiteStyle, showApproximateArea } = lib;
+      mapLib.current = lib;
+      const style = await loadSiteStyle();
+      const framing = first === 'map' ? OPEN_FLAT : OPEN_3D;
+      const camera = {
+        center: [view?.lng ?? coords.lng, view?.lat ?? coords.lat],
+        zoom: view?.zoom ?? framing.zoom,
+        pitch: view?.tilt ?? framing.pitch,
+        bearing: view?.heading ?? framing.bearing,
+      };
+      const animate = !view && first === '3d' && !prefersReducedMotion();
+      const host = layers.current.open;
+      // MapLibre's stylesheet makes its container position: relative, which would undo the
+      // layer's absolute inset-0, so the map gets its own full-size element inside the layer.
+      const mount = document.createElement('div');
+      mount.style.width = '100%';
+      mount.style.height = '100%';
+      host.replaceChildren(mount);
+      const map = new maplibregl.Map({
+        container: mount,
+        style,
+        ...camera,
+        ...(animate ? OPEN_ABOVE : {}),
+        maxPitch: 70,
+        cooperativeGestures: true,
+        attributionControl: { compact: true },
+      });
+      // Zoom and compass buttons: the only way to zoom without a wheel or pinch.
+      map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
+
+      // An exact address gets a pin; an approximate one gets a shaded area once the style is in.
+      if (!approximate) {
+        const pin = document.createElement('div');
+        pin.className = 'h-5 w-5 rounded-full border-4 border-white bg-stone-900 shadow-[0_2px_8px_rgba(0,0,0,0.35)]';
+        pin.setAttribute('role', 'img');
+        pin.setAttribute('aria-label', property.title);
+        new maplibregl.Marker({ element: pin }).setLngLat([coords.lng, coords.lat]).addTo(map);
+      }
+
+      try {
+        await new Promise((resolve, reject) => {
+          map.once('load', resolve);
+          // Tile hiccups after the style is up are retried by the map; only a failed start counts.
+          map.on('error', (event) => {
+            if (!map.loaded()) reject(event.error);
+          });
+        });
+      } catch (error) {
+        map.remove();
+        throw error;
+      }
+      if (approximate) showApproximateArea(map, coords);
+      instances.current.open = map;
+
+      if (animate) {
+        // Fly in once, then one slow orbit. Any input stops it for good.
+        let stopped = false;
+        let frame = 0;
+        const stop = () => {
+          if (stopped) return;
+          stopped = true;
+          cancelAnimationFrame(frame);
+          map.stop();
+        };
+        stopOrbit.current = stop;
+        ['pointerdown', 'wheel', 'keydown', 'touchstart'].forEach((type) =>
+          host.addEventListener(type, stop, { once: true, passive: true })
+        );
+        map.once('moveend', () => {
+          if (stopped) return;
+          const from = map.getBearing();
+          const start = performance.now();
+          const turn = (now) => {
+            if (stopped) return;
+            const progress = Math.min((now - start) / ORBIT_MS, 1);
+            map.setBearing(from + 360 * progress);
+            if (progress < 1) frame = requestAnimationFrame(turn);
+          };
+          frame = requestAnimationFrame(turn);
+        });
+        map.flyTo({ ...camera, duration: 2500, essential: true });
+      }
+    },
+    [approximate, coords, property.title]
+  );
+
   const ensureMode = useCallback(
     async (next, view) => {
+      if (engine === 'open') {
+        if (instances.current.open) return true;
+        try {
+          await createOpen(next, view);
+          setCreated({ open: true });
+          return true;
+        } catch {
+          return false;
+        }
+      }
       if (instances.current[next]) return true;
       const creators = { '3d': create3D, street: createStreet, map: createMap };
       try {
@@ -186,8 +337,115 @@ export default function NeighbourhoodViewer({ property, detail }) {
         return false;
       }
     },
-    [create3D, createMap, createStreet]
+    [create3D, createMap, createOpen, createStreet, engine]
   );
+
+  // Free map: 3D and Map are one map, so switching tilts the camera in place.
+  function frameOpen(next) {
+    const map = instances.current.open;
+    if (!map) return;
+    stopOrbit.current?.();
+    const duration = prefersReducedMotion() ? 0 : 500;
+    if (nearbyRun.current.routes) {
+      // Nearby places on screen: keep the overview, only tilt it.
+      map.easeTo({ pitch: next === 'map' ? 0 : 55, bearing: next === 'map' ? 0 : 20, duration });
+      return;
+    }
+    const framing = next === 'map' ? OPEN_FLAT : OPEN_3D;
+    map.easeTo({ center: [coords.lng, coords.lat], ...framing, duration });
+  }
+
+  // ── Nearby places (free map): road routes fan out from the area like a web ──
+  const places = detail.nearby ?? [];
+
+  async function showNearby() {
+    const map = instances.current.open;
+    const lib = mapLib.current;
+    if (!map || !lib) return;
+    setNearby('loading');
+    try {
+      // Saved by scripts/nearby-routes.mjs; fetched only now.
+      const response = await fetch(`/routes/${property.slug}.json`);
+      if (!response.ok) throw new Error(`Routes failed to load (${response.status})`);
+      const saved = (await response.json()).routes ?? [];
+      if (!saved.length) throw new Error('No routes');
+      // Nearest first, so the web grows outward.
+      const routes = [...saved].sort((a, b) => a.km - b.km).map((route, id) => ({ ...route, id, color: nearbyColor(route.type) }));
+      stopOrbit.current?.();
+      const animate = !prefersReducedMotion();
+      lib.addNearbyLayers(map, coords, routes);
+      lib.collapseAttribution(map);
+      // The centre of the web: where the property is.
+      const homeEl = document.createElement('div');
+      const home = new lib.default.Marker({ element: homeEl }).setLngLat([coords.lng, coords.lat]).addTo(map);
+      const markers = routes.map((route) => {
+        const element = document.createElement('div');
+        element.className = 'group/pin';
+        // anchor left + offset: the icon's centre (not the label) sits on the place.
+        const marker = new lib.default.Marker({ element, anchor: 'left', offset: [-14, 0] })
+          .setLngLat(route.coordinates[route.coordinates.length - 1])
+          .addTo(map);
+        return { id: route.id, element, marker };
+      });
+      // Labels that would overlap an icon or a nearer place's label step aside (icon stays,
+      // focus still shows it). Re-run whenever the map settles or pins appear.
+      const declutter = () => {
+        markers.forEach(({ element }) => delete element.dataset.compact);
+        const taken = [homeEl, ...markers.map(({ element }) => element.querySelector('button > span'))]
+          .filter(Boolean)
+          .map((node) => node.getBoundingClientRect());
+        const overlaps = (box) => taken.some((other) => box.left < other.right + 4 && box.right + 4 > other.left && box.top < other.bottom + 4 && box.bottom + 4 > other.top);
+        markers.forEach(({ element }) => {
+          const label = element.querySelector('button > span:last-child');
+          if (!label) return;
+          const box = label.getBoundingClientRect();
+          if (overlaps(box)) element.dataset.compact = 'true';
+          else taken.push(box);
+        });
+      };
+      map.on('moveend', declutter);
+      nearbyRun.current = { routes, markers, home, before: mode, cancel: null, declutter };
+      setHomeElement(homeEl);
+      setPins(markers.map(({ id, element }) => {
+        const route = routes[id];
+        return { id, element, name: route.name, type: route.type, km: route.km, color: route.color, shown: false };
+      }));
+      setMode('map');
+      lib.fitNearby(map, coords, routes, animate ? 900 : 0);
+      nearbyRun.current.cancel = lib.drawNearbyRoutes(map, routes, {
+        animate,
+        delay: animate ? 300 : 0,
+        onArrive: (id) => setPins((current) => current.map((pin) => (pin.id === id ? { ...pin, shown: true } : pin))),
+      });
+      setNearby('on');
+    } catch {
+      clearNearby();
+      setNearby('error');
+    }
+  }
+
+  // Removes the routes and pins; returns the mode that was showing before.
+  function clearNearby() {
+    const run = nearbyRun.current;
+    run.cancel?.();
+    run.markers.forEach(({ marker }) => marker.remove());
+    run.home?.remove();
+    const map = instances.current.open;
+    if (map && run.declutter) map.off('moveend', run.declutter);
+    if (map && mapLib.current) mapLib.current.removeNearbyLayers(map);
+    nearbyRun.current = { routes: null, markers: [], home: null, before: null, cancel: null, declutter: null };
+    setPins([]);
+    setHomeElement(null);
+    setFocusedPlace(null);
+    return run.before;
+  }
+
+  function hideNearby() {
+    const before = clearNearby() ?? mode;
+    setNearby('off');
+    setMode(before);
+    frameOpen(before);
+  }
 
   async function explore() {
     setPhase('loading');
@@ -213,6 +471,11 @@ export default function NeighbourhoodViewer({ property, detail }) {
   async function switchTo(next) {
     if (next === mode) return;
     if (next === 'street' && (!streetAllowed || streetMissing)) return;
+    if (engine === 'open') {
+      setMode(next);
+      frameOpen(next);
+      return;
+    }
     const ok = await ensureMode(next);
     if (ok) setMode(next);
   }
@@ -222,7 +485,36 @@ export default function NeighbourhoodViewer({ property, detail }) {
     const handling = expanded ? 'GREEDY' : 'COOPERATIVE';
     if (instances.current['3d']) instances.current['3d'].gestureHandling = handling;
     instances.current.map?.setOptions({ gestureHandling: handling.toLowerCase() });
+    const open = instances.current.open;
+    if (open && expanded) open.cooperativeGestures.disable();
+    else if (open) open.cooperativeGestures.enable();
   }, [expanded, created]);
+
+  // A place in focus: its route stands out and its pin sits above the others.
+  useEffect(() => {
+    const map = instances.current.open;
+    if (!map || nearby !== 'on') return;
+    mapLib.current?.highlightNearby(map, focusedPlace);
+    nearbyRun.current.markers.forEach(({ id, element }) => {
+      element.style.zIndex = id === focusedPlace ? '2' : '';
+    });
+  }, [focusedPlace, nearby]);
+
+  // Pins just appeared or changed: re-check which labels fit.
+  useEffect(() => {
+    nearbyRun.current.declutter?.();
+  }, [pins]);
+
+  // The free map holds a WebGL context; release it when the page goes.
+  useEffect(() => {
+    const live = instances.current;
+    const run = nearbyRun;
+    return () => {
+      stopOrbit.current?.();
+      run.current.cancel?.();
+      live.open?.remove();
+    };
+  }, []);
 
   // Expanded: pause smooth scrolling, close on Escape, keep focus inside, restore it after.
   useEffect(() => {
@@ -261,7 +553,15 @@ export default function NeighbourhoodViewer({ property, detail }) {
     ['view', 'lat', 'lng', 'range', 'tilt', 'heading', 'zoom'].forEach((key) => url.searchParams.delete(key));
     url.searchParams.set('view', mode);
     const round = (n, digits = 5) => String(Math.round(n * 10 ** digits) / 10 ** digits);
-    if (mode === '3d' && instances.current['3d']) {
+    if (engine === 'open' && instances.current.open) {
+      const map = instances.current.open;
+      const c = map.getCenter();
+      url.searchParams.set('lat', round(c.lat));
+      url.searchParams.set('lng', round(c.lng));
+      url.searchParams.set('zoom', round(map.getZoom(), 1));
+      url.searchParams.set('tilt', round(map.getPitch(), 1));
+      url.searchParams.set('heading', round(map.getBearing(), 1));
+    } else if (mode === '3d' && instances.current['3d']) {
       const map = instances.current['3d'];
       url.searchParams.set('lat', round(map.center.lat));
       url.searchParams.set('lng', round(map.center.lng));
@@ -276,14 +576,14 @@ export default function NeighbourhoodViewer({ property, detail }) {
       url.searchParams.set('lng', round(c.lng()));
       url.searchParams.set('zoom', round(instances.current.map.getZoom(), 1));
     }
-    const label = MODES.find((m) => m.id === mode).label;
+    const label = modes[modeIndex].label;
     window.open(whatsappShareLink(`Take a look around ${property.title}, ${property.location} (${label} view): ${url}`), '_blank', 'noopener');
   }
 
   function onTabKey(event) {
     if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
     event.preventDefault();
-    const enabled = MODES.filter((m) => m.id !== 'street' || (streetAllowed && !streetMissing));
+    const enabled = modes.filter((m) => m.id !== 'street' || (streetAllowed && !streetMissing));
     const index = enabled.findIndex((m) => m.id === mode);
     const next = enabled[(index + (event.key === 'ArrowRight' ? 1 : enabled.length - 1)) % enabled.length];
     switchTo(next.id);
@@ -294,23 +594,11 @@ export default function NeighbourhoodViewer({ property, detail }) {
 
   const frame = 'relative w-full overflow-hidden rounded-3xl border border-stone-200/90 bg-stone-100 dark:bg-stone-50 aspect-[4/3] sm:aspect-[16/9]';
 
-  // ── No key: a calm card, same footprint (directions are just below it) ───
-  if (!hasMapsKey) {
-    return (
-      <div className={`${frame} flex flex-col items-center justify-center gap-3 p-6 text-center bg-grid-light`}>
-        <span className="flex w-11 h-11 items-center justify-center rounded-2xl border border-stone-200 bg-white text-stone-600">
-          <MapIcon className="w-5 h-5" />
-        </span>
-        <p className="font-serif text-xl text-stone-900">Map preview unavailable</p>
-        <p className="max-w-sm text-sm text-stone-500 text-pretty">
-          The 3D view and Street View of {property.location} will appear here.
-        </p>
-      </div>
-    );
-  }
-
   const exploreLabel = shared ? 'Open the shared view' : startMode === '3d' ? 'Explore in 3D' : 'Explore the area';
   const streetDisabled = !streetAllowed || streetMissing;
+  const layerIds = engine === 'google' ? modes.map((m) => m.id) : ['open'];
+  const visibleLayer = engine === 'google' ? mode : 'open';
+  const modeIndex = Math.max(0, modes.findIndex((m) => m.id === mode));
 
   return (
     <div
@@ -327,25 +615,26 @@ export default function NeighbourhoodViewer({ property, detail }) {
       {/* Stage. data-lenis-prevent: the wheel zooms the map instead of scrolling the page. */}
       <div
         role="region"
-        aria-label={`${MODES.find((m) => m.id === mode).label} view of ${property.title}`}
+        aria-label={`${modes[modeIndex].label} view of ${property.title}`}
         data-lenis-prevent
         className={expanded ? 'relative flex-1 overflow-hidden rounded-2xl border border-stone-200/90 bg-stone-100' : frame}
       >
-        {/* The three layers; only the active one is visible. */}
-        {MODES.map((m) => (
+        {/* One layer per Google mode (only the active one is visible), or the single free map.
+            light-scope: the map, its pin and controls keep their light colours in dark mode. */}
+        {layerIds.map((id) => (
           <div
-            key={m.id}
+            key={id}
             ref={(element) => {
-              layers.current[m.id] = element;
+              layers.current[id] = element;
             }}
-            aria-hidden={mode !== m.id}
-            className={`absolute inset-0 transition-[opacity,filter] duration-200 ${EASE} motion-reduce:transition-none ${
-              mode === m.id && phase !== 'idle' ? 'opacity-100' : 'pointer-events-none opacity-0 blur-[2px]'
+            aria-hidden={visibleLayer !== id}
+            className={`light-scope absolute inset-0 transition-[opacity,filter] duration-200 ${EASE} motion-reduce:transition-none ${
+              visibleLayer === id && phase !== 'idle' ? 'opacity-100' : 'pointer-events-none opacity-0 blur-[2px]'
             }`}
           />
         ))}
 
-        {/* Preview: the listing photo; nothing from Google has loaded yet. */}
+        {/* Preview: the listing photo; no map has loaded yet. */}
         {phase !== 'ready' ? (
           <div className="light-scope absolute inset-0">
             <Image src={property.image} alt="" fill sizes="(min-width: 1024px) 760px, 100vw" className="object-cover" />
@@ -375,7 +664,7 @@ export default function NeighbourhoodViewer({ property, detail }) {
           </div>
         ) : null}
 
-        {/* Chips sit top-left so Google's logo and terms (bottom) stay visible. */}
+        {/* Chips sit top-left, clear of the map's zoom controls and its attribution at the bottom. */}
         <div className="pointer-events-none absolute top-3 left-3 flex flex-wrap gap-2">
           {approximate ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-semibold text-stone-900 shadow-sm dark:bg-stone-50/95">
@@ -391,16 +680,43 @@ export default function NeighbourhoodViewer({ property, detail }) {
         </div>
       </div>
 
+      {/* Nearby pins live inside MapLibre's markers; React renders their content. */}
+      {homeElement
+        ? createPortal(
+            <span
+              role="img"
+              aria-label={`${property.title}${approximate ? ', approximate area' : ''}`}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-900 text-white shadow-lg ring-[3px] ring-white"
+            >
+              <House className="h-4 w-4" />
+            </span>,
+            homeElement
+          )
+        : null}
+      {pins.map((pin) =>
+        createPortal(
+          <NearbyPin pin={pin} focused={focusedPlace === pin.id} onFocusChange={setFocusedPlace} />,
+          pin.element,
+          String(pin.id)
+        )
+      )}
+
       {/* Toolbar: outside the stage, so it never covers Google's attribution. */}
       {phase === 'ready' ? (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div role="tablist" aria-label="View" onKeyDown={onTabKey} className="relative grid grid-cols-3 rounded-full border border-stone-200 bg-stone-100/80 p-1 dark:bg-stone-100">
+          <div
+            role="tablist"
+            aria-label="View"
+            onKeyDown={onTabKey}
+            className="relative grid rounded-full border border-stone-200 bg-stone-100/80 p-1 dark:bg-stone-100"
+            style={{ gridTemplateColumns: `repeat(${modes.length}, minmax(0, 1fr))` }}
+          >
             <span
               aria-hidden="true"
-              className={`absolute top-1 bottom-1 left-1 w-[calc((100%-0.5rem)/3)] rounded-full bg-white shadow-sm dark:bg-stone-300 transition-transform duration-200 ${EASE} motion-reduce:transition-none`}
-              style={{ transform: `translateX(${MODES.findIndex((m) => m.id === mode) * 100}%)` }}
+              className={`absolute top-1 bottom-1 left-1 rounded-full bg-white shadow-sm dark:bg-stone-300 transition-transform duration-200 ${EASE} motion-reduce:transition-none`}
+              style={{ width: `calc((100% - 0.5rem) / ${modes.length})`, transform: `translateX(${modeIndex * 100}%)` }}
             />
-            {MODES.map((m) => {
+            {modes.map((m) => {
               const disabled = m.id === 'street' && streetDisabled;
               const Icon = m.icon;
               return (
@@ -422,7 +738,19 @@ export default function NeighbourhoodViewer({ property, detail }) {
               );
             })}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {engine === 'open' && places.length ? (
+              <button
+                type="button"
+                onClick={nearby === 'on' ? hideNearby : showNearby}
+                aria-pressed={nearby === 'on'}
+                disabled={nearby === 'loading'}
+                className="press inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3.5 py-2 text-xs font-semibold text-stone-900 hover:bg-stone-50 dark:bg-stone-50 dark:hover:bg-stone-100 transition-colors focus-ring disabled:opacity-60 aria-pressed:border-stone-900 aria-pressed:bg-stone-900 aria-pressed:text-white aria-pressed:hover:bg-black dark:aria-pressed:bg-stone-900 dark:aria-pressed:hover:bg-stone-800"
+              >
+                <Route className="w-3.5 h-3.5" />
+                Nearby places
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={share}
@@ -455,7 +783,13 @@ export default function NeighbourhoodViewer({ property, detail }) {
           </div>
         </div>
       ) : null}
-      {streetDisabled && phase === 'ready' ? (
+      <p aria-live="polite" className="sr-only">
+        {nearby === 'on' ? `Showing road routes to ${pins.length} nearby places.` : ''}
+      </p>
+      {nearby === 'error' ? (
+        <p className="text-xs text-red-600">Couldn&apos;t load the nearby places. Please try again.</p>
+      ) : null}
+      {engine === 'google' && streetDisabled && phase === 'ready' ? (
         <p className="text-xs text-stone-500">Street View isn&apos;t available here yet.</p>
       ) : null}
     </div>

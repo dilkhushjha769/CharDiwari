@@ -76,9 +76,14 @@ Check code quality with ESLint:
 npm run lint
 ```
 
-## 🗺️ Google Maps (property page)
+## 🗺️ Maps (property page)
 
-Each property page has a neighbourhood viewer (photorealistic **3D**, **Street View** and a **map**) and a **commute check**. Without a key they show a "Map preview unavailable" card, so the site works either way.
+Each property page has a neighbourhood viewer under **Location and neighbourhood**. It works with or without a Google key:
+
+- **Without a key (default, free):** a **3D** view of building shapes and a flat **Map**, drawn with [MapLibre](https://maplibre.org) on free [OpenFreeMap](https://openfreemap.org) tiles (OpenStreetMap data), recoloured to the site palette. No account, no key, no billing. Street View and the commute check are hidden.
+- **With a Google key:** photorealistic **3D**, **Street View**, a Google **map** and the traffic-aware **commute check**.
+
+### Google Maps (optional)
 
 To turn them on:
 
