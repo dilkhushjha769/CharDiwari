@@ -39,7 +39,6 @@ import {
   Heart,
 } from 'lucide-react';
 import { getSupabaseClient } from '@/lib/supabase/client';
-import ThemeToggle from '@/components/ThemeToggle';
 
 // The header is transparent at the very top and frosts once the page scrolls.
 // Read through useSyncExternalStore: the server snapshot (false) matches the
@@ -470,7 +469,6 @@ export default function Navbar() {
               <span>Post Property</span>
               <ArrowRight className="w-3.5 h-3.5 transition-transform duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0.5" />
             </Link>
-            <ThemeToggle />
             {/* Call Us button */}
             <button
               type="button"
@@ -557,9 +555,8 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Phones: theme toggle beside the menu button (from sm up it sits with the actions) */}
+          {/* Mobile menu button */}
           <div className="flex items-center gap-2 lg:hidden">
-            <ThemeToggle className="sm:hidden" />
             {/* Mobile Menu Toggle Button */}
             <button
               type="button"

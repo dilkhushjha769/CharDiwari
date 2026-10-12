@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, RefreshCw, Mail, ExternalLink, CheckCircle2 } from 'lucide-react';
 import { getSupabaseClient, getSupabaseConfig } from '@/lib/supabase/client';
-import ThemeToggle from '@/components/ThemeToggle';
 
 // ─── Country Codes ─────────────────────────────────────────────────────────────
 const COUNTRY_CODES = [
@@ -762,7 +761,6 @@ function AuthContent() {
             <Link href="/" className="text-xs font-mono text-zinc-500 hover:text-black flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-zinc-100 transition focus-ring">
               <ArrowLeft className="w-3.5 h-3.5" /> Home
             </Link>
-            <ThemeToggle />
           </div>
         </div>
       </header>

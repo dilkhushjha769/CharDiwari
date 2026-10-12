@@ -1,13 +1,25 @@
 'use client';
 
+import { useEffect } from 'react';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 
-// Light / dark / system theme. next-themes sets the class on <html> before the
-// page paints (no flash), follows the system setting by default, and remembers
-// the visitor's choice. Switching is instant: no colour transition app-wide.
+// Locked permanently to light mode across the entire application.
 export default function ThemeProvider({ children }) {
+  useEffect(() => {
+    try {
+      localStorage.removeItem('theme');
+    } catch (_) {}
+    document.documentElement.classList.remove('dark');
+  }, []);
+
   return (
-    <NextThemesProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme="light"
+      forcedTheme="light"
+      enableSystem={false}
+      disableTransitionOnChange
+    >
       {children}
     </NextThemesProvider>
   );

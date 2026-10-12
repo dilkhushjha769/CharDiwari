@@ -36,7 +36,6 @@ import {
   Sparkles,
 } from 'lucide-react';
 import Footer from '@/components/Footer';
-import ThemeToggle from '@/components/ThemeToggle';
 import { parseVideoUrl } from '@/lib/video';
 
 export default function AdminPage() {
@@ -453,7 +452,6 @@ export default function AdminPage() {
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Back to Website
               </Link>
-              <ThemeToggle />
             </div>
           </div>
         </header>
@@ -620,8 +618,6 @@ export default function AdminPage() {
               <span>View Live Website</span>
               <ExternalLink className="w-3.5 h-3.5 text-stone-400" />
             </Link>
-
-            <ThemeToggle />
 
             <div className="text-right hidden lg:block pl-2">
               <div className="text-xs font-semibold text-stone-900">{adminUser?.name || 'Administrator'}</div>

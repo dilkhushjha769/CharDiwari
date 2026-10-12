@@ -16,12 +16,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Phone browser bars match the page in both themes (follows the system setting).
+// Theme configuration locked to clean light mode.
 export const viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#0f0d0b" },
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-  ],
+  themeColor: "#ffffff",
+  colorScheme: "light",
 };
 
 export const metadata = {

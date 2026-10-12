@@ -22,7 +22,6 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { getSupabaseClient } from '@/lib/supabase/client';
-import ThemeToggle from '@/components/ThemeToggle';
 import { useSavedProperties } from '@/lib/useSavedProperties';
 
 export default function ProfilePage() {
@@ -178,8 +177,6 @@ export default function ProfilePage() {
               )}
               <span>Sign Out</span>
             </button>
-
-            <ThemeToggle />
           </div>
         </div>
       </header>
