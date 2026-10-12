@@ -14,15 +14,15 @@ import { Amenities, Faqs, Location, Overview, Section, propertyFaqs } from '@/co
 import { findProperty, properties } from '@/data/properties';
 import { propertyDetail } from '@/data/property-details';
 import { propertyPhotos } from '@/data/property-photos';
+import { getLiveProperty } from '@/lib/admin';
+import SavePropertyButton from '@/components/SavePropertyButton';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://char-diwari.vercel.app';
 const CRORE = 1e7;
 // The EMI calculator's loan slider tops out at ₹3 Cr.
 const MAX_LOAN = 3 * CRORE;
 
-// Wait for the slug before streaming, so an unknown one returns a real 404
-// (inside a Suspense boundary the 200 status would already be sent). Every
-// listed property is prerendered, so navigating to one is still instant.
+// Allow blocking route for live admin property overrides under Next.js cacheComponents
 export const instant = false;
 
 export function generateStaticParams() {
@@ -31,7 +31,7 @@ export function generateStaticParams() {
 
 async function load(params) {
   const { slug } = await params;
-  const property = findProperty(slug);
+  const property = await getLiveProperty(slug);
   if (!property) notFound();
   return { property, detail: propertyDetail(slug) };
 }
@@ -133,12 +133,16 @@ function PropertyContent({ property, detail }) {
           </nav>
 
           <div className="mt-5">
-            <PropertyGallery title={property.title} photos={propertyPhotos(property, detail)} />
+            <PropertyGallery
+              title={property.title}
+              photos={propertyPhotos(property, detail)}
+              videoUrl={property.video_url || property.videoUrl}
+            />
           </div>
 
           <header className="mt-8 flex flex-col md:flex-row md:items-end justify-between gap-5">
             <div className="min-w-0">
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="px-3 py-1 rounded-full bg-white border border-stone-200 text-xs font-semibold text-stone-900 shadow-sm">
                   {property.badge}
                 </span>
@@ -146,6 +150,7 @@ function PropertyContent({ property, detail }) {
                 <span className="light-scope contents">
                   <span className="px-2.5 py-1 rounded-full bg-emerald-700 text-white text-xs font-medium shadow-sm">{property.tag}</span>
                 </span>
+                <SavePropertyButton property={property} variant="pill" />
               </div>
               <h1 className="mt-4 text-3xl sm:text-4xl md:text-5xl font-serif text-stone-900 tracking-tight text-balance">
                 {property.title}

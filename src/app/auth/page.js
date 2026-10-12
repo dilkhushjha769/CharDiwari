@@ -252,7 +252,7 @@ function AuthContent() {
     client.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         if (typeof document !== 'undefined') {
-          document.cookie = 'chardiwari_session=true; path=/; max-age=604800; SameSite=Lax';
+          document.cookie = 'dwarkesh_session=true; path=/; max-age=604800; SameSite=Lax';
         }
         router.push(redirectPath);
       }
@@ -260,7 +260,7 @@ function AuthContent() {
     const { data: sub } = client.auth.onAuthStateChange((event, session) => {
       if (session && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
         if (typeof document !== 'undefined') {
-          document.cookie = 'chardiwari_session=true; path=/; max-age=604800; SameSite=Lax';
+          document.cookie = 'dwarkesh_session=true; path=/; max-age=604800; SameSite=Lax';
         }
         router.push(redirectPath);
       }
@@ -381,7 +381,7 @@ function AuthContent() {
   const recordRegisteredEmail = (regEmail) => {
     try {
       if (typeof window !== 'undefined' && regEmail) {
-        const key = 'chardiwari_registered_emails';
+        const key = 'dwarkesh_registered_emails';
         const list = JSON.parse(localStorage.getItem(key) || '[]');
         const norm = regEmail.toLowerCase().trim();
         if (!list.includes(norm)) {
@@ -453,7 +453,7 @@ function AuthContent() {
       }
 
       if (typeof document !== 'undefined') {
-        document.cookie = 'chardiwari_session=true; path=/; max-age=604800; SameSite=Lax';
+        document.cookie = 'dwarkesh_session=true; path=/; max-age=604800; SameSite=Lax';
       }
       recordRegisteredEmail(cleanEmail);
       devLog('Auth request completed: signin');
@@ -527,7 +527,7 @@ function AuthContent() {
       if (data?.session) {
         devLog('Auth request completed: signup (session established)');
         if (typeof document !== 'undefined') {
-          document.cookie = 'chardiwari_session=true; path=/; max-age=604800; SameSite=Lax';
+          document.cookie = 'dwarkesh_session=true; path=/; max-age=604800; SameSite=Lax';
         }
         setSuccess('Account created! Welcome to Dwarkesh...');
         setTimeout(() => router.push(redirectPath), 600);
@@ -1200,7 +1200,7 @@ function AuthContent() {
                       const { data: { session } } = await client.auth.getSession();
                       if (session) {
                         if (typeof document !== 'undefined') {
-                          document.cookie = 'chardiwari_session=true; path=/; max-age=604800; SameSite=Lax';
+                          document.cookie = 'dwarkesh_session=true; path=/; max-age=604800; SameSite=Lax';
                         }
                         setSuccess('Verified! Logging in...');
                         setTimeout(() => router.push(redirectPath), 500);

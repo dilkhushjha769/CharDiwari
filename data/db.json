@@ -12,7 +12,7 @@
     },
     {
       "id": "usr_1791317190069_o008ceo",
-      "email": "testuser_1791317189461@chardiwari.test",
+      "email": "testuser_1791317189461@dwarkesh.test",
       "name": "Test Candidate",
       "passwordHash": "$2b$10$4Uus69HrDUFeUnL6cKVupu0aAtD4VcprFzsUUa13/uDUHqq8Nhns.",
       "provider": "credentials",
@@ -22,7 +22,7 @@
     },
     {
       "id": "usr_1791317190947_ns55wan",
-      "email": "google_1791317190892@chardiwari.test",
+      "email": "google_1791317190892@dwarkesh.test",
       "name": "Google Traveler",
       "passwordHash": null,
       "provider": "google",
@@ -32,7 +32,7 @@
     },
     {
       "id": "usr_1791738042604_qo4pb4r",
-      "email": "testuser_1791738037360@chardiwari.test",
+      "email": "testuser_1791738037360@dwarkesh.test",
       "name": "Test Candidate",
       "passwordHash": "$2b$10$pQj48FEgNT2t9tyAh20Cu.LRGzUhEhqfW4kddN7Co8xGDnvqs7g9i",
       "provider": "credentials",
@@ -42,7 +42,7 @@
     },
     {
       "id": "usr_1791738046854_e1p3mtk",
-      "email": "google_1791738046475@chardiwari.test",
+      "email": "google_1791738046475@dwarkesh.test",
       "name": "Google Traveler",
       "passwordHash": null,
       "provider": "google",
@@ -58,42 +58,42 @@
       "firstAttemptAt": 1791738038871,
       "blockedUntil": null
     },
-    "otp_cooldown:testuser_1791317189461@chardiwari.test:signup": {
+    "otp_cooldown:testuser_1791317189461@dwarkesh.test:signup": {
       "count": 1,
       "firstAttemptAt": 1791317189921,
       "blockedUntil": null
     },
-    "otp_hourly:testuser_1791317189461@chardiwari.test:signup": {
+    "otp_hourly:testuser_1791317189461@dwarkesh.test:signup": {
       "count": 1,
       "firstAttemptAt": 1791317189922,
       "blockedUntil": null
     },
-    "otp_cooldown:testuser_1791317189461@chardiwari.test:reset": {
+    "otp_cooldown:testuser_1791317189461@dwarkesh.test:reset": {
       "count": 1,
       "firstAttemptAt": 1791317190476,
       "blockedUntil": null
     },
-    "otp_hourly:testuser_1791317189461@chardiwari.test:reset": {
+    "otp_hourly:testuser_1791317189461@dwarkesh.test:reset": {
       "count": 1,
       "firstAttemptAt": 1791317190477,
       "blockedUntil": null
     },
-    "otp_cooldown:testuser_1791738037360@chardiwari.test:signup": {
+    "otp_cooldown:testuser_1791738037360@dwarkesh.test:signup": {
       "count": 1,
       "firstAttemptAt": 1791738041039,
       "blockedUntil": null
     },
-    "otp_hourly:testuser_1791738037360@chardiwari.test:signup": {
+    "otp_hourly:testuser_1791738037360@dwarkesh.test:signup": {
       "count": 1,
       "firstAttemptAt": 1791738041047,
       "blockedUntil": null
     },
-    "otp_cooldown:testuser_1791738037360@chardiwari.test:reset": {
+    "otp_cooldown:testuser_1791738037360@dwarkesh.test:reset": {
       "count": 1,
       "firstAttemptAt": 1791738044513,
       "blockedUntil": null
     },
-    "otp_hourly:testuser_1791738037360@chardiwari.test:reset": {
+    "otp_hourly:testuser_1791738037360@dwarkesh.test:reset": {
       "count": 1,
       "firstAttemptAt": 1791738044518,
       "blockedUntil": null
@@ -102,10 +102,10 @@
   "properties": [
     {
       "id": 1,
-      "tag": "Available",
-      "badge": "Verified Property",
       "title": "The Courtyard Villa",
       "slug": "the-courtyard-villa",
+      "tag": "Available",
+      "badge": "Verified Property",
       "location": "Golf Course Extension, Gurugram",
       "locality": "Golf Course Extension",
       "city": "Gurugram",
@@ -114,9 +114,9 @@
       "possession": "Ready to Move",
       "builder": "Studio Lotus",
       "price": "₹4.80 Cr",
-      "priceNum": 4.8,
-      "rentPrice": "₹2.80 Lakh/mo",
-      "rentPriceNum": 2.8,
+      "price_num": 4.8,
+      "rent_price": "₹2.80 Lakh/mo",
+      "rent_price_num": 2.8,
       "mode": "both",
       "beds": "4 Beds",
       "bhk": "4 BHK",
@@ -125,8 +125,12 @@
       "image": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
       "description": "Spacious home with an open courtyard, natural stone walls, wooden finish, and a private swimming pool.",
       "status": "published",
-      "isDeleted": false,
-      "createdAt": "2026-01-10T10:00:00.000Z"
+      "is_deleted": false,
+      "created_at": "2026-10-11T17:13:57.633771+00:00",
+      "updated_at": "2026-10-12T13:03:44.095Z",
+      "video_url": "/uploads/Screen_Recording_2026-08-29_212946_1791810216596_yq503.mp4",
+      "media_gallery": [],
+      "videoUrl": "/uploads/Screen_Recording_2026-08-29_212946_1791810216596_yq503.mp4"
     },
     {
       "id": 2,

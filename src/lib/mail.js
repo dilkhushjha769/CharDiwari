@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-const OTP_HASH_SECRET = process.env.OTP_SECRET || 'chardiwari-otp-hmac-salt-secret-key-2026';
+const OTP_HASH_SECRET = process.env.OTP_SECRET || 'dwarkesh-otp-hmac-salt-secret-key-2026';
 
 // Global cache for dev preview so testing can grab OTP without exposing it to client-side code directly
 const devOtpLog = new Map();

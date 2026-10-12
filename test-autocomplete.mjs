@@ -1,4 +1,4 @@
-// Automated Test Suite for CharDiwari Real Estate Autocomplete Search
+// Automated Test Suite for Dwarkesh Real Estate Autocomplete Search
 import assert from 'assert';
 
 const BASE_URL = 'http://127.0.0.1:3000';
@@ -22,7 +22,7 @@ async function fetchAutocomplete(query = '', params = {}) {
 }
 
 async function runTests() {
-  console.log('🚀 Starting CharDiwari Database-Driven Search Autocomplete Test Suite...\n');
+  console.log('🚀 Starting Dwarkesh Database-Driven Search Autocomplete Test Suite...\n');
   const results = [];
 
   function pass(title, detail = '') {

@@ -68,7 +68,7 @@ export default function PropertyCompareModal({
   onClearAll,
   onSelectPropertyForEnquiry,
 }) {
-  const [highlightDifferences, setHighlightDifferences] = useState(false);
+  const [highlightDifferences, setHighlightDifferences] = useState(true);
   const [addDropdownOpen, setAddDropdownOpen] = useState(false);
 
   // Mobile comparison slots (indices of the 2 active properties to compare side-by-side)
@@ -1051,7 +1051,7 @@ export default function PropertyCompareModal({
                 type="button"
                 onClick={() => {
                   const text = encodeURIComponent(
-                    `Hello CharDiwari desk! I am comparing:\n${compareList
+                    `Hello Dwarkesh desk! I am comparing:\n${compareList
                       .map((p) => `• ${p.title} (${p.price} in ${p.location})`)
                       .join('\n')}\nCould you help me choose the best option?`
                   );

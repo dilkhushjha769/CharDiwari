@@ -4,10 +4,9 @@ import { verifySessionToken, COOKIE_NAME } from '@/lib/session';
 import { findUserById } from '@/lib/db';
 
 
-export async function GET() {
+export async function GET(request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get(COOKIE_NAME)?.value;
+    const token = request.cookies.get(COOKIE_NAME)?.value;
 
     if (!token) {
       return NextResponse.json({ authenticated: false, user: null }, { status: 401 });
@@ -35,6 +34,7 @@ export async function GET() {
       },
     });
   } catch (error) {
+    if (error?.digest === 'NEXT_PRERENDER_INTERRUPTED') throw error;
     console.error('Session check error:', error);
     return NextResponse.json({ authenticated: false, user: null }, { status: 500 });
   }

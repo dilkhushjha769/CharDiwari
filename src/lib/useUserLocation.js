@@ -1,23 +1,39 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
-// In-memory cache across component mounts in the same session
+const STORAGE_KEY = 'dwarkesh_user_loc';
 let cachedLocation = null;
 let listeners = new Set();
 
 const notifyListeners = (data) => {
-  listeners.forEach((listener) => listener(data));
+  listeners.forEach((listener) => {
+    try {
+      listener(data);
+    } catch (_) {}
+  });
 };
 
-function getInitialLocation() {
+function getStoredLocation() {
   if (cachedLocation) return cachedLocation;
   if (typeof window !== 'undefined') {
     try {
-      const stored = sessionStorage.getItem('dwarkesh_user_loc');
+      const stored = localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY);
       if (stored) {
-        cachedLocation = JSON.parse(stored);
-        return cachedLocation;
+        const parsed = JSON.parse(stored);
+        // Discard any previous fake fallback entries
+        if (
+          parsed &&
+          parsed.city &&
+          parsed.source !== 'default' &&
+          parsed.city.toLowerCase() !== 'ahmedabad'
+        ) {
+          cachedLocation = parsed;
+          return parsed;
+        } else {
+          localStorage.removeItem(STORAGE_KEY);
+          sessionStorage.removeItem(STORAGE_KEY);
+        }
       }
     } catch (_) {}
   }
@@ -25,106 +41,235 @@ function getInitialLocation() {
 }
 
 export function useUserLocation() {
-  const [userLocation, setUserLocation] = useState(getInitialLocation);
-  const [locationLoading, setLocationLoading] = useState(() => !getInitialLocation());
+  const [userLocation, setUserLocation] = useState(getStoredLocation);
+  const [locationLoading, setLocationLoading] = useState(() => !getStoredLocation());
+  const hasAutoFetchedRef = useRef(false);
 
-  const parseLocationData = (data) => {
-    const city =
-      data.city ||
-      data.locality ||
-      data.principalSubdivision ||
-      'India';
-    const state = data.principalSubdivision || '';
-    const locality = data.locality && data.locality !== city ? data.locality : '';
-
-    let display = city;
-    if (locality && city) {
-      display = `${locality}, ${city}`;
-    } else if (city && state && city !== state) {
-      display = `${city}, ${state}`;
-    } else if (city) {
-      display = city;
-    }
-
-    return {
-      city,
-      state,
-      locality,
-      display,
-      country: data.countryName || 'India',
-      latitude: data.latitude,
-      longitude: data.longitude,
-      source: data.lookupSource || 'reverse-geocoded',
-    };
-  };
-
-  const fetchLocation = useCallback(async (coords = null) => {
-    try {
-      setLocationLoading(true);
-      let url = 'https://api.bigdatacloud.net/data/reverse-geocode-client';
-      if (coords) {
-        url += `?latitude=${coords.latitude}&longitude=${coords.longitude}&localityLanguage=en`;
-      }
-
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('Failed to reverse geocode');
-      const data = await res.json();
-      const loc = parseLocationData(data);
-
-      cachedLocation = loc;
-      setUserLocation(loc);
-      notifyListeners(loc);
-
-      // Save to sessionStorage for fast subsequent loads
-      if (typeof window !== 'undefined') {
-        try {
-          sessionStorage.setItem('dwarkesh_user_loc', JSON.stringify(loc));
-        } catch (_) {}
-      }
-    } catch (err) {
-      console.warn('Location detection fallback:', err);
-      // Graceful fallback if offline or blocked
-      if (!cachedLocation) {
-        const fallback = {
-          city: 'Ahmedabad',
-          state: 'Gujarat',
-          locality: 'Bodakdev',
-          display: 'Ahmedabad, Gujarat',
-          country: 'India',
-          source: 'default',
-        };
-        cachedLocation = fallback;
-        setUserLocation(fallback);
-        notifyListeners(fallback);
-      }
-    } finally {
-      setLocationLoading(false);
+  const saveLocation = useCallback((loc) => {
+    if (!loc || !loc.city || loc.source === 'default') return;
+    cachedLocation = loc;
+    setUserLocation(loc);
+    notifyListeners(loc);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(loc));
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(loc));
+      } catch (_) {}
     }
   }, []);
 
-  const refreshGpsLocation = useCallback(() => {
-    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
-      setLocationLoading(true);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          if (pos?.coords) {
-            fetchLocation({
-              latitude: pos.coords.latitude,
-              longitude: pos.coords.longitude,
-            });
+  // 1. Reverse-geocode exact GPS coordinates
+  const reverseGeocodeCoords = useCallback(
+    async (lat, lon) => {
+      // Try BigDataCloud reverse geocode with coordinates
+      try {
+        const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+        if (res.ok) {
+          const data = await res.json();
+          const city =
+            data.city ||
+            data.locality ||
+            data.principalSubdivision ||
+            '';
+          const state = data.principalSubdivision || '';
+          const locality = data.locality && data.locality !== city ? data.locality : '';
+
+          if (city) {
+            let display = city;
+            if (locality && city) {
+              display = `${locality}, ${city}`;
+            } else if (city && state && city.toLowerCase() !== state.toLowerCase()) {
+              display = `${city}, ${state}`;
+            }
+
+            const loc = {
+              city,
+              state,
+              locality,
+              display,
+              country: data.countryName || 'India',
+              latitude: lat,
+              longitude: lon,
+              source: 'gps',
+              timestamp: Date.now(),
+            };
+            saveLocation(loc);
+            return loc;
           }
-        },
-        (err) => {
-          console.warn('GPS prompt denied or failed:', err);
-          setLocationLoading(false);
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-      );
-    } else {
-      fetchLocation();
+        }
+      } catch (e) {
+        console.warn('BigDataCloud reverse geocode failed, trying OpenStreetMap:', e);
+      }
+
+      // Fallback: OpenStreetMap Nominatim reverse geocode
+      try {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+        if (res.ok) {
+          const data = await res.json();
+          const addr = data.address || {};
+          const city =
+            addr.city ||
+            addr.town ||
+            addr.city_district ||
+            addr.suburb ||
+            addr.county ||
+            addr.state_district ||
+            '';
+          const state = addr.state || '';
+          const locality = addr.suburb || addr.neighbourhood || '';
+
+          if (city) {
+            let display = city;
+            if (locality && locality !== city) {
+              display = `${locality}, ${city}`;
+            } else if (city && state && city.toLowerCase() !== state.toLowerCase()) {
+              display = `${city}, ${state}`;
+            }
+
+            const loc = {
+              city,
+              state,
+              locality,
+              display,
+              country: addr.country || 'India',
+              latitude: lat,
+              longitude: lon,
+              source: 'gps-osm',
+              timestamp: Date.now(),
+            };
+            saveLocation(loc);
+            return loc;
+          }
+        }
+      } catch (e) {
+        console.warn('Nominatim reverse geocode failed:', e);
+      }
+
+      return null;
+    },
+    [saveLocation]
+  );
+
+  // 2. High-accuracy IP Geolocation (ONLY called if GPS denied / unavailable)
+  const detectIpLocation = useCallback(async () => {
+    // Provider A: ipwho.is (fast and accurate ISP mapping for India)
+    try {
+      const res = await fetch('https://ipwho.is/', {
+        signal: AbortSignal.timeout(4500),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.success && data.city) {
+          const city = data.city;
+          const state = data.region || '';
+          let display = city;
+          if (state && city.toLowerCase() !== state.toLowerCase()) {
+            display = `${city}, ${state}`;
+          }
+
+          const loc = {
+            city,
+            state,
+            locality: '',
+            display,
+            country: data.country || 'India',
+            latitude: data.latitude,
+            longitude: data.longitude,
+            source: 'ip-whois',
+            timestamp: Date.now(),
+          };
+          saveLocation(loc);
+          return loc;
+        }
+      }
+    } catch (e) {
+      console.warn('ipwho.is failed, trying BigDataCloud IP fallback:', e);
     }
+
+    // Provider B: BigDataCloud client IP
+    try {
+      const res = await fetch(
+        'https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=en',
+        { signal: AbortSignal.timeout(4500) }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const city = data.city || data.locality || data.principalSubdivision;
+        const state = data.principalSubdivision || '';
+        if (city) {
+          let display = city;
+          if (state && city.toLowerCase() !== state.toLowerCase()) {
+            display = `${city}, ${state}`;
+          }
+          const loc = {
+            city,
+            state,
+            locality: data.locality || '',
+            display,
+            country: data.countryName || 'India',
+            latitude: data.latitude,
+            longitude: data.longitude,
+            source: 'ip-bdc',
+            timestamp: Date.now(),
+          };
+          saveLocation(loc);
+          return loc;
+        }
+      }
+    } catch (_) {}
+
+    return null;
+  }, [saveLocation]);
+
+  // Main location fetcher: Always prioritizes GPS first!
+  const fetchLocation = useCallback(
+    async (manualGps = false) => {
+      setLocationLoading(true);
+
+      if (typeof window !== 'undefined' && 'geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            if (pos?.coords) {
+              const res = await reverseGeocodeCoords(
+                pos.coords.latitude,
+                pos.coords.longitude
+              );
+              if (!res) {
+                // If reverse geocode failed, try IP
+                await detectIpLocation();
+              }
+              setLocationLoading(false);
+            }
+          },
+          async (err) => {
+            console.warn('GPS unavailable or denied:', err.message);
+            // GPS failed or denied: cleanly fall back to IP location
+            await detectIpLocation();
+            setLocationLoading(false);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: manualGps ? 10000 : 7000,
+            maximumAge: manualGps ? 0 : 60000,
+          }
+        );
+      } else {
+        // Geolocation not supported: use IP location
+        await detectIpLocation();
+        setLocationLoading(false);
+      }
+    },
+    [reverseGeocodeCoords, detectIpLocation]
+  );
+
+  // Manual GPS refresh button
+  const refreshGpsLocation = useCallback(() => {
+    fetchLocation(true);
   }, [fetchLocation]);
 
+  // AUTO-DETECT ON WEBSITE OPEN
   useEffect(() => {
     const handleUpdate = (newLoc) => {
       setUserLocation(newLoc);
@@ -133,16 +278,13 @@ export function useUserLocation() {
 
     listeners.add(handleUpdate);
 
-    // Auto-fetch if not yet loaded
-    let timerId = null;
-    if (!cachedLocation) {
-      timerId = setTimeout(() => {
-        fetchLocation();
-      }, 0);
+    if (!hasAutoFetchedRef.current) {
+      hasAutoFetchedRef.current = true;
+      // Start auto-detecting with GPS priority immediately
+      fetchLocation(false);
     }
 
     return () => {
-      if (timerId) clearTimeout(timerId);
       listeners.delete(handleUpdate);
     };
   }, [fetchLocation]);

@@ -6,8 +6,9 @@ export async function proxy(request) {
   // Check for session cookies (custom session cookie or Supabase auth token)
   const allCookies = request.cookies.getAll();
   const hasSupabaseSession = allCookies.some((c) => c.name.startsWith('sb-') && c.name.includes('-auth-token') && Boolean(c.value));
+  const hasDwarkeshSession = request.cookies.has('dwarkesh_session') && Boolean(request.cookies.get('dwarkesh_session')?.value);
   const hasLegacyToken = request.cookies.has('chardiwari_session') && Boolean(request.cookies.get('chardiwari_session')?.value);
-  const isAuthenticated = hasSupabaseSession || hasLegacyToken;
+  const isAuthenticated = hasSupabaseSession || hasDwarkeshSession || hasLegacyToken;
 
   // Redirect /dashboard to /profile
   if (pathname.startsWith('/dashboard')) {

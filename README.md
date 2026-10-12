@@ -1,4 +1,4 @@
-# CharDiwari (Next.js + React)
+# Dwarkesh Real Estate Group (Next.js + React)
 
 A modern web application built with [Next.js](https://nextjs.org/) (App Router), React 19, and Node.js.
 

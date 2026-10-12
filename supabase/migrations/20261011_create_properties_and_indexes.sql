@@ -1,5 +1,5 @@
 -- ====================================================================
--- CharDiwari Real Estate Properties & Search Optimization Migration
+-- Dwarkesh Real Estate Properties & Search Optimization Migration
 -- ====================================================================
 
 -- 1. Enable Trigram Extension for Fast Fuzzy and Substring Searching
@@ -79,6 +79,7 @@ CREATE INDEX IF NOT EXISTS idx_properties_slug ON public.properties (slug);
 ALTER TABLE public.properties ENABLE ROW LEVEL SECURITY;
 
 -- Allow public read access to active published properties
+DROP POLICY IF EXISTS "Public properties are viewable by everyone" ON public.properties;
 CREATE POLICY "Public properties are viewable by everyone" 
     ON public.properties FOR SELECT 
     USING (status = 'published' AND is_deleted = FALSE);

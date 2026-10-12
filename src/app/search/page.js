@@ -1,17 +1,19 @@
 'use client';
 
-import React, { useState, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SearchAutocomplete from '@/components/SearchAutocomplete';
 import PropertyCompareModal from '@/components/PropertyCompareModal';
+import SavePropertyButton from '@/components/SavePropertyButton';
 import { properties } from '@/data/properties';
 import {
   ChevronDown,
   ChevronUp,
   ChevronRight,
+  ChevronLeft,
   Heart,
   Check,
   X,
@@ -145,6 +147,212 @@ function getPropertyGallery(prop) {
     'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=600&q=80',
     'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=600&q=80',
   ];
+}
+
+function getPropertyFeatures(prop) {
+  const c = (prop.city || '').toLowerCase();
+  if (c.includes('kasauli')) {
+    return ['Valley View', 'Indoor Sun Deck', 'Fireplace', 'Heated Plunge Pool'];
+  }
+  if (c.includes('alibaug')) {
+    return ['Beach Access', 'Private Pool', 'Landscaped Lawn', 'Gated Estate'];
+  }
+  if (c.includes('ahmedabad')) {
+    return ['Clay Lattice Screens', 'Courtyard Garden', 'Modular Kitchen', 'Clubhouse'];
+  }
+  if (c.includes('mumbai')) {
+    return ['Sea View Deck', 'Italian Marble', 'Sky Lounge', 'Infinity Pool'];
+  }
+  return ['Private Courtyard Pool', 'Landscaped Lawn', 'Italian Marble', '24/7 Gated Security'];
+}
+
+function PropertyCardGallery({
+  prop,
+  cardIndex = 0,
+  isFav,
+  toggleFavorite,
+  isCompared,
+  toggleCompare,
+  setLightboxProp,
+  setLightboxImg,
+}) {
+  const gallery = useMemo(() => getPropertyGallery(prop), [prop]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  // Distinct sliding interval for every card so adjacent cards never match
+  const slideInterval = useMemo(() => {
+    const intervals = [3200, 4400, 3600, 5100, 3400, 4200, 3800, 4700];
+    const key = typeof cardIndex === 'number' ? cardIndex : (prop?.id || 0);
+    return intervals[key % intervals.length];
+  }, [cardIndex, prop?.id]);
+
+  // Auto-slideshow with staggered initial delay so components don't all slide in sync
+  useEffect(() => {
+    if (isPaused || gallery.length <= 1) return;
+
+    const staggerDelay = ((cardIndex + 1) * 650) % 2000;
+    let intervalTimer;
+
+    const initialTimer = setTimeout(() => {
+      setCurrentIndex((prev) => (prev + 1) % gallery.length);
+      intervalTimer = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % gallery.length);
+      }, slideInterval);
+    }, slideInterval + staggerDelay);
+
+    return () => {
+      clearTimeout(initialTimer);
+      if (intervalTimer) clearInterval(intervalTimer);
+    };
+  }, [gallery.length, isPaused, slideInterval, cardIndex]);
+
+  const handlePrev = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev - 1 + gallery.length) % gallery.length);
+  };
+
+  const handleNext = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentIndex((prev) => (prev + 1) % gallery.length);
+  };
+
+  const currentImg = gallery[currentIndex] || prop.image;
+
+  return (
+    <div
+      className="w-full md:w-[350px] lg:w-[390px] shrink-0 flex flex-col"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      <div
+        onClick={() => {
+          setLightboxProp(prop);
+          setLightboxImg(currentImg);
+        }}
+        className="relative w-full aspect-[4/3] sm:aspect-[16/10] md:h-[250px] lg:h-[270px] rounded-xl bg-stone-100 overflow-hidden cursor-pointer shadow-xs border border-stone-200/80 group/img focus:outline-none focus:ring-2 focus:ring-stone-900 select-none"
+        title="Click to view full photo gallery"
+      >
+        <img
+          src={currentImg}
+          alt={`${prop.title} - Photo ${currentIndex + 1}`}
+          key={currentImg}
+          className="w-full h-full object-cover transition-opacity duration-500 ease-in-out group-hover/img:scale-105"
+        />
+
+        {/* Top Left Tag: RERA Verified */}
+        <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-stone-900/85 backdrop-blur-xs text-white text-[10px] sm:text-[11px] font-medium flex items-center gap-1 shadow-xs border border-white/10 z-10 pointer-events-none">
+          <ShieldCheck className="w-3 h-3 text-emerald-400" />
+          <span>RERA Verified</span>
+        </div>
+
+        {/* Wishlist Heart */}
+        <SavePropertyButton
+          property={prop}
+          className="absolute top-2.5 right-2.5"
+          iconSize="w-4 h-4"
+        />
+
+        {/* Slide Arrows for Mobile & Desktop (always visible on phone, hover/active on desktop) */}
+        {gallery.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={handlePrev}
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/55 hover:bg-black/85 text-white flex items-center justify-center backdrop-blur-xs transition shadow-md z-10 active:scale-90"
+              aria-label="Previous photo"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={handleNext}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/55 hover:bg-black/85 text-white flex items-center justify-center backdrop-blur-xs transition shadow-md z-10 active:scale-90"
+              aria-label="Next photo"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </>
+        )}
+
+        {/* Slide Indicator Dots (Center Bottom) */}
+        {gallery.length > 1 && (
+          <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 bg-black/35 backdrop-blur-xs px-2 py-1 rounded-full pointer-events-none">
+            {gallery.map((_, idx) => (
+              <span
+                key={idx}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  idx === currentIndex
+                    ? 'w-3.5 bg-white shadow-xs'
+                    : 'w-1.5 bg-white/50'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Bottom Photo Count */}
+        <div className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-xs text-white text-[10px] sm:text-[11px] font-medium flex items-center gap-1 z-10 pointer-events-none">
+          <Camera className="w-3 h-3" />
+          <span>{currentIndex + 1}/{gallery.length}</span>
+        </div>
+      </div>
+
+      {/* Desktop Thumbnail Gallery Strip */}
+      <div className="hidden md:grid grid-cols-4 gap-1.5 sm:gap-2 mt-2 w-full">
+        {gallery.slice(0, 4).map((thumbUrl, idx) => {
+          const isSelected = currentIndex === idx;
+          const isMoreOverlay = idx === 3;
+          return (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => {
+                if (isMoreOverlay) {
+                  setLightboxProp(prop);
+                  setLightboxImg(thumbUrl);
+                } else {
+                  setCurrentIndex(idx);
+                }
+              }}
+              className={`relative aspect-[4/3] rounded-lg overflow-hidden border transition-all cursor-pointer group/thumb ${
+                isSelected
+                  ? 'ring-2 ring-stone-900 border-stone-900 shadow-xs'
+                  : 'border-stone-200 hover:border-stone-400 opacity-80 hover:opacity-100'
+              }`}
+              title={isMoreOverlay ? 'View all photos' : `Switch to view photo ${idx + 1}`}
+            >
+              <img
+                src={thumbUrl}
+                alt={`${prop.title} thumbnail ${idx + 1}`}
+                className="w-full h-full object-cover group-hover/thumb:scale-105 transition-transform duration-300"
+              />
+              {isMoreOverlay && (
+                <div className="absolute inset-0 bg-black/65 backdrop-blur-[1px] flex items-center justify-center text-white text-[11px] font-bold">
+                  +5 More
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Add to Compare (Desktop Only) */}
+      <div className="hidden md:flex items-center justify-between mt-2.5">
+        <label className="flex items-center gap-2 text-xs text-stone-600 cursor-pointer select-none hover:text-stone-900 self-start">
+          <input
+            type="checkbox"
+            checked={isCompared}
+            onChange={() => toggleCompare(prop)}
+            className="w-3.5 h-3.5 rounded-xs accent-stone-900 cursor-pointer"
+          />
+          <span>Add to Compare</span>
+        </label>
+      </div>
+    </div>
+  );
 }
 
 function SearchContent() {
@@ -785,16 +993,15 @@ function SearchContent() {
             </div>
           ) : (
             <div className="divide-y divide-stone-200">
-              {sortedProperties.map((prop) => {
+              {sortedProperties.map((prop, propIndex) => {
                 const isCompared = compareList.some((p) => p.id === prop.id);
                 const isFav = Boolean(favorites[prop.id]);
                 const isExpanded = Boolean(expandedDesc[prop.id]);
                 const proximities = getProximities(prop.city);
+                const features = getPropertyFeatures(prop);
                 const bedsInt = parseInt(prop.beds || '4', 10);
                 const areaInt = parseInt(prop.area?.replace(/[^\d]/g, '') || '4000', 10);
                 const carpetArea = Math.round(areaInt * 0.72);
-                const gallery = getPropertyGallery(prop);
-                const currentImg = activeImgMap[prop.id] || prop.image;
 
                 return (
                   <div
@@ -802,109 +1009,18 @@ function SearchContent() {
                     className="p-3 sm:p-5 md:p-6 flex flex-col md:flex-row gap-3 sm:gap-5 md:gap-6 lg:gap-7 hover:bg-stone-50/50 transition-colors group"
                   >
                     {/* ---------------------------------------------------- */}
-                    {/* COLUMN 1: PROMINENT HERO IMAGE                       */}
+                    {/* COLUMN 1: PROMINENT HERO IMAGE & SLIDESHOW           */}
                     {/* ---------------------------------------------------- */}
-                    <div className="w-full md:w-[350px] lg:w-[390px] shrink-0 flex flex-col">
-                      <div
-                        onClick={() => {
-                          setLightboxProp(prop);
-                          setLightboxImg(currentImg);
-                        }}
-                        className="relative w-full aspect-[4/3] sm:aspect-[16/10] md:h-[250px] lg:h-[270px] rounded-xl bg-stone-100 overflow-hidden cursor-pointer shadow-xs border border-stone-200/80 group/img focus:outline-none focus:ring-2 focus:ring-stone-900"
-                        title="Click to view full photo gallery"
-                      >
-                        <img
-                          src={currentImg}
-                          alt={prop.title}
-                          className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-500"
-                        />
-
-                        {/* Top Left Tag: RERA Verified */}
-                        <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-stone-900/85 backdrop-blur-xs text-white text-[10px] sm:text-[11px] font-medium flex items-center gap-1 shadow-xs border border-white/10">
-                          <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                          <span>RERA Verified</span>
-                        </div>
-
-                        {/* Wishlist Heart */}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            toggleFavorite(prop.id);
-                          }}
-                          className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-stone-500 hover:text-red-500 flex items-center justify-center shadow-xs transition"
-                          aria-label="Save to wishlist"
-                        >
-                          <Heart
-                            className={`w-4 h-4 ${isFav ? 'text-red-500 fill-red-500' : 'text-stone-500'}`}
-                          />
-                        </button>
-
-                        {/* Hover Overlay Hint: Click to Enlarge (Desktop Only) */}
-                        <div className="absolute inset-0 bg-black/25 opacity-0 group-hover/img:opacity-100 transition-opacity hidden md:flex items-center justify-center text-white text-xs font-semibold gap-1.5">
-                          <ZoomIn className="w-4 h-4" />
-                          <span>Click to Enlarge</span>
-                        </div>
-
-                        {/* Bottom Photo Count */}
-                        <div className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-xs text-white text-[10px] sm:text-[11px] font-medium flex items-center gap-1">
-                          <Camera className="w-3 h-3" />
-                          <span>8 Photos</span>
-                        </div>
-                      </div>
-
-                      {/* MORE IMAGES DOWN TO MAIN IMAGE (THUMBNAIL GALLERY STRIP - Desktop Only) */}
-                      <div className="hidden md:grid grid-cols-4 gap-1.5 sm:gap-2 mt-2 w-full">
-                        {gallery.slice(0, 4).map((thumbUrl, idx) => {
-                          const isSelected = currentImg === thumbUrl;
-                          const isMoreOverlay = idx === 3;
-                          return (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => {
-                                if (isMoreOverlay) {
-                                  setLightboxProp(prop);
-                                  setLightboxImg(thumbUrl);
-                                } else {
-                                  setActiveImgMap((prev) => ({ ...prev, [prop.id]: thumbUrl }));
-                                }
-                              }}
-                              className={`relative aspect-[4/3] rounded-lg overflow-hidden border transition-all cursor-pointer group/thumb ${isSelected
-                                ? 'ring-2 ring-stone-900 border-stone-900 shadow-xs'
-                                : 'border-stone-200 hover:border-stone-400 opacity-80 hover:opacity-100'
-                                }`}
-                              title={isMoreOverlay ? 'View all photos' : `Switch to view ${idx + 1}`}
-                            >
-                              <img
-                                src={thumbUrl}
-                                alt={`${prop.title} thumbnail ${idx + 1}`}
-                                className="w-full h-full object-cover group-hover/thumb:scale-105 transition-transform duration-300"
-                              />
-                              {isMoreOverlay && (
-                                <div className="absolute inset-0 bg-black/65 backdrop-blur-[1px] flex items-center justify-center text-white text-[11px] font-bold">
-                                  +5 More
-                                </div>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      {/* Add to Compare (Desktop Only) */}
-                      <div className="hidden md:flex items-center justify-between mt-2.5">
-                        <label className="flex items-center gap-2 text-xs text-stone-600 cursor-pointer select-none hover:text-stone-900 self-start">
-                          <input
-                            type="checkbox"
-                            checked={isCompared}
-                            onChange={() => toggleCompare(prop)}
-                            className="w-3.5 h-3.5 rounded-xs accent-stone-900 cursor-pointer"
-                          />
-                          <span>Add to Compare</span>
-                        </label>
-                      </div>
-                    </div>
+                    <PropertyCardGallery
+                      prop={prop}
+                      cardIndex={propIndex}
+                      isFav={isFav}
+                      toggleFavorite={toggleFavorite}
+                      isCompared={isCompared}
+                      toggleCompare={toggleCompare}
+                      setLightboxProp={setLightboxProp}
+                      setLightboxImg={setLightboxImg}
+                    />
 
                     {/* ---------------------------------------------------- */}
                     {/* MOBILE DETAILS VIEW (< md): ULTRA CLEAN & EDITORIAL  */}
@@ -923,22 +1039,39 @@ function SearchContent() {
                             {prop.type}
                           </span>
                         </div>
-                        <p className="text-xs text-stone-500 truncate mt-0.5">
-                          {prop.location}
-                        </p>
+                        <div className="flex items-center gap-1 text-xs text-stone-500 truncate mt-0.5">
+                          <MapPin className="w-3 h-3 text-stone-400 shrink-0" />
+                          <span className="truncate">{prop.location}</span>
+                        </div>
                       </div>
 
-                      {/* Clean Inline Specs (no box/border) */}
-                      <div className="text-xs text-stone-600 font-medium flex items-center gap-1.5">
+                      {/* Clean Inline Specs with Highlighted Bathroom */}
+                      <div className="text-xs text-stone-600 font-medium flex items-center gap-1.5 flex-wrap">
                         <span>{prop.beds} Beds</span>
                         <span className="text-stone-300">·</span>
-                        <span>{prop.baths || '4 Baths'}</span>
+                        {/* Highlighted Bathroom Badge */}
+                        <span className="inline-flex items-center gap-1 font-bold text-stone-900 bg-stone-100 border border-stone-200/80 px-2 py-0.5 rounded-md shadow-2xs">
+                          <Bath className="w-3.5 h-3.5 text-stone-700" />
+                          <span>{prop.baths || '4 Baths'}</span>
+                        </span>
                         <span className="text-stone-300">·</span>
                         <span>{prop.area}</span>
                       </div>
 
+                      {/* Highlighted Key Features / Amenities (Mobile) */}
+                      <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                        {features.slice(0, 3).map((feat, idx) => (
+                          <span
+                            key={idx}
+                            className="text-[10px] font-medium text-stone-700 bg-stone-50 border border-stone-200/90 px-2 py-0.5 rounded-md"
+                          >
+                            {feat}
+                          </span>
+                        ))}
+                      </div>
+
                       {/* Price & Actions Row */}
-                      <div className="pt-1 flex items-center justify-between gap-2">
+                      <div className="pt-1 flex items-center justify-between gap-2 border-t border-stone-100">
                         <div>
                           <div className="text-lg font-black text-stone-900 tracking-tight leading-none">
                             {prop.price}
@@ -952,11 +1085,10 @@ function SearchContent() {
                           <button
                             type="button"
                             onClick={() => toggleCompare(prop)}
-                            className={`h-8 px-2.5 rounded-lg text-xs font-medium transition cursor-pointer border ${
-                              isCompared
+                            className={`h-8 px-2.5 rounded-lg text-xs font-medium transition cursor-pointer border ${isCompared
                                 ? 'bg-stone-900 text-white border-stone-900'
                                 : 'bg-white text-stone-600 border-stone-200 hover:border-stone-400'
-                            }`}
+                              }`}
                           >
                             {isCompared ? 'Added' : 'Compare'}
                           </button>
@@ -1070,12 +1202,7 @@ function SearchContent() {
 
                         {/* Minimal Curated Amenity Tags */}
                         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-3.5">
-                          {(prop.city?.toLowerCase().includes('kasauli')
-                            ? ['Valley View', 'Indoor Sun Deck', 'Fireplace', 'Heated Plunge Pool']
-                            : prop.city?.toLowerCase().includes('alibaug')
-                              ? ['Beach Access', 'Private Pool', 'Landscaped Lawn', 'Gated Estate']
-                              : ['Private Courtyard Pool', 'Landscaped Lawn', 'Italian Marble', '24/7 Gated Security']
-                          ).map((tag, idx) => (
+                          {features.map((tag, idx) => (
                             <span
                               key={idx}
                               className="text-[11px] font-medium text-stone-600 bg-stone-100 hover:bg-stone-200/70 px-2.5 py-1 rounded-md transition"

@@ -1,5 +1,5 @@
 -- ====================================================================
--- CharDiwari Real Estate Properties & Search Optimization Rollback (Down Migration)
+-- Dwarkesh Real Estate Properties & Search Optimization Rollback (Down Migration)
 -- ====================================================================
 
 -- 1. Drop RLS Policies

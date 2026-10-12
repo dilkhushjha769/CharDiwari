@@ -36,6 +36,7 @@ import {
   Clock,
   User,
   LogOut,
+  Heart,
 } from 'lucide-react';
 import { getSupabaseClient } from '@/lib/supabase/client';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -137,6 +138,7 @@ export default function Navbar() {
       await client.auth.signOut();
     }
     if (typeof document !== 'undefined') {
+      document.cookie = 'dwarkesh_session=; path=/; max-age=0; SameSite=Lax';
       document.cookie = 'chardiwari_session=; path=/; max-age=0; SameSite=Lax';
     }
     await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
@@ -516,12 +518,20 @@ export default function Navbar() {
                         <span>My Profile</span>
                       </Link>
                       <Link
-                        href="/#collection"
+                        href="/profile"
                         onClick={() => setProfileDropdownOpen(false)}
                         className="focus-ring flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-50 dark:hover:bg-stone-100 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                       >
-                        <Home className="w-3.5 h-3.5 text-stone-500" />
-                        <span>Saved Homes</span>
+                        <Heart className="w-3.5 h-3.5 text-rose-500" />
+                        <span>Saved Shortlist</span>
+                      </Link>
+                      <Link
+                        href="/admin"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        className="focus-ring flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-50 dark:hover:bg-stone-100 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Admin Suite</span>
                       </Link>
                     </div>
                     <div className="pt-1 border-t border-stone-100">
@@ -788,6 +798,17 @@ export default function Navbar() {
                     </Link>
                   </div>
                 )}
+
+                <div className="pt-2 border-t border-stone-100">
+                  <Link
+                    href="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="press focus-ring w-full flex items-center justify-center gap-2 py-2.5 text-xs font-semibold rounded-xl border border-stone-200 bg-stone-50 hover:bg-stone-100 text-stone-700 transition-colors"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Admin Suite</span>
+                  </Link>
+                </div>
               </div>
 
             </div>

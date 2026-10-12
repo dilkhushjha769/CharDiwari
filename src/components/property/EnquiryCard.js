@@ -1,6 +1,7 @@
 import { MessageCircle, Phone } from 'lucide-react';
 import { PHONE, whatsappLink } from '@/lib/contact';
 import BookVisitButton from './BookVisitButton';
+import SavePropertyButton from '@/components/SavePropertyButton';
 
 const secondary =
   'flex flex-1 items-center justify-center gap-2 rounded-full border border-stone-200 bg-white text-xs font-semibold text-stone-900 outline-none transition-[scale,background-color,color] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-stone-900 hover:text-white dark:hover:bg-stone-200 dark:hover:text-stone-900 active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-stone-900';
@@ -17,9 +18,15 @@ export function EnquiryCard({ property }) {
       aria-label="Enquire"
       className="sticky top-[129px] hidden lg:block rounded-3xl border border-stone-200/90 bg-white p-6 shadow-sm dark:border-stone-300 dark:bg-stone-50"
     >
-      <p className="font-mono text-[10px] tracking-[0.14em] uppercase text-stone-500">Price</p>
-      <p className="mt-1 font-serif text-3xl font-bold text-stone-900 tabular-nums">{property.price}</p>
-      <p className="mt-1 text-xs text-stone-500">or {property.rentPrice} to rent</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="font-mono text-[10px] tracking-[0.14em] uppercase text-stone-500">Price</p>
+          <p className="mt-1 font-serif text-3xl font-bold text-stone-900 tabular-nums">{property.price}</p>
+          <p className="mt-1 text-xs text-stone-500">or {property.rentPrice} to rent</p>
+        </div>
+        <SavePropertyButton property={property} />
+      </div>
+
       <BookVisitButton property={property} className="mt-6 h-12 w-full" />
       <div className="mt-2 flex gap-2">
         <a href={`tel:${PHONE.href}`} className={`${secondary} h-11`}>
@@ -43,7 +50,8 @@ export function EnquiryCard({ property }) {
 export function MobileActionBar({ property }) {
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200/80 bg-white/95 backdrop-blur-md px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
-      <div className="mx-auto flex max-w-xl gap-2">
+      <div className="mx-auto flex max-w-xl gap-2 items-center">
+        <SavePropertyButton property={property} className="h-12 w-12 shrink-0 border border-stone-200" />
         <a href={`tel:${PHONE.href}`} aria-label="Call" className={`${secondary} h-12 max-w-14`}>
           <Phone className="w-4 h-4" />
         </a>

@@ -1,4 +1,4 @@
-// Automated Test Suite for CharDiwari Production Authentication Flow
+// Automated Test Suite for Dwarkesh Production Authentication Flow
 import assert from 'assert';
 
 const BASE_URL = 'http://localhost:3000';
@@ -46,7 +46,7 @@ async function request(path, options = {}) {
 }
 
 async function runTests() {
-  console.log('🚀 Starting CharDiwari Authentication Test Suite...\n');
+  console.log('🚀 Starting Dwarkesh Authentication Test Suite...\n');
   const results = [];
 
   function pass(title) {
@@ -83,7 +83,7 @@ async function runTests() {
   }
 
   // 2. Test Intelligent Email Detection on Non-Existent User
-  const testNewEmail = `testuser_${Date.now()}@chardiwari.test`;
+  const testNewEmail = `testuser_${Date.now()}@dwarkesh.test`;
   try {
     const res = await request('/api/auth/check-email', {
       method: 'POST',
@@ -171,7 +171,7 @@ async function runTests() {
     });
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.data.success, true);
-    assert(cookiesJar.includes('chardiwari_session'), 'Expected HTTP-only session cookie set');
+    assert(cookiesJar.includes('dwarkesh_session'), 'Expected HTTP-only session cookie set');
     pass('6. Successful OTP Verification: Registers user, verifies email, and logs in automatically');
   } catch (err) {
     fail('6. Successful OTP Verification', err.message);
@@ -237,7 +237,7 @@ async function runTests() {
     });
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.data.success, true);
-    assert(cookiesJar.includes('chardiwari_session'));
+    assert(cookiesJar.includes('dwarkesh_session'));
     pass('11. Existing User Login: Verifies bcrypt password and establishes session');
   } catch (err) {
     fail('11. Existing User Login', err.message);
@@ -323,7 +323,7 @@ async function runTests() {
 
   // 15. Test Google Sign-In Flow (New & Existing Account)
   try {
-    const googleEmail = `google_${Date.now()}@chardiwari.test`;
+    const googleEmail = `google_${Date.now()}@dwarkesh.test`;
     const res = await request('/api/auth/google', {
       method: 'POST',
       body: {
@@ -334,7 +334,7 @@ async function runTests() {
     });
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.data.success, true);
-    assert(cookiesJar.includes('chardiwari_session'));
+    assert(cookiesJar.includes('dwarkesh_session'));
 
     // Second time login with same Google account (existing account)
     const resExisting = await request('/api/auth/google', {

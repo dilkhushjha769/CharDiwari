@@ -26,7 +26,7 @@ export async function GET(request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       const response = NextResponse.redirect(`${origin}${next}`);
-      response.cookies.set('chardiwari_session', 'true', {
+      response.cookies.set('dwarkesh_session', 'true', {
         path: '/',
         maxAge: 7 * 24 * 60 * 60,
         sameSite: 'lax',
@@ -46,7 +46,7 @@ export async function GET(request) {
     });
     if (!error) {
       const response = NextResponse.redirect(`${origin}${next}`);
-      response.cookies.set('chardiwari_session', 'true', {
+      response.cookies.set('dwarkesh_session', 'true', {
         path: '/',
         maxAge: 7 * 24 * 60 * 60,
         sameSite: 'lax',
@@ -117,7 +117,7 @@ export async function GET(request) {
         var accessToken = params.get('access_token');
         var expiresIn = params.get('expires_in') || '604800';
         if (accessToken) {
-          document.cookie = 'chardiwari_session=true; path=/; max-age=' + expiresIn + '; SameSite=Lax';
+          document.cookie = 'dwarkesh_session=true; path=/; max-age=' + expiresIn + '; SameSite=Lax';
         }
         setTimeout(function() {
           window.location.replace(nextPath);
@@ -126,7 +126,7 @@ export async function GET(request) {
       }
 
       // Check if session cookie or storage exists
-      var hasCookie = document.cookie.indexOf('chardiwari_session') !== -1 || document.cookie.indexOf('-auth-token') !== -1;
+      var hasCookie = document.cookie.indexOf('dwarkesh_session') !== -1 || document.cookie.indexOf('chardiwari_session') !== -1 || document.cookie.indexOf('-auth-token') !== -1;
       if (hasCookie) {
         window.location.replace(nextPath);
         return;
@@ -134,7 +134,7 @@ export async function GET(request) {
 
       // Allow brief moment for client-side SDK detection, then redirect
       setTimeout(function() {
-        document.cookie = 'chardiwari_session=true; path=/; max-age=604800; SameSite=Lax';
+        document.cookie = 'dwarkesh_session=true; path=/; max-age=604800; SameSite=Lax';
         window.location.replace(nextPath);
       }, 500);
     })();

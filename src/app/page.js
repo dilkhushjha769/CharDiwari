@@ -370,7 +370,11 @@ export default function HomePage() {
 
         <div className="max-w-5xl mx-auto flex flex-col items-center text-center relative z-10">
           {/* Live Auto-detected Location Pill */}
-          <div style={{ "--i": 0 }} className="hero-enter inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-stone-200/90 shadow-xs text-[11px] sm:text-xs text-stone-700 mb-3 sm:mb-4 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-stone-300">
+          <div
+            style={{ "--i": 0 }}
+            suppressHydrationWarning
+            className="hero-enter inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-white/95 backdrop-blur-md border border-stone-200/90 shadow-xs text-[11px] sm:text-xs text-stone-700 mb-3 sm:mb-4 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-stone-300"
+          >
             <span className="relative flex h-2 w-2 shrink-0">
               <span className="motion-safe:animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -379,12 +383,12 @@ export default function HomePage() {
             {locationLoading ? (
               <span className="text-stone-400 font-medium">Detecting your location...</span>
             ) : userLocation ? (
-              <div className="flex items-center gap-1 truncate max-w-[210px] sm:max-w-none">
+              <span className="inline-flex items-center gap-1 truncate max-w-[210px] sm:max-w-none">
                 <span className="text-stone-500 font-normal">Location:</span>
                 <span className="font-semibold text-stone-900 truncate">{userLocation.display}</span>
-              </div>
+              </span>
             ) : (
-              <span className="text-stone-800 font-semibold">Ahmedabad, Gujarat</span>
+              <span className="text-stone-600 font-medium">Detect Location</span>
             )}
             <button
               type="button"

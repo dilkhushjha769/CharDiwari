@@ -76,8 +76,9 @@ export function getSupabaseClient() {
     if (typeof window !== 'undefined' && cachedClient) {
       cachedClient.auth.onAuthStateChange((event, session) => {
         if (session) {
-          document.cookie = 'chardiwari_session=true; path=/; max-age=604800; SameSite=Lax';
+          document.cookie = 'dwarkesh_session=true; path=/; max-age=604800; SameSite=Lax';
         } else if (event === 'SIGNED_OUT') {
+          document.cookie = 'dwarkesh_session=; path=/; max-age=0; SameSite=Lax';
           document.cookie = 'chardiwari_session=; path=/; max-age=0; SameSite=Lax';
         }
       });

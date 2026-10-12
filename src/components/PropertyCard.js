@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Bath, Bed, Heart, MapPin, Maximize2 } from 'lucide-react';
+import { ArrowRight, Bath, Bed, MapPin, Maximize2 } from 'lucide-react';
+import SavePropertyButton from '@/components/SavePropertyButton';
 
 // One property in a grid: on the home page and under "Similar properties".
 // `price` is the sale or rent price to show, depending on the search mode.
@@ -25,13 +26,7 @@ export default function PropertyCard({ property, price }) {
               {property.tag}
             </span>
           </div>
-          <button
-            type="button"
-            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-stone-700 hover:text-rose-600 hover:bg-white transition-colors shadow-sm cursor-pointer focus-ring"
-            aria-label="Save Property"
-          >
-            <Heart className="w-4 h-4" />
-          </button>
+          <SavePropertyButton property={property} className="absolute top-4 right-4" />
           <div className="absolute bottom-4 left-4">
             <span className="px-3.5 py-1.5 rounded-xl bg-stone-900/90 backdrop-blur-md text-white font-serif font-bold text-lg tabular-nums shadow-sm">
               {price}

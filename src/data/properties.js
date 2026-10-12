@@ -23,6 +23,7 @@ const listings = [
       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
     description:
       'Spacious home with an open courtyard, natural stone walls, wooden finish, and a private swimming pool.',
+    video_url: 'https://youtu.be/e1cwjeP5Ofs?si=PkNzip07z0_33Jwi',
   },
   {
     id: 2,
