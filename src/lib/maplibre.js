@@ -57,23 +57,28 @@ export async function loadSiteStyle() {
   return style;
 }
 
-// An approximate location is a soft circle, not a pin: honest about the
-// precision, and the locality name underneath stays readable. Drawn under the
-// buildings and labels.
-export function showApproximateArea(map, { lat, lng }, metres = 350) {
-  const steps = 64;
+// A circle of `metres` around a point, as a closed ring of [lng, lat].
+function circleRing({ lat, lng }, metres, steps = 64) {
   const dLat = metres / 111320;
   const dLng = metres / (111320 * Math.cos((lat * Math.PI) / 180));
-  const ring = Array.from({ length: steps + 1 }, (_, i) => {
+  return Array.from({ length: steps + 1 }, (_, i) => {
     const angle = (i / steps) * 2 * Math.PI;
     return [lng + dLng * Math.cos(angle), lat + dLat * Math.sin(angle)];
   });
+}
+
+const firstSymbolLayer = (map) => map.getStyle().layers.find((layer) => layer.type === 'symbol')?.id;
+
+// An approximate location is a soft circle, not a pin: honest about the
+// precision, and the locality name underneath stays readable. Drawn under the
+// buildings and labels.
+export function showApproximateArea(map, center, metres = 350) {
   map.addSource('approximate-area', {
     type: 'geojson',
-    data: { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [ring] } },
+    data: { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [circleRing(center, metres)] } },
   });
   const layers = map.getStyle().layers;
-  const below = (layers.find((layer) => layer.id === 'building') ?? layers.find((layer) => layer.type === 'symbol'))?.id;
+  const below = layers.find((layer) => layer.id === 'building')?.id ?? firstSymbolLayer(map);
   map.addLayer({ id: 'approximate-area-fill', type: 'fill', source: 'approximate-area', paint: { 'fill-color': '#1c1917', 'fill-opacity': 0.07 } }, below);
   map.addLayer(
     {
@@ -84,6 +89,164 @@ export function showApproximateArea(map, { lat, lng }, metres = 350) {
     },
     below
   );
+}
+
+// ── Nearby places: road routes fanning out from the area, like a web ──────
+
+const NEARBY_LAYERS = ['nearby-ring-labels', 'nearby-routes', 'nearby-routes-casing', 'nearby-rings'];
+const NEARBY_SOURCES = ['nearby-routes', 'nearby-rings'];
+const RING_STEPS_KM = [0.5, 1, 2, 5, 10, 20, 50, 100];
+
+// Distance rings for the web: up to four round distances inside the farthest place.
+function ringFeatures(center, farthestKm) {
+  const steps = RING_STEPS_KM.filter((km) => km <= farthestKm * 1.05).slice(-4);
+  return steps.flatMap((km) => {
+    const ring = circleRing(center, km * 1000, 96);
+    const label = km < 1 ? `${km * 1000} m` : `${km} km`;
+    return [
+      { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: ring } },
+      // Label at the top of the ring.
+      { type: 'Feature', properties: { label }, geometry: { type: 'Point', coordinates: ring[16] } },
+    ];
+  });
+}
+
+export function addNearbyLayers(map, center, routes) {
+  const beforeLabels = firstSymbolLayer(map);
+  const farthest = Math.max(...routes.map((route) => route.km));
+  map.addSource('nearby-rings', { type: 'geojson', data: { type: 'FeatureCollection', features: ringFeatures(center, farthest) } });
+  map.addSource('nearby-routes', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  map.addLayer(
+    {
+      id: 'nearby-rings',
+      type: 'line',
+      source: 'nearby-rings',
+      filter: ['==', ['geometry-type'], 'LineString'],
+      paint: { 'line-color': '#78716c', 'line-opacity': 0.45, 'line-width': 1, 'line-dasharray': [2, 3] },
+    },
+    beforeLabels
+  );
+  map.addLayer(
+    {
+      id: 'nearby-routes-casing',
+      type: 'line',
+      source: 'nearby-routes',
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: { 'line-color': '#ffffff', 'line-width': 7, 'line-opacity': 0.9 },
+    },
+    beforeLabels
+  );
+  map.addLayer(
+    {
+      id: 'nearby-routes',
+      type: 'line',
+      source: 'nearby-routes',
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: { 'line-color': ['get', 'color'], 'line-width': 4, 'line-opacity': 0.95 },
+    },
+    beforeLabels
+  );
+  map.addLayer({
+    id: 'nearby-ring-labels',
+    type: 'symbol',
+    source: 'nearby-rings',
+    filter: ['==', ['geometry-type'], 'Point'],
+    layout: { 'text-field': ['get', 'label'], 'text-font': ['Noto Sans Regular'], 'text-size': 11, 'text-anchor': 'bottom', 'text-offset': [0, -0.3] },
+    paint: { 'text-color': '#57534e', 'text-halo-color': LAND, 'text-halo-width': 1.5 },
+  });
+}
+
+export function removeNearbyLayers(map) {
+  NEARBY_LAYERS.forEach((id) => map.getLayer(id) && map.removeLayer(id));
+  NEARBY_SOURCES.forEach((id) => map.getSource(id) && map.removeSource(id));
+}
+
+// Frame the area and every place, flat and north-up so the web reads clearly.
+export function fitNearby(map, center, routes, duration) {
+  const bounds = new maplibregl.LngLatBounds([center.lng, center.lat], [center.lng, center.lat]);
+  routes.forEach((route) => route.coordinates.forEach((point) => bounds.extend(point)));
+  map.fitBounds(bounds, { padding: { top: 72, bottom: 48, left: 48, right: 72 }, pitch: 0, bearing: 0, maxZoom: 15, duration });
+}
+
+// Folds the compact attribution down to its (i) button, exactly as MapLibre does after a
+// visitor's first drag; on a phone-sized map it would otherwise cover the pins.
+export function collapseAttribution(map) {
+  map.getContainer().querySelector('.maplibregl-ctrl-attrib.maplibregl-compact')?.classList.remove('maplibregl-compact-show');
+}
+
+// One place in focus: its route stays bright and thick, the rest step back.
+export function highlightNearby(map, id) {
+  if (!map.getLayer('nearby-routes')) return;
+  const focused = (on, off) => (id == null ? on : ['case', ['==', ['get', 'id'], id], on, off]);
+  map.setPaintProperty('nearby-routes', 'line-opacity', focused(0.95, 0.25));
+  map.setPaintProperty('nearby-routes', 'line-width', id == null ? 4 : ['case', ['==', ['get', 'id'], id], 6, 3]);
+  map.setPaintProperty('nearby-routes-casing', 'line-opacity', focused(0.9, 0.35));
+}
+
+// The first `share` (0–1) of a route, measured along the road.
+function routeShare({ coordinates, lengths, total }, share) {
+  if (share >= 1) return coordinates;
+  const target = total * share;
+  let i = 1;
+  while (i < lengths.length - 1 && lengths[i] < target) i++;
+  const [ax, ay] = coordinates[i - 1];
+  const [bx, by] = coordinates[i];
+  const f = (target - lengths[i - 1]) / (lengths[i] - lengths[i - 1] || 1);
+  return [...coordinates.slice(0, i), [ax + (bx - ax) * f, ay + (by - ay) * f]];
+}
+
+// Draws every route outward from the area, nearest first, a beat apart. Calls
+// onArrive(id) as each one reaches its place. Returns a function that stops it.
+export function drawNearbyRoutes(map, routes, { animate, delay = 0, onArrive }) {
+  const source = map.getSource('nearby-routes');
+  const prepared = routes.map((route) => {
+    const cos = Math.cos((route.coordinates[0][1] * Math.PI) / 180);
+    const lengths = [0];
+    for (let i = 1; i < route.coordinates.length; i++) {
+      const [ax, ay] = route.coordinates[i - 1];
+      const [bx, by] = route.coordinates[i];
+      lengths.push(lengths[i - 1] + Math.hypot((bx - ax) * cos, by - ay));
+    }
+    return { ...route, lengths, total: lengths[lengths.length - 1] };
+  });
+  const render = (shares) =>
+    source.setData({
+      type: 'FeatureCollection',
+      features: prepared
+        .map((route, i) =>
+          shares[i] > 0
+            ? { type: 'Feature', properties: { id: route.id, color: route.color }, geometry: { type: 'LineString', coordinates: routeShare(route, shares[i]) } }
+            : null
+        )
+        .filter(Boolean),
+    });
+
+  if (!animate) {
+    render(prepared.map(() => 1));
+    prepared.forEach((route) => onArrive(route.id));
+    return () => {};
+  }
+
+  const STAGGER = 110;
+  const DRAW = 900;
+  const easeOut = (t) => 1 - (1 - t) ** 3;
+  const arrived = new Set();
+  let frame = 0;
+  const start = performance.now() + delay;
+  const tick = (now) => {
+    const shares = prepared.map((route, i) => {
+      const t = Math.min(Math.max((now - start - i * STAGGER) / DRAW, 0), 1);
+      if (t === 1 && !arrived.has(route.id)) {
+        arrived.add(route.id);
+        onArrive(route.id);
+      }
+      return easeOut(t);
+    });
+    render(shares);
+    if (arrived.size < prepared.length) frame = requestAnimationFrame(tick);
+  };
+  frame = requestAnimationFrame(tick);
+  return () => cancelAnimationFrame(frame);
 }
 
 export default maplibregl;

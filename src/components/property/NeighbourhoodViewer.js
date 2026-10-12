@@ -1,11 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { useLenis } from 'lenis/react';
-import { Box, Expand, Map as MapIcon, MapPin, PersonStanding, Share2, X } from 'lucide-react';
+import { Box, Expand, House, Map as MapIcon, MapPin, PersonStanding, Route, Share2, X } from 'lucide-react';
 import { MAP_ID, hasMapsKey, importMapsLibrary } from '@/lib/google-maps';
 import { whatsappShareLink } from '@/lib/contact';
+import { NearbyIcon, nearbyColor } from './nearby';
 
 // Neighbourhood viewer for a property. Two engines, same frame and toolbar:
 // - With a Google Maps key: photorealistic 3D, Street View and a map. Each
@@ -59,6 +61,37 @@ function formatImageDate(value) {
   return new Date(year, month - 1).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
 }
 
+// One nearby place on the free map: its colour and icon, the road distance,
+// and its name while in focus (hover, keyboard or tap). It grows in when its
+// route arrives.
+function NearbyPin({ pin, focused, onFocusChange }) {
+  return (
+    <button
+      type="button"
+      data-shown={pin.shown}
+      aria-label={`${pin.name}, ${pin.km} km by road`}
+      aria-pressed={focused}
+      onPointerEnter={() => onFocusChange(pin.id)}
+      onPointerLeave={() => onFocusChange(null)}
+      onFocus={() => onFocusChange(pin.id)}
+      onBlur={() => onFocusChange(null)}
+      onClick={() => onFocusChange(pin.id)}
+      className={`relative flex cursor-pointer items-center gap-1.5 rounded-full focus-ring transition-[opacity,scale] duration-200 ${EASE} before:absolute before:-inset-2 before:content-[''] data-[shown=false]:pointer-events-none data-[shown=false]:scale-90 data-[shown=false]:opacity-0 motion-reduce:data-[shown=false]:scale-100`}
+    >
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white shadow-md ring-2 ring-white" style={{ background: pin.color }}>
+        <NearbyIcon type={pin.type} className="h-3.5 w-3.5" />
+      </span>
+      <span
+        className={`max-w-[13rem] truncate rounded-full bg-white/95 px-2 py-0.5 text-[11px] font-semibold text-stone-800 shadow-sm tabular-nums ${
+          focused ? '' : 'group-data-[compact=true]/pin:invisible'
+        }`}
+      >
+        {focused ? `${pin.name} · ${pin.km} km` : `${pin.km} km`}
+      </span>
+    </button>
+  );
+}
+
 export default function NeighbourhoodViewer({ property, detail }) {
   const coords = detail.coordinates;
   const approximate = detail.locationPrecision === 'approximate';
@@ -74,12 +107,18 @@ export default function NeighbourhoodViewer({ property, detail }) {
   const [expanded, setExpanded] = useState(false);
   const [streetDate, setStreetDate] = useState(null);
   const [streetMissing, setStreetMissing] = useState(false);
+  const [nearby, setNearby] = useState('off'); // off | loading | on | error (free map only)
+  const [pins, setPins] = useState([]);
+  const [focusedPlace, setFocusedPlace] = useState(null);
+  const [homeElement, setHomeElement] = useState(null);
   // A shared link only changes the button label until the visitor clicks.
   const shared = parseSharedView(useSyncExternalStore(subscribeToNothing, readSearch, readNoSearch));
 
   const layers = useRef({});
   const instances = useRef({});
   const stopOrbit = useRef(null); // free map: ends the fly-in / orbit
+  const mapLib = useRef(null); // free map: the loaded @/lib/maplibre module
+  const nearbyRun = useRef({ routes: null, markers: [], home: null, before: null, cancel: null, declutter: null });
   const shellRef = useRef(null);
   const expandButtonRef = useRef(null);
   const closeButtonRef = useRef(null);
@@ -189,7 +228,9 @@ export default function NeighbourhoodViewer({ property, detail }) {
 
   const createOpen = useCallback(
     async (first, view) => {
-      const { default: maplibregl, loadSiteStyle, showApproximateArea } = await import('@/lib/maplibre');
+      const lib = await import('@/lib/maplibre');
+      const { default: maplibregl, loadSiteStyle, showApproximateArea } = lib;
+      mapLib.current = lib;
       const style = await loadSiteStyle();
       const framing = first === 'map' ? OPEN_FLAT : OPEN_3D;
       const camera = {
@@ -304,8 +345,106 @@ export default function NeighbourhoodViewer({ property, detail }) {
     const map = instances.current.open;
     if (!map) return;
     stopOrbit.current?.();
+    const duration = prefersReducedMotion() ? 0 : 500;
+    if (nearbyRun.current.routes) {
+      // Nearby places on screen: keep the overview, only tilt it.
+      map.easeTo({ pitch: next === 'map' ? 0 : 55, bearing: next === 'map' ? 0 : 20, duration });
+      return;
+    }
     const framing = next === 'map' ? OPEN_FLAT : OPEN_3D;
-    map.easeTo({ ...framing, duration: prefersReducedMotion() ? 0 : 500 });
+    map.easeTo({ center: [coords.lng, coords.lat], ...framing, duration });
+  }
+
+  // ── Nearby places (free map): road routes fan out from the area like a web ──
+  const places = detail.nearby ?? [];
+
+  async function showNearby() {
+    const map = instances.current.open;
+    const lib = mapLib.current;
+    if (!map || !lib) return;
+    setNearby('loading');
+    try {
+      // Saved by scripts/nearby-routes.mjs; fetched only now.
+      const response = await fetch(`/routes/${property.slug}.json`);
+      if (!response.ok) throw new Error(`Routes failed to load (${response.status})`);
+      const saved = (await response.json()).routes ?? [];
+      if (!saved.length) throw new Error('No routes');
+      // Nearest first, so the web grows outward.
+      const routes = [...saved].sort((a, b) => a.km - b.km).map((route, id) => ({ ...route, id, color: nearbyColor(route.type) }));
+      stopOrbit.current?.();
+      const animate = !prefersReducedMotion();
+      lib.addNearbyLayers(map, coords, routes);
+      lib.collapseAttribution(map);
+      // The centre of the web: where the property is.
+      const homeEl = document.createElement('div');
+      const home = new lib.default.Marker({ element: homeEl }).setLngLat([coords.lng, coords.lat]).addTo(map);
+      const markers = routes.map((route) => {
+        const element = document.createElement('div');
+        element.className = 'group/pin';
+        // anchor left + offset: the icon's centre (not the label) sits on the place.
+        const marker = new lib.default.Marker({ element, anchor: 'left', offset: [-14, 0] })
+          .setLngLat(route.coordinates[route.coordinates.length - 1])
+          .addTo(map);
+        return { id: route.id, element, marker };
+      });
+      // Labels that would overlap an icon or a nearer place's label step aside (icon stays,
+      // focus still shows it). Re-run whenever the map settles or pins appear.
+      const declutter = () => {
+        markers.forEach(({ element }) => delete element.dataset.compact);
+        const taken = [homeEl, ...markers.map(({ element }) => element.querySelector('button > span'))]
+          .filter(Boolean)
+          .map((node) => node.getBoundingClientRect());
+        const overlaps = (box) => taken.some((other) => box.left < other.right + 4 && box.right + 4 > other.left && box.top < other.bottom + 4 && box.bottom + 4 > other.top);
+        markers.forEach(({ element }) => {
+          const label = element.querySelector('button > span:last-child');
+          if (!label) return;
+          const box = label.getBoundingClientRect();
+          if (overlaps(box)) element.dataset.compact = 'true';
+          else taken.push(box);
+        });
+      };
+      map.on('moveend', declutter);
+      nearbyRun.current = { routes, markers, home, before: mode, cancel: null, declutter };
+      setHomeElement(homeEl);
+      setPins(markers.map(({ id, element }) => {
+        const route = routes[id];
+        return { id, element, name: route.name, type: route.type, km: route.km, color: route.color, shown: false };
+      }));
+      setMode('map');
+      lib.fitNearby(map, coords, routes, animate ? 900 : 0);
+      nearbyRun.current.cancel = lib.drawNearbyRoutes(map, routes, {
+        animate,
+        delay: animate ? 300 : 0,
+        onArrive: (id) => setPins((current) => current.map((pin) => (pin.id === id ? { ...pin, shown: true } : pin))),
+      });
+      setNearby('on');
+    } catch {
+      clearNearby();
+      setNearby('error');
+    }
+  }
+
+  // Removes the routes and pins; returns the mode that was showing before.
+  function clearNearby() {
+    const run = nearbyRun.current;
+    run.cancel?.();
+    run.markers.forEach(({ marker }) => marker.remove());
+    run.home?.remove();
+    const map = instances.current.open;
+    if (map && run.declutter) map.off('moveend', run.declutter);
+    if (map && mapLib.current) mapLib.current.removeNearbyLayers(map);
+    nearbyRun.current = { routes: null, markers: [], home: null, before: null, cancel: null, declutter: null };
+    setPins([]);
+    setHomeElement(null);
+    setFocusedPlace(null);
+    return run.before;
+  }
+
+  function hideNearby() {
+    const before = clearNearby() ?? mode;
+    setNearby('off');
+    setMode(before);
+    frameOpen(before);
   }
 
   async function explore() {
@@ -351,11 +490,28 @@ export default function NeighbourhoodViewer({ property, detail }) {
     else if (open) open.cooperativeGestures.enable();
   }, [expanded, created]);
 
+  // A place in focus: its route stands out and its pin sits above the others.
+  useEffect(() => {
+    const map = instances.current.open;
+    if (!map || nearby !== 'on') return;
+    mapLib.current?.highlightNearby(map, focusedPlace);
+    nearbyRun.current.markers.forEach(({ id, element }) => {
+      element.style.zIndex = id === focusedPlace ? '2' : '';
+    });
+  }, [focusedPlace, nearby]);
+
+  // Pins just appeared or changed: re-check which labels fit.
+  useEffect(() => {
+    nearbyRun.current.declutter?.();
+  }, [pins]);
+
   // The free map holds a WebGL context; release it when the page goes.
   useEffect(() => {
     const live = instances.current;
+    const run = nearbyRun;
     return () => {
       stopOrbit.current?.();
+      run.current.cancel?.();
       live.open?.remove();
     };
   }, []);
@@ -524,6 +680,27 @@ export default function NeighbourhoodViewer({ property, detail }) {
         </div>
       </div>
 
+      {/* Nearby pins live inside MapLibre's markers; React renders their content. */}
+      {homeElement
+        ? createPortal(
+            <span
+              role="img"
+              aria-label={`${property.title}${approximate ? ', approximate area' : ''}`}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-900 text-white shadow-lg ring-[3px] ring-white"
+            >
+              <House className="h-4 w-4" />
+            </span>,
+            homeElement
+          )
+        : null}
+      {pins.map((pin) =>
+        createPortal(
+          <NearbyPin pin={pin} focused={focusedPlace === pin.id} onFocusChange={setFocusedPlace} />,
+          pin.element,
+          String(pin.id)
+        )
+      )}
+
       {/* Toolbar: outside the stage, so it never covers Google's attribution. */}
       {phase === 'ready' ? (
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -561,7 +738,19 @@ export default function NeighbourhoodViewer({ property, detail }) {
               );
             })}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {engine === 'open' && places.length ? (
+              <button
+                type="button"
+                onClick={nearby === 'on' ? hideNearby : showNearby}
+                aria-pressed={nearby === 'on'}
+                disabled={nearby === 'loading'}
+                className="press inline-flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3.5 py-2 text-xs font-semibold text-stone-900 hover:bg-stone-50 dark:bg-stone-50 dark:hover:bg-stone-100 transition-colors focus-ring disabled:opacity-60 aria-pressed:border-stone-900 aria-pressed:bg-stone-900 aria-pressed:text-white aria-pressed:hover:bg-black dark:aria-pressed:bg-stone-900 dark:aria-pressed:hover:bg-stone-800"
+              >
+                <Route className="w-3.5 h-3.5" />
+                Nearby places
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={share}
@@ -593,6 +782,12 @@ export default function NeighbourhoodViewer({ property, detail }) {
             )}
           </div>
         </div>
+      ) : null}
+      <p aria-live="polite" className="sr-only">
+        {nearby === 'on' ? `Showing road routes to ${pins.length} nearby places.` : ''}
+      </p>
+      {nearby === 'error' ? (
+        <p className="text-xs text-red-600">Couldn&apos;t load the nearby places. Please try again.</p>
       ) : null}
       {engine === 'google' && streetDisabled && phase === 'ready' ? (
         <p className="text-xs text-stone-500">Street View isn&apos;t available here yet.</p>
