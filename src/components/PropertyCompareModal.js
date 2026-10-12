@@ -150,6 +150,33 @@ export default function PropertyCompareModal({
   const activeMobilePropA = compareList[mobileSlotA] || compareList[0];
   const activeMobilePropB = compareList[mobileSlotB] || compareList[1] || compareList[0];
 
+  // Desktop Executive Summary Stats (Fills the left column elegantly)
+  const summaryStats = useMemo(() => {
+    if (compareList.length === 0) return null;
+    const prices = compareList.map((p) => p.priceNum).filter(Boolean);
+    const minP = Math.min(...prices);
+    const maxP = Math.max(...prices);
+    const priceRangeText =
+      minP === maxP
+        ? `₹${minP.toFixed(2)} Cr`
+        : `₹${minP.toFixed(2)} – ₹${maxP.toFixed(2)} Cr`;
+
+    const cities = Array.from(new Set(compareList.map((p) => p.city).filter(Boolean)));
+    const citiesSummary = cities.join(', ');
+
+    const bhks = Array.from(
+      new Set(compareList.map((p) => p.beds?.replace(/[^\d]/g, '')).filter(Boolean))
+    ).sort((a, b) => Number(a) - Number(b));
+    const bhkSummary =
+      bhks.length > 1
+        ? `${bhks[0]} to ${bhks[bhks.length - 1]} BHK`
+        : bhks.length === 1
+        ? `${bhks[0]} BHK`
+        : 'Multiple';
+
+    return { priceRangeText, citiesSummary, bhkSummary };
+  }, [compareList]);
+
   return (
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-6 animate-in fade-in duration-200">
       {/* Backdrop */}
@@ -602,19 +629,81 @@ export default function PropertyCompareModal({
                 <div
                   className="grid gap-4"
                   style={{
-                    gridTemplateColumns: `180px repeat(${compareList.length}, minmax(220px, 1fr)) ${
+                    gridTemplateColumns: `210px repeat(${compareList.length}, minmax(220px, 1fr)) ${
                       compareList.length < 3 ? 'minmax(200px, 1fr)' : ''
                     }`,
                   }}
                 >
-                  {/* Left Column Label */}
-                  <div className="flex flex-col justify-end pb-3 pr-2">
-                    <span className="text-xs font-bold uppercase tracking-wider text-stone-400 block">
-                      Estates Overview
-                    </span>
-                    <span className="text-xs text-stone-500 mt-1">
-                      Side-by-side feature comparison
-                    </span>
+                  {/* Left Column: Executive Overview & Summary Card (Eliminates the empty whitespace) */}
+                  <div className="surface-raised bg-stone-50/80 dark:bg-stone-100/40 rounded-2xl border border-stone-200/90 p-4 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 rounded-xl bg-stone-900 text-white flex items-center justify-center shadow-xs">
+                          <Layers className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block leading-tight">
+                            Shortlist Overview
+                          </span>
+                          <span className="text-xs font-bold text-stone-900 leading-tight">
+                            {compareList.length} Selected Estates
+                          </span>
+                        </div>
+                      </div>
+
+                      <p className="text-[11px] text-stone-500 leading-relaxed mt-2.5">
+                        Side-by-side analysis of carpet area, architectural layout, pricing, and lifestyle amenities.
+                      </p>
+
+                      {/* Summary Metrics Box */}
+                      {summaryStats && (
+                        <div className="mt-3.5 p-2.5 rounded-xl bg-white dark:bg-stone-50/80 border border-stone-200/80 space-y-2 shadow-2xs">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="text-stone-500">Price Range</span>
+                            <span className="font-bold text-stone-950 font-mono text-[11px]">
+                              {summaryStats.priceRangeText}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-stone-100 dark:border-stone-200/60">
+                            <span className="text-stone-500">Bedrooms</span>
+                            <span className="font-semibold text-stone-800 text-[11px]">
+                              {summaryStats.bhkSummary}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-stone-100 dark:border-stone-200/60">
+                            <span className="text-stone-500">Markets</span>
+                            <span
+                              className="font-semibold text-stone-800 text-[10px] truncate max-w-[100px]"
+                              title={summaryStats.citiesSummary}
+                            >
+                              {summaryStats.citiesSummary}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Differences Toggle Button inside Overview Card */}
+                    <div className="mt-3.5 pt-2.5 border-t border-stone-200/70">
+                      <button
+                        type="button"
+                        onClick={() => setHighlightDifferences((prev) => !prev)}
+                        className={`w-full py-2 px-2.5 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs ${
+                          highlightDifferences
+                            ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 text-amber-800 dark:text-amber-300'
+                            : 'bg-white dark:bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
+                        }`}
+                      >
+                        {highlightDifferences ? (
+                          <Eye className="w-3.5 h-3.5 text-amber-600" />
+                        ) : (
+                          <EyeOff className="w-3.5 h-3.5 text-stone-400" />
+                        )}
+                        <span className="text-[11px]">
+                          {highlightDifferences ? 'Differences Highlighted' : 'Highlight Differences'}
+                        </span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Property Cards */}
@@ -805,7 +894,7 @@ export default function PropertyCompareModal({
                               : 'hover:bg-stone-50/60'
                           }`}
                           style={{
-                            gridTemplateColumns: `180px repeat(${compareList.length}, minmax(220px, 1fr)) ${
+                            gridTemplateColumns: `210px repeat(${compareList.length}, minmax(220px, 1fr)) ${
                               compareList.length < 3 ? 'minmax(200px, 1fr)' : ''
                             }`,
                           }}
@@ -878,7 +967,7 @@ export default function PropertyCompareModal({
                               : 'hover:bg-stone-50/60'
                           }`}
                           style={{
-                            gridTemplateColumns: `180px repeat(${compareList.length}, minmax(220px, 1fr)) ${
+                            gridTemplateColumns: `210px repeat(${compareList.length}, minmax(220px, 1fr)) ${
                               compareList.length < 3 ? 'minmax(200px, 1fr)' : ''
                             }`,
                           }}
@@ -915,7 +1004,7 @@ export default function PropertyCompareModal({
                               : 'hover:bg-stone-50/60'
                           }`}
                           style={{
-                            gridTemplateColumns: `180px repeat(${compareList.length}, minmax(220px, 1fr)) ${
+                            gridTemplateColumns: `210px repeat(${compareList.length}, minmax(220px, 1fr)) ${
                               compareList.length < 3 ? 'minmax(200px, 1fr)' : ''
                             }`,
                           }}
