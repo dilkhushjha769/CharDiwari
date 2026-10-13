@@ -59,8 +59,17 @@ export function EnquiryCard({ property }) {
       <div className="flex items-start justify-between">
         <div>
           <p className="font-mono text-[10px] tracking-[0.14em] uppercase text-stone-500">Price</p>
-          <p className="mt-1 font-serif text-3xl font-bold text-stone-900 tabular-nums">{property.price}</p>
-          <p className="mt-1 text-xs text-stone-500">or {property.rentPrice} to rent</p>
+          <div className="flex items-baseline gap-2 flex-wrap">
+            <p className="mt-1 font-serif text-3xl font-bold text-stone-900 tabular-nums">{property.price}</p>
+            {property.is_negotiable && (
+              <span className="px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[10px] font-semibold text-amber-800">
+                Negotiable
+              </span>
+            )}
+          </div>
+          {property.rentPrice && !property.price_on_demand && (
+            <p className="mt-1 text-xs text-stone-500">or {property.rentPrice} to rent</p>
+          )}
         </div>
         <SavePropertyButton property={property} />
       </div>

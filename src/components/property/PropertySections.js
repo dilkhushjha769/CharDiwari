@@ -132,6 +132,13 @@ export function Location({ property, detail }) {
 
 // Answers come from the listing itself, so they never drift from the page.
 export function propertyFaqs(property, detail) {
+  if (property.faqs && Array.isArray(property.faqs) && property.faqs.length > 0) {
+    return property.faqs;
+  }
+  if (detail?.faqs && Array.isArray(detail.faqs) && detail.faqs.length > 0) {
+    return detail.faqs;
+  }
+
   return [
     {
       question: `What is the price of ${property.title}?`,

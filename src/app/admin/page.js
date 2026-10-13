@@ -758,14 +758,13 @@ export default function AdminPage() {
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${loadingProps ? 'animate-spin' : ''}`} />
                 </button>
-                <button
-                  type="button"
-                  onClick={handleOpenNewProperty}
+                <Link
+                  href="/admin/properties/new"
                   className="px-4 py-2.5 bg-stone-900 hover:bg-black text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition shadow-xs cursor-pointer shrink-0"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add New Property</span>
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -873,14 +872,13 @@ export default function AdminPage() {
                           </Link>
 
                           <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => handleEditProperty(prop)}
+                            <Link
+                              href={`/admin/properties/new?id=${prop.id}`}
                               className="px-3 py-1.5 rounded-xl border border-stone-200 hover:border-stone-900 bg-white text-stone-800 text-xs font-semibold flex items-center gap-1 transition cursor-pointer shadow-xs"
                             >
                               <Edit className="w-3 h-3 text-stone-600" />
                               <span>Edit</span>
-                            </button>
+                            </Link>
 
                             <button
                               type="button"

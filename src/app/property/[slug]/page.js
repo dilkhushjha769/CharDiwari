@@ -34,7 +34,17 @@ async function load(params) {
   const { slug } = await params;
   const property = await getLiveProperty(slug);
   if (!property) notFound();
-  return { property, detail: propertyDetail(slug) };
+  const staticDetail = propertyDetail(slug) || {};
+  const detail = {
+    ...staticDetail,
+    ...(property.detail || {}),
+    coordinates: property.coordinates || property.detail?.coordinates || staticDetail.coordinates || null,
+    highlights: (property.highlights?.length ? property.highlights : staticDetail.highlights) || [],
+    amenities: (property.amenities?.length ? property.amenities : staticDetail.amenities) || [],
+    nearby: (property.nearby?.length ? property.nearby : staticDetail.nearby) || [],
+    faqs: property.faqs?.length ? property.faqs : (staticDetail.faqs || null),
+  };
+  return { property, detail };
 }
 
 export async function generateMetadata({ params }) {

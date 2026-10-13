@@ -304,10 +304,10 @@ export async function saveAdminProperty(propertyData) {
         type: cleanProperty.type || 'Luxury Villa & Estate',
         possession: cleanProperty.possession || 'Ready to Move',
         builder: cleanProperty.builder || '',
-        price: cleanProperty.price || '',
-        price_num: cleanProperty.priceNum || 0,
-        rent_price: cleanProperty.rentPrice || '',
-        rent_price_num: cleanProperty.rentPriceNum || 0,
+        price: cleanProperty.price_on_demand ? 'Price on Request' : (cleanProperty.price || ''),
+        price_num: cleanProperty.priceNum || cleanProperty.price_num || 0,
+        rent_price: cleanProperty.rentPrice || cleanProperty.rent_price || '',
+        rent_price_num: cleanProperty.rentPriceNum || cleanProperty.rent_price_num || 0,
         mode: cleanProperty.mode || 'both',
         beds: cleanProperty.beds || '',
         bhk: cleanProperty.bhk || '',
@@ -315,22 +315,114 @@ export async function saveAdminProperty(propertyData) {
         area: cleanProperty.area || '',
         image: cleanProperty.image || '',
         video_url: cleanProperty.video_url || cleanProperty.videoUrl || '',
+        media_gallery: cleanProperty.media_gallery || cleanProperty.gallery || [],
         description: cleanProperty.description || '',
         status: cleanProperty.status || 'published',
         is_deleted: false,
+        faqs: cleanProperty.faqs || [],
+        nearby: cleanProperty.nearby || [],
+        coordinates: cleanProperty.coordinates || { lat: 28.4595, lng: 77.0266 },
+        amenities: cleanProperty.amenities || [],
+        highlights: cleanProperty.highlights || [],
+        is_negotiable: Boolean(cleanProperty.is_negotiable),
+        price_on_demand: Boolean(cleanProperty.price_on_demand),
+        carpet_area: cleanProperty.carpet_area || '',
+        super_area: cleanProperty.super_area || '',
+        furnishing: cleanProperty.furnishing || '',
+        facing: cleanProperty.facing || '',
+        floor_info: cleanProperty.floor_info || '',
+        parking: cleanProperty.parking || '',
+        rera_id: cleanProperty.rera_id || '',
+        virtual_tour_url: cleanProperty.virtual_tour_url || '',
+        brochure_url: cleanProperty.brochure_url || '',
+        maintenance_charges: cleanProperty.maintenance_charges || '',
+        booking_amount: cleanProperty.booking_amount || '',
+        min_images_required: cleanProperty.min_images_required || 3,
       };
 
       if (isEdit) {
-        const { error } = await supabase
+        let { error } = await supabase
           .from('properties')
           .update(supabasePayload)
           .eq('id', id);
-        if (!error) savedToSupabase = true;
+        
+        // If advanced columns don't exist yet in Supabase, retry with basic payload
+        if (error) {
+          const basicPayload = {
+            title: supabasePayload.title,
+            slug: supabasePayload.slug,
+            tag: supabasePayload.tag,
+            badge: supabasePayload.badge,
+            location: supabasePayload.location,
+            locality: supabasePayload.locality,
+            city: supabasePayload.city,
+            state: supabasePayload.state,
+            type: supabasePayload.type,
+            possession: supabasePayload.possession,
+            builder: supabasePayload.builder,
+            price: supabasePayload.price,
+            price_num: supabasePayload.price_num,
+            rent_price: supabasePayload.rent_price,
+            rent_price_num: supabasePayload.rent_price_num,
+            mode: supabasePayload.mode,
+            beds: supabasePayload.beds,
+            bhk: supabasePayload.bhk,
+            baths: supabasePayload.baths,
+            area: supabasePayload.area,
+            image: supabasePayload.image,
+            video_url: supabasePayload.video_url,
+            description: supabasePayload.description,
+            status: supabasePayload.status,
+            is_deleted: false,
+          };
+          const fallbackRes = await supabase
+            .from('properties')
+            .update(basicPayload)
+            .eq('id', id);
+          if (!fallbackRes.error) savedToSupabase = true;
+        } else {
+          savedToSupabase = true;
+        }
       } else {
-        const { error } = await supabase
+        let { error } = await supabase
           .from('properties')
           .insert([supabasePayload]);
-        if (!error) savedToSupabase = true;
+        
+        if (error) {
+          const basicPayload = {
+            title: supabasePayload.title,
+            slug: supabasePayload.slug,
+            tag: supabasePayload.tag,
+            badge: supabasePayload.badge,
+            location: supabasePayload.location,
+            locality: supabasePayload.locality,
+            city: supabasePayload.city,
+            state: supabasePayload.state,
+            type: supabasePayload.type,
+            possession: supabasePayload.possession,
+            builder: supabasePayload.builder,
+            price: supabasePayload.price,
+            price_num: supabasePayload.price_num,
+            rent_price: supabasePayload.rent_price,
+            rent_price_num: supabasePayload.rent_price_num,
+            mode: supabasePayload.mode,
+            beds: supabasePayload.beds,
+            bhk: supabasePayload.bhk,
+            baths: supabasePayload.baths,
+            area: supabasePayload.area,
+            image: supabasePayload.image,
+            video_url: supabasePayload.video_url,
+            description: supabasePayload.description,
+            status: supabasePayload.status,
+            is_deleted: false,
+          };
+          const fallbackRes = await supabase
+            .from('properties')
+            .insert([basicPayload]);
+          if (!fallbackRes.error) savedToSupabase = true;
+        } else {
+          savedToSupabase = true;
+        }
       }
     } catch (err) {
       console.warn('Supabase property sync note:', err.message);
@@ -411,12 +503,24 @@ export async function getLiveProperty(slug) {
   const merged = { ...baseStatic, ...(found || {}) };
   const rawVideo = merged.video_url || merged.videoUrl || baseStatic.video_url || baseStatic.videoUrl || null;
 
+  const isPriceOnDemand = Boolean(merged.price_on_demand || merged.priceOnDemand);
+  const isNegotiable = Boolean(merged.is_negotiable || merged.isNegotiable);
+
   return {
     ...merged,
+    price: isPriceOnDemand ? 'Price on Request' : merged.price,
+    price_on_demand: isPriceOnDemand,
+    is_negotiable: isNegotiable,
     video_url: rawVideo,
     videoUrl: rawVideo,
     priceNum: merged.priceNum || merged.price_num || baseStatic.priceNum || 0,
     rentPrice: merged.rentPrice || merged.rent_price || baseStatic.rentPrice || '',
     rentPriceNum: merged.rentPriceNum || merged.rent_price_num || baseStatic.rentPriceNum || 0,
+    gallery: merged.media_gallery || merged.gallery || [],
+    faqs: merged.faqs || [],
+    nearby: merged.nearby || [],
+    coordinates: merged.coordinates || null,
+    amenities: merged.amenities || [],
+    highlights: merged.highlights || [],
   };
 }

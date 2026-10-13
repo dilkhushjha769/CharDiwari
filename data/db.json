@@ -300,5 +300,41 @@
       "isDeleted": false,
       "createdAt": "2026-01-25T10:00:00.000Z"
     }
+  ],
+  "userActivity": [
+    {
+      "id": "act_1791869917051_e096y",
+      "user_id": "261c23dc-7877-471f-8e79-39483ac4d15f",
+      "visitor_id": "vid_1791837326330_3834d79b16ac4ee2",
+      "activity_type": "view",
+      "property_id": 2,
+      "property_slug": "the-mountain-villa",
+      "property_title": "The Mountain Villa",
+      "property_location": "Pine Ridge, Kasauli Hills",
+      "property_price": "₹6.20 Cr",
+      "property_image": "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80",
+      "category_name": "Luxury Villa & Estate",
+      "contact_method": "",
+      "metadata": {},
+      "created_at": "2026-10-13T05:38:36.453Z",
+      "updated_at": "2026-10-13T07:51:04.481Z"
+    },
+    {
+      "id": "act_1791869916446_baubk",
+      "user_id": "261c23dc-7877-471f-8e79-39483ac4d15f",
+      "visitor_id": "vid_1791837326330_3834d79b16ac4ee2",
+      "activity_type": "view",
+      "property_id": 1,
+      "property_slug": "the-courtyard-villa",
+      "property_title": "The Courtyard Villa",
+      "property_location": "Golf Course Extension, Gurugram",
+      "property_price": "₹4.80 Cr",
+      "property_image": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+      "category_name": "Luxury Villa & Estate",
+      "contact_method": "",
+      "metadata": {},
+      "created_at": "2026-10-13T05:38:35.710Z",
+      "updated_at": "2026-10-13T07:51:05.352Z"
+    }
   ]
 }

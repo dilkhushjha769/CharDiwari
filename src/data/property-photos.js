@@ -32,6 +32,19 @@ export function propertyPhotos(property, detail) {
     alt: `${property.title}, ${property.location}`,
     representative: false,
   };
+
+  const customGallery = (property.gallery || property.media_gallery || [])
+    .filter((item) => {
+      const url = typeof item === 'string' ? item : item?.url;
+      return url && url !== property.image;
+    })
+    .map((item, idx) => ({
+      src: typeof item === 'string' ? item : item.url,
+      caption: typeof item === 'object' && item.caption ? item.caption : `${property.title} - View ${idx + 2}`,
+      alt: typeof item === 'object' && item.alt ? item.alt : `${property.title} photo`,
+      representative: false,
+    }));
+
   const representative = [
     ...(detail.amenities ?? []).map((id) => amenityPhotos[id]).filter(Boolean),
     ...interiors,
@@ -40,5 +53,5 @@ export function propertyPhotos(property, detail) {
     alt: `Representative photo, not of ${property.title}: ${photo.caption.toLowerCase()}`,
     representative: true,
   }));
-  return [listing, ...representative];
+  return [listing, ...customGallery, ...representative];
 }

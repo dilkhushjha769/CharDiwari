@@ -179,6 +179,34 @@ export function captureEvent(eventName, properties = {}) {
     const isAnon = !currentAuthenticatedUserId;
     const anonId = ph?.get_distinct_id?.() || 'anon';
 
+    // Detect client device, OS, and browser
+    let deviceType = 'Desktop';
+    let osName = 'Windows';
+    let browserName = 'Chrome';
+    let screenRes = '';
+
+    if (typeof window !== 'undefined') {
+      const ua = navigator.userAgent || '';
+      const isMobile = /mobile|iphone|ipod|android.*mobile|windows phone/i.test(ua);
+      const isTablet = /ipad|tablet|android(?!.*mobile)/i.test(ua);
+      deviceType = isTablet ? 'Tablet' : isMobile ? 'Mobile' : 'Desktop';
+
+      if (/windows/i.test(ua)) osName = 'Windows';
+      else if (/iphone|ipad|ipod/i.test(ua)) osName = 'iOS';
+      else if (/macintosh|mac os x/i.test(ua)) osName = 'macOS';
+      else if (/android/i.test(ua)) osName = 'Android';
+      else if (/linux/i.test(ua)) osName = 'Linux';
+
+      if (/edg\//i.test(ua)) browserName = 'Edge';
+      else if (/chrome|crios/i.test(ua)) browserName = 'Chrome';
+      else if (/safari/i.test(ua) && !/chrome|crios/i.test(ua)) browserName = 'Safari';
+      else if (/firefox|fxios/i.test(ua)) browserName = 'Firefox';
+
+      if (window.screen) {
+        screenRes = `${window.screen.width}x${window.screen.height}`;
+      }
+    }
+
     // Attach non-sensitive environment metadata
     const cleanProps = {
       ...properties,
@@ -186,6 +214,13 @@ export function captureEvent(eventName, properties = {}) {
       user_status: isAnon ? 'anonymous' : 'authenticated',
       page_path: typeof window !== 'undefined' ? window.location.pathname : '',
       $current_url: typeof window !== 'undefined' ? window.location.href : '',
+      $device_type: deviceType,
+      $os: osName,
+      $browser: browserName,
+      device_type: deviceType,
+      os_name: osName,
+      browser_name: browserName,
+      screen_resolution: screenRes,
     };
 
     // 1. Dispatch to PostHog
@@ -200,6 +235,10 @@ export function captureEvent(eventName, properties = {}) {
       timestamp: new Date().toISOString(),
       properties: cleanProps,
       visitorId: anonId ? anonId.slice(0, 8) : 'anon',
+      deviceType,
+      os: osName,
+      browser: browserName,
+      screen: screenRes,
     };
     recordLocalEvent(record);
 
