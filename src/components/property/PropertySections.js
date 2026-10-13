@@ -1,5 +1,4 @@
 import {
-  ArrowUpRight,
   Baby,
   Building2,
   Camera,
@@ -9,15 +8,12 @@ import {
   Dumbbell,
   Flower2,
   Footprints,
-  MapPin,
   ShieldCheck,
   Sparkles,
   Waves,
   Zap,
 } from 'lucide-react';
-import NeighbourhoodViewer from './NeighbourhoodViewer';
-import CommuteCheck from './CommuteCheck';
-import { NearbyIcon, nearbyColor } from './nearby';
+import PropertyLocationSection from './PropertyLocationSection';
 
 // One section of the property page. scroll-mt clears the sticky navbar (65px)
 // and section nav (48px); min-w-0 keeps wide content from widening the page.
@@ -87,47 +83,7 @@ export function Amenities({ amenities }) {
 }
 
 export function Location({ property, detail }) {
-  const nearby = [...(detail.nearby ?? [])].sort((a, b) => a.km - b.km);
-  return (
-    <div className="grid gap-4">
-      {/* 3D and map (plus Street View with a Google key); loads only when the visitor asks. */}
-      <NeighbourhoodViewer property={property} detail={detail} />
-      <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-        <div className="grid content-start gap-4">
-          <div className="rounded-3xl border border-stone-200/90 bg-stone-50/70 p-6">
-            <p className="flex items-start gap-2 text-sm font-semibold text-stone-900">
-              <MapPin className="mt-0.5 w-4 h-4 shrink-0 text-stone-500" />
-              {property.location}
-            </p>
-            <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${property.title}, ${property.location}`)}`}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-white border border-stone-200 px-4 py-2 text-xs font-semibold text-stone-900 shadow-sm hover:bg-stone-900 hover:text-white dark:hover:bg-stone-200 dark:hover:text-stone-900 transition-colors focus-ring"
-            >
-              Directions on Google Maps
-              <ArrowUpRight className="w-3.5 h-3.5" />
-            </a>
-          </div>
-          <CommuteCheck detail={detail} />
-        </div>
-        {nearby.length ? (
-          <ul className="divide-y divide-stone-100 rounded-3xl border border-stone-200/90 bg-white dark:bg-stone-50 shadow-sm">
-            {nearby.map((place) => {
-              return (
-                <li key={place.name} className="flex items-center gap-3 px-5 py-3.5 text-sm">
-                  {/* Same colour as this place's route on the map. */}
-                  <NearbyIcon type={place.type} className="w-4 h-4 shrink-0" style={{ color: nearbyColor(place.type) }} />
-                  <span className="flex-1 text-stone-800">{place.name}</span>
-                  <span className="text-xs font-semibold text-stone-500 tabular-nums">{place.km} km by road</span>
-                </li>
-              );
-            })}
-          </ul>
-        ) : null}
-      </div>
-    </div>
-  );
+  return <PropertyLocationSection property={property} detail={detail} />;
 }
 
 // Answers come from the listing itself, so they never drift from the page.

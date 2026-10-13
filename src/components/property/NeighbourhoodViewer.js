@@ -7,9 +7,18 @@ import { useLenis } from 'lenis/react';
 import { Box, Expand, House, Map as MapIcon, MapPin, PersonStanding, Route, Share2, X } from 'lucide-react';
 import { MAP_ID, hasMapsKey, importMapsLibrary } from '@/lib/google-maps';
 import { whatsappShareLink } from '@/lib/contact';
-import { NearbyIcon, nearbyColor } from './nearby';
+import { NearbyIcon, nearbyColor, getNearbyIconSvg } from './nearby';
 import NearbyPlacesPanel, { PLACE_CATEGORIES } from './NearbyPlacesPanel';
 import { trackPropertyMapInteracted } from '@/lib/analytics';
+
+function escapeHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 // Neighbourhood viewer for a property. Two engines, same frame and toolbar:
 // - With a Google Maps key: photorealistic 3D, Street View and a map. Each
@@ -106,7 +115,14 @@ function NearbyPin({ pin, focused, onFocusChange }) {
   );
 }
 
-export default function NeighbourhoodViewer({ property, detail }) {
+export default function NeighbourhoodViewer({
+  property,
+  detail,
+  selectedPlaceName = null,
+  hoveredPlaceName = null,
+  onSelectPlace,
+  onHoverPlace,
+}) {
   const [coords, setCoords] = useState(detail.coordinates ?? null);
   const [geocoding, setGeocoding] = useState(!detail.coordinates);
   const [geocodeFailed, setGeocodeFailed] = useState(false);
@@ -145,6 +161,13 @@ export default function NeighbourhoodViewer({ property, detail }) {
   const googlePlaceMarkers                    = useRef([]); // AdvancedMarkerElement[] or Marker3DElement[]
   const currentPlacesRef                      = useRef([]);
   const currentCatRef                         = useRef(null);
+
+  const nearbyMarkersRef = useRef({});
+  const infoWindowRef    = useRef(null);
+  const selectedPlaceRef = useRef(selectedPlaceName);
+  useEffect(() => {
+    selectedPlaceRef.current = selectedPlaceName;
+  }, [selectedPlaceName]);
 
   const layers = useRef({});
   const instances = useRef({});
@@ -271,7 +294,10 @@ export default function NeighbourhoodViewer({ property, detail }) {
 
   useEffect(() => {
     if (coords && engine === 'google') {
-      checkStreetViewCoverage(coords);
+      const timer = setTimeout(() => {
+        checkStreetViewCoverage(coords);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [coords, engine, checkStreetViewCoverage]);
 
@@ -294,6 +320,30 @@ export default function NeighbourhoodViewer({ property, detail }) {
       map.style.width = '100%';
       map.style.height = '100%';
       map.append(new Marker3DElement({ position: { lat: coords.lat, lng: coords.lng }, label: approximate ? `${property.title} (area)` : property.title }));
+
+      // Add 3D markers for all nearby places
+      const nearbyPlaces = detail.nearby ?? [];
+      nearbyPlaces.forEach((place) => {
+        if (!place.lat || !place.lng) return;
+        const m3d = new Marker3DElement({
+          position: { lat: place.lat, lng: place.lng, altitude: 0 },
+          label: `${place.name} (${place.km} km)`,
+        });
+        m3d.addEventListener('gmp-click', () => {
+          map.flyCameraTo({
+            endCamera: {
+              center: { lat: place.lat, lng: place.lng, altitude: 0 },
+              range: 500,
+              tilt: 60,
+              heading: 25,
+            },
+            durationMillis: 1800,
+          });
+          onSelectPlace?.(place.name);
+        });
+        map.append(m3d);
+      });
+
       layers.current['3d'].append(map);
       instances.current['3d'] = map;
 
@@ -322,7 +372,7 @@ export default function NeighbourhoodViewer({ property, detail }) {
         map.addEventListener('gmp-steadychange', startWhenSteady);
       }
     },
-    [approximate, center, coords, property.title]
+    [approximate, center, coords, detail.nearby, onSelectPlace, property.title]
   );
 
   const createStreet = useCallback(
@@ -395,7 +445,7 @@ export default function NeighbourhoodViewer({ property, detail }) {
 
   const createMap = useCallback(
     async (view) => {
-      const [{ Map, Circle }, { AdvancedMarkerElement, PinElement }] = await Promise.all([
+      const [{ Map, Circle, InfoWindow }, { AdvancedMarkerElement, PinElement }] = await Promise.all([
         importMapsLibrary('maps'),
         importMapsLibrary('marker'),
       ]);
@@ -438,9 +488,141 @@ export default function NeighbourhoodViewer({ property, detail }) {
         });
       }
 
+      // Shared InfoWindow for nearby place popups
+      const infoWindow = new InfoWindow();
+      infoWindowRef.current = infoWindow;
+
+      // Clean up any previously registered markers
+      Object.values(nearbyMarkersRef.current).forEach(({ marker }) => {
+        if (marker) marker.map = null;
+      });
+      nearbyMarkersRef.current = {};
+
+      const nearbyPlaces = detail.nearby ?? [];
+      const bounds = new window.google.maps.LatLngBounds();
+      bounds.extend({ lat: coords.lat, lng: coords.lng });
+      let hasNearbyCoords = false;
+
+      // Render each nearby place with its category color label
+      nearbyPlaces.forEach((place) => {
+        if (!place.lat || !place.lng) return;
+        hasNearbyCoords = true;
+        bounds.extend({ lat: place.lat, lng: place.lng });
+
+        const color = nearbyColor(place.type);
+        const iconSvg = getNearbyIconSvg(place.type);
+
+        const pill = document.createElement('div');
+        pill.className = 'nearby-place-pill';
+        pill.setAttribute('data-place', place.name);
+        pill.style.cssText = `
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 4px 10px 4px 5px;
+          background: rgba(255, 255, 255, 0.98);
+          backdrop-filter: blur(8px);
+          border-radius: 9999px;
+          border: 1.5px solid ${color};
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.08);
+          cursor: pointer;
+          transform: translateZ(0);
+          transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          user-select: none;
+          white-space: nowrap;
+          pointer-events: auto;
+        `;
+
+        pill.innerHTML = `
+          <span style="display: flex; width: 22px; height: 22px; border-radius: 9999px; background: ${color}; color: #ffffff; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 4px ${color}66;">
+            ${iconSvg}
+          </span>
+          <span style="display: flex; flex-direction: column; align-items: flex-start; line-height: 1.15; padding-right: 2px;">
+            <span style="font-size: 11px; font-weight: 700; color: #1c1917; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              ${escapeHtml(place.name)}
+            </span>
+            <span style="font-size: 9.5px; font-weight: 600; color: ${color};">
+              ${place.km} km by road
+            </span>
+          </span>
+        `;
+
+        const marker = new AdvancedMarkerElement({
+          map,
+          position: { lat: place.lat, lng: place.lng },
+          title: `${place.name} (${place.km} km)`,
+          content: pill,
+        });
+
+        pill.addEventListener('mouseenter', () => {
+          pill.style.transform = 'scale(1.08)';
+          pill.style.boxShadow = `0 6px 18px rgba(0,0,0,0.22), 0 0 0 2px ${color}`;
+          pill.style.zIndex = '50';
+          onHoverPlace?.(place.name);
+        });
+
+        pill.addEventListener('mouseleave', () => {
+          if (selectedPlaceRef.current !== place.name) {
+            pill.style.transform = 'scale(1)';
+            pill.style.boxShadow = '0 4px 14px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.08)';
+            pill.style.zIndex = '10';
+          }
+          onHoverPlace?.(null);
+        });
+
+        const showInfo = () => {
+          map.panTo({ lat: place.lat, lng: place.lng });
+          if (map.getZoom() < 14) map.setZoom(14);
+          infoWindow.setContent(`
+            <div style="font-family: inherit; padding: 4px 2px; max-width: 240px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <span style="display: flex; width: 22px; height: 22px; border-radius: 9999px; background: ${color}; color: #ffffff; align-items: center; justify-content: center; flex-shrink: 0;">
+                  ${iconSvg}
+                </span>
+                <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: ${color};">
+                  ${escapeHtml(place.type)}
+                </span>
+              </div>
+              <h4 style="font-size: 13.5px; font-weight: 700; color: #1c1917; margin: 0 0 4px 0; line-height: 1.3;">
+                ${escapeHtml(place.name)}
+              </h4>
+              <p style="font-size: 11.5px; color: #78716c; margin: 0 0 10px 0;">
+                <strong style="color: #1c1917;">${place.km} km by road</strong> from ${escapeHtml(property.title)}
+              </p>
+              <a href="https://www.google.com/maps/dir/?api=1&origin=${coords.lat},${coords.lng}&destination=${place.lat},${place.lng}"
+                 target="_blank" rel="noopener noreferrer"
+                 style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 11px; border-radius: 9999px; background: #1c1917; color: #ffffff; font-size: 11px; font-weight: 600; text-decoration: none;">
+                Get Directions &rarr;
+              </a>
+            </div>
+          `);
+          infoWindow.open({ anchor: marker, map });
+          onSelectPlace?.(place.name);
+        };
+
+        marker.addListener('gmp-click', showInfo);
+
+        nearbyMarkersRef.current[place.name] = {
+          marker,
+          container: pill,
+          place,
+          showInfo,
+        };
+      });
+
+      // Fit bounds so the property and all nearby places fit comfortably in the frame
+      if (hasNearbyCoords && !view) {
+        map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
+        window.google.maps.event.addListenerOnce(map, 'idle', () => {
+          if (map.getZoom() > 15) {
+            map.setZoom(15);
+          }
+        });
+      }
+
       instances.current.map = map;
     },
-    [approximate, coords, property.title]
+    [approximate, coords, detail.nearby, onHoverPlace, onSelectPlace, property.title]
   );
 
   const createOpen = useCallback(
@@ -786,7 +968,7 @@ export default function NeighbourhoodViewer({ property, detail }) {
     [mode, renderGoogleMarkers]
   );
 
-  async function explore() {
+  const explore = useCallback(async () => {
     setPhase('loading');
     const view = shared;
     const first = view?.mode === 'street' && streetDisabled ? startMode : view?.mode ?? startMode;
@@ -805,7 +987,7 @@ export default function NeighbourhoodViewer({ property, detail }) {
       return;
     }
     setPhase('error');
-  }
+  }, [ensureMode, shared, startMode, streetDisabled]);
 
   async function switchTo(next) {
     if (next === mode) return;
@@ -870,6 +1052,52 @@ export default function NeighbourhoodViewer({ property, detail }) {
       clearGooglePlaceMarkers();
     }
   }, [activeCategory]);
+
+  // Synchronize selection from nearby places list with map markers
+  useEffect(() => {
+    if (!selectedPlaceName) return;
+    if (phase === 'idle') {
+      const timer = setTimeout(() => {
+        explore();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+    const item = nearbyMarkersRef.current[selectedPlaceName];
+    if (item && instances.current.map) {
+      item.showInfo();
+    }
+    Object.values(nearbyMarkersRef.current).forEach(({ container, place }) => {
+      const isSel = place.name === selectedPlaceName;
+      const cColor = nearbyColor(place.type);
+      container.style.transform = isSel ? 'scale(1.15)' : 'scale(1)';
+      container.style.boxShadow = isSel
+        ? `0 8px 24px rgba(0,0,0,0.28), 0 0 0 3px ${cColor}`
+        : '0 4px 14px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.08)';
+      container.style.zIndex = isSel ? '100' : '10';
+    });
+  }, [selectedPlaceName, phase, explore]);
+
+  // Synchronize hover state between nearby places list and map markers
+  useEffect(() => {
+    Object.values(nearbyMarkersRef.current).forEach(({ container, place }) => {
+      const isSelected = place.name === selectedPlaceName;
+      const isHovered = place.name === hoveredPlaceName;
+      const cColor = nearbyColor(place.type);
+      if (isSelected) {
+        container.style.transform = 'scale(1.15)';
+        container.style.boxShadow = `0 8px 24px rgba(0,0,0,0.28), 0 0 0 3px ${cColor}`;
+        container.style.zIndex = '100';
+      } else if (isHovered) {
+        container.style.transform = 'scale(1.08)';
+        container.style.boxShadow = `0 6px 18px rgba(0,0,0,0.22), 0 0 0 2px ${cColor}`;
+        container.style.zIndex = '50';
+      } else {
+        container.style.transform = 'scale(1)';
+        container.style.boxShadow = '0 4px 14px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.08)';
+        container.style.zIndex = '10';
+      }
+    });
+  }, [hoveredPlaceName, selectedPlaceName]);
 
   // The free map holds a WebGL context; release it when the page goes.
   useEffect(() => {

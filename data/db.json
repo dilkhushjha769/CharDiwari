@@ -298,10 +298,85 @@
       "description": "Bespoke modern 2 BHK apartment in prime Sarabha Nagar with open modular kitchen, wide balconies, and smart home fittings.",
       "status": "published",
       "isDeleted": false,
-      "createdAt": "2026-01-25T10:00:00.000Z"
+      "createdAt": "2026-01-25T10:00:00.000Z",
+      "coordinates": {
+        "lat": 30.8872,
+        "lng": 75.8166
+      },
+      "nearby": [
+        {
+          "type": "school",
+          "name": "Sacred Heart Convent School",
+          "km": 1.8,
+          "lat": 30.8856,
+          "lng": 75.8198
+        },
+        {
+          "type": "mall",
+          "name": "MBD Neopolis Mall",
+          "km": 2.1,
+          "lat": 30.8837,
+          "lng": 75.8055
+        },
+        {
+          "type": "hospital",
+          "name": "Dayanand Medical College & Hospital",
+          "km": 4.5,
+          "lat": 30.9065,
+          "lng": 75.8364
+        },
+        {
+          "type": "railway",
+          "name": "Ludhiana Junction Railway Station",
+          "km": 6.2,
+          "lat": 30.9123,
+          "lng": 75.8544
+        },
+        {
+          "type": "airport",
+          "name": "Sahnewal Airport",
+          "km": 16,
+          "lat": 30.8544,
+          "lng": 75.9555
+        }
+      ]
     }
   ],
   "userActivity": [
+    {
+      "id": "act_1791914810943_tcl8h",
+      "user_id": null,
+      "visitor_id": "vid_1791913969163_e47e24ad96384854",
+      "activity_type": "view",
+      "property_id": 7,
+      "property_slug": "the-imperial-heights",
+      "property_title": "The Imperial Heights",
+      "property_location": "Sarabha Nagar, Ludhiana",
+      "property_price": "₹1.85 Cr",
+      "property_image": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80",
+      "category_name": "Architectural Apartment",
+      "contact_method": "",
+      "metadata": {},
+      "created_at": "2026-10-13T18:06:50.425Z",
+      "updated_at": "2026-10-13T18:06:50.425Z"
+    },
+    {
+      "id": "act_1791914066585_pbl2m",
+      "user_id": "261c23dc-7877-471f-8e79-39483ac4d15f",
+      "visitor_id": "vid_1791914044144_2bcf934895df4049",
+      "activity_type": "view",
+      "property_id": 7,
+      "property_slug": "the-imperial-heights",
+      "property_title": "The Imperial Heights",
+      "property_location": "Sarabha Nagar, Ludhiana",
+      "property_price": "₹1.85 Cr",
+      "property_image": "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80",
+      "category_name": "Architectural Apartment",
+      "contact_method": "",
+      "metadata": {},
+      "created_at": "2026-10-13T17:54:26.074Z",
+      "updated_at": "2026-10-13T18:15:41.914Z"
+    },
     {
       "id": "act_1791869917051_e096y",
       "user_id": "261c23dc-7877-471f-8e79-39483ac4d15f",
@@ -317,7 +392,7 @@
       "contact_method": "",
       "metadata": {},
       "created_at": "2026-10-13T05:38:36.453Z",
-      "updated_at": "2026-10-13T07:51:04.481Z"
+      "updated_at": "2026-10-13T18:15:42.429Z"
     },
     {
       "id": "act_1791869916446_baubk",
@@ -334,7 +409,7 @@
       "contact_method": "",
       "metadata": {},
       "created_at": "2026-10-13T05:38:35.710Z",
-      "updated_at": "2026-10-13T07:51:05.352Z"
+      "updated_at": "2026-10-13T18:15:42.856Z"
     }
   ]
 }

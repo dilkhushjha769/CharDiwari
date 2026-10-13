@@ -38,10 +38,10 @@ async function load(params) {
   const detail = {
     ...staticDetail,
     ...(property.detail || {}),
-    coordinates: property.coordinates || property.detail?.coordinates || staticDetail.coordinates || null,
+    coordinates: staticDetail.coordinates || property.coordinates || property.detail?.coordinates || null,
     highlights: (property.highlights?.length ? property.highlights : staticDetail.highlights) || [],
     amenities: (property.amenities?.length ? property.amenities : staticDetail.amenities) || [],
-    nearby: (property.nearby?.length ? property.nearby : staticDetail.nearby) || [],
+    nearby: (staticDetail.nearby?.length ? staticDetail.nearby : property.nearby) || [],
     faqs: property.faqs?.length ? property.faqs : (staticDetail.faqs || null),
   };
   return { property, detail };
