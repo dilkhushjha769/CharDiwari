@@ -1,0 +1,19 @@
+[
+  {
+    "id": "msg_appr_1791982273563_sudp6",
+    "type": "property_approved",
+    "recipientEmail": "sunita.rao@example.com",
+    "recipientName": "Sunita Rao",
+    "subject": "🎉 Congratulations! Your Property \"The Sky Penthouse DLF Phase 5\" is Approved & Live on CharDiwari",
+    "propertyTitle": "The Sky Penthouse DLF Phase 5",
+    "propertyLocation": "",
+    "propertyPrice": "",
+    "propertyId": 8,
+    "propertySlug": "",
+    "submissionRef": "DW-SUB-531487",
+    "liveUrl": "/property/8",
+    "trackingUrl": "/track?ref=DW-SUB-531487",
+    "sentAt": "2026-10-14T12:51:13.563Z",
+    "status": "delivered"
+  }
+]

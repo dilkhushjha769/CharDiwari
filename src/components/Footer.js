@@ -177,6 +177,15 @@ export default function Footer() {
               </li>
               <li>
                 <Link
+                  href="/track"
+                  className="text-stone-600 hover:text-stone-900 transition-colors flex items-center gap-1.5"
+                >
+                  <span>Track Property Status</span>
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wide">Live</span>
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/auth"
                   className="text-stone-600 hover:text-stone-900 transition-colors"
                 >

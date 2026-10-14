@@ -415,6 +415,13 @@ export default function Navbar() {
                           href="/post-property"
                           onClick={() => setActiveMenu(null)}
                         />
+                        <DropdownItem
+                          icon={<Clock className="w-4 h-4 text-emerald-600" />}
+                          title="Track Property Status"
+                          description="Review notes & approval progress"
+                          href="/track"
+                          onClick={() => setActiveMenu(null)}
+                        />
                         <button
                           type="button"
                           onClick={() => {
@@ -534,6 +541,14 @@ export default function Navbar() {
                       >
                         <Heart className="w-3.5 h-3.5 text-rose-500" />
                         <span>Saved Shortlist</span>
+                      </Link>
+                      <Link
+                        href="/track"
+                        onClick={() => setProfileDropdownOpen(false)}
+                        className="focus-ring flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-stone-700 hover:text-stone-900 hover:bg-stone-50 dark:hover:bg-stone-100 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                      >
+                        <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Track My Properties</span>
                       </Link>
                       <Link
                         href="/admin"
@@ -804,6 +819,13 @@ export default function Navbar() {
                       className="press focus-ring block py-2.5 text-center text-sm font-medium rounded-xl border border-stone-200 bg-stone-100 text-stone-900 hover:bg-stone-200 transition-colors"
                     >
                       Post Property
+                    </Link>
+                    <Link
+                      href="/track"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="press focus-ring col-span-2 block py-2.5 text-center text-xs font-semibold rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-900 hover:bg-emerald-100 transition-colors"
+                    >
+                      Track Property Status
                     </Link>
                   </div>
                 )}

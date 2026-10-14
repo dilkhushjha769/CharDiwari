@@ -2,7 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import { verifyAdminSessionToken, ADMIN_COOKIE_NAME } from './session';
+import { verifyAdminSessionToken, ADMIN_COOKIE_NAME } from './session.js';
+import { sendPropertyApprovedEmail, sendPropertyRejectedEmail } from './mail.js';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
@@ -429,6 +430,11 @@ export async function saveAdminProperty(propertyData) {
     }
   }
 
+  // Detect previous status for email notifications
+  const existingProp = isEdit ? properties.find(p => Number(p.id) === Number(id)) : null;
+  const previousStatus = existingProp ? existingProp.status : 'new';
+  const newStatus = cleanProperty.status || 'published';
+
   // Update local DB
   if (isEdit) {
     const idx = properties.findIndex(p => Number(p.id) === Number(id));
@@ -442,10 +448,14 @@ export async function saveAdminProperty(propertyData) {
   }
 
   // Also sync status into propertySubmissions if present
+  let subIdx = -1;
   if (Array.isArray(db.propertySubmissions)) {
-    const subIdx = db.propertySubmissions.findIndex(s => Number(s.property_id) === Number(id));
+    subIdx = db.propertySubmissions.findIndex(s => Number(s.property_id) === Number(id));
     if (subIdx !== -1) {
       db.propertySubmissions[subIdx].status = cleanProperty.status || 'published';
+      if (cleanProperty.admin_review_note) {
+        db.propertySubmissions[subIdx].admin_review_note = cleanProperty.admin_review_note;
+      }
       db.propertySubmissions[subIdx].updated_at = new Date().toISOString();
     }
   }
@@ -453,7 +463,59 @@ export async function saveAdminProperty(propertyData) {
   db.properties = properties;
   writeDb(db);
 
-  return { success: true, property: cleanProperty, savedToSupabase };
+  // Trigger automated email notification on approval or rejection
+  let emailDispatched = null;
+  const sellerEmail =
+    cleanProperty.seller_email ||
+    cleanProperty.seller?.email ||
+    existingProp?.seller_email ||
+    existingProp?.seller?.email ||
+    (subIdx !== -1 ? db.propertySubmissions[subIdx]?.seller?.email : null);
+
+  const sellerName =
+    cleanProperty.seller_name ||
+    cleanProperty.seller?.name ||
+    existingProp?.seller_name ||
+    existingProp?.seller?.name ||
+    (subIdx !== -1 ? db.propertySubmissions[subIdx]?.seller?.name : null) ||
+    'Property Partner';
+
+  const submissionRef =
+    cleanProperty.submission_ref ||
+    existingProp?.submission_ref ||
+    (subIdx !== -1 ? db.propertySubmissions[subIdx]?.submission_ref : null) ||
+    `DW-SUB-${id}`;
+
+  if (previousStatus !== 'published' && newStatus === 'published') {
+    try {
+      emailDispatched = await sendPropertyApprovedEmail({
+        email: sellerEmail,
+        sellerName,
+        propertyTitle: cleanProperty.title,
+        propertyPrice: cleanProperty.price,
+        propertyLocation: cleanProperty.location || cleanProperty.city,
+        propertySlug: cleanProperty.slug,
+        propertyId: id,
+        submissionRef,
+      });
+    } catch (mailErr) {
+      console.warn('[Admin Property Approval Mail Note]:', mailErr.message);
+    }
+  } else if (previousStatus !== 'rejected' && newStatus === 'rejected') {
+    try {
+      emailDispatched = await sendPropertyRejectedEmail({
+        email: sellerEmail,
+        sellerName,
+        propertyTitle: cleanProperty.title,
+        submissionRef,
+        adminReviewNote: cleanProperty.admin_review_note || 'Changes requested by editorial review team',
+      });
+    } catch (mailErr) {
+      console.warn('[Admin Property Rejection Mail Note]:', mailErr.message);
+    }
+  }
+
+  return { success: true, property: cleanProperty, savedToSupabase, emailDispatched };
 }
 
 /**

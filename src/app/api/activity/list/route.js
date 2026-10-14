@@ -14,6 +14,9 @@ export async function GET(request) {
     const feed = await getUserActivityFeed(userId, visitorId);
     return NextResponse.json(feed);
   } catch (err) {
+    if (err?.digest === 'NEXT_PRERENDER_INTERRUPTED') {
+      throw err;
+    }
     console.error('[API Activity List] Error:', err);
     return NextResponse.json({ error: 'Failed to fetch user activity' }, { status: 500 });
   }

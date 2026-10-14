@@ -108,6 +108,9 @@ export async function GET(request) {
       properties: results,
     });
   } catch (error) {
+    if (error?.digest === 'NEXT_PRERENDER_INTERRUPTED') {
+      throw error;
+    }
     console.error('Error tracking property submission:', error);
     return NextResponse.json({ error: 'Failed to look up property status.' }, { status: 500 });
   }

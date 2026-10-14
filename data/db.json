@@ -101,6 +101,79 @@
   },
   "properties": [
     {
+      "id": 8,
+      "slug": "the-sky-penthouse-dlf-phase-5-8",
+      "submission_ref": "DW-SUB-531487",
+      "title": "The Sky Penthouse DLF Phase 5",
+      "price": "₹14.50 Cr",
+      "price_num": 14.5,
+      "priceNum": 14.5,
+      "rent_price": "",
+      "rentPrice": "",
+      "mode": "buy",
+      "type": "Penthouse & Sky Villa",
+      "location": "DLF Phase 5, Golf Course Road, Gurugram",
+      "locality": "DLF Phase 5, Golf Course Road",
+      "city": "Gurugram",
+      "state": "",
+      "possession": "Ready to Move",
+      "builder": "Sunita Rao",
+      "beds": "5 BHK",
+      "bhk": "5 BHK",
+      "baths": "3 Baths",
+      "area": "6,800 sq.ft",
+      "carpet_area": "",
+      "super_area": "6,800 sq.ft",
+      "furnishing": "Semi-Furnished",
+      "facing": "East",
+      "floor_info": "",
+      "parking": "Covered Parking",
+      "tag": "Verified Property",
+      "badge": "Owner Submission",
+      "image": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+      "gallery": [
+        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "media_gallery": [
+        "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
+      ],
+      "video_url": "",
+      "description": "",
+      "amenities": [],
+      "highlights": [
+        "Penthouse & Sky Villa in prime DLF Phase 5, Golf Course Road",
+        "Prime luxury finish",
+        "Immediate registration"
+      ],
+      "nearby": [],
+      "faqs": [],
+      "coordinates": {
+        "lat": 28.4595,
+        "lng": 77.0266
+      },
+      "maintenance_charges": "",
+      "booking_amount": "",
+      "rera_id": "",
+      "is_negotiable": false,
+      "price_on_demand": false,
+      "status": "published",
+      "seller": {
+        "name": "Sunita Rao",
+        "phone": "9811223344",
+        "email": "sunita.rao@example.com",
+        "role": "owner",
+        "whatsapp_consent": true,
+        "preferred_contact": "anytime"
+      },
+      "seller_name": "Sunita Rao",
+      "seller_phone": "9811223344",
+      "seller_email": "sunita.rao@example.com",
+      "seller_role": "owner",
+      "created_at": "2026-10-14T12:50:39.764Z",
+      "updated_at": "2026-10-14T12:51:13.561Z",
+      "submitted_at": "2026-10-14T12:50:39.764Z"
+    },
+    {
       "id": 1,
       "title": "The Courtyard Villa",
       "slug": "the-courtyard-villa",
@@ -375,7 +448,7 @@
       "contact_method": "",
       "metadata": {},
       "created_at": "2026-10-13T17:54:26.074Z",
-      "updated_at": "2026-10-14T12:34:42.347Z"
+      "updated_at": "2026-10-14T12:53:14.227Z"
     },
     {
       "id": "act_1791869917051_e096y",
@@ -392,7 +465,7 @@
       "contact_method": "",
       "metadata": {},
       "created_at": "2026-10-13T05:38:36.453Z",
-      "updated_at": "2026-10-14T12:34:41.881Z"
+      "updated_at": "2026-10-14T12:53:13.799Z"
     },
     {
       "id": "act_1791869916446_baubk",
@@ -409,8 +482,36 @@
       "contact_method": "",
       "metadata": {},
       "created_at": "2026-10-13T05:38:35.710Z",
-      "updated_at": "2026-10-14T12:34:40.957Z"
+      "updated_at": "2026-10-14T12:53:13.308Z"
     }
   ],
-  "propertySubmissions": []
+  "propertySubmissions": [
+    {
+      "submission_ref": "DW-SUB-531487",
+      "property_id": 8,
+      "status": "published",
+      "submitted_at": "2026-10-14T12:50:39.764Z",
+      "seller": {
+        "name": "Sunita Rao",
+        "phone": "9811223344",
+        "email": "sunita.rao@example.com",
+        "role": "owner",
+        "whatsapp_consent": true,
+        "preferred_contact": "anytime"
+      },
+      "property": {
+        "id": 8,
+        "title": "The Sky Penthouse DLF Phase 5",
+        "price": "₹14.50 Cr",
+        "location": "DLF Phase 5, Golf Course Road, Gurugram",
+        "city": "Gurugram",
+        "locality": "DLF Phase 5, Golf Course Road",
+        "type": "Penthouse & Sky Villa",
+        "images": [
+          "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
+        ]
+      },
+      "updated_at": "2026-10-14T12:51:13.562Z"
+    }
+  ]
 }

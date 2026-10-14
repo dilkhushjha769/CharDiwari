@@ -15,6 +15,14 @@ const nextConfig = {
       },
     },
   },
+  async rewrites() {
+    return [
+      {
+        source: '/track-property',
+        destination: '/track',
+      },
+    ];
+  },
 };
 
 export default nextConfig;

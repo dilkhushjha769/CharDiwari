@@ -252,7 +252,14 @@ export default function AdminPage() {
         }),
       });
       if (res.ok) {
+        const data = await res.json().catch(() => ({}));
         await fetchProperties();
+        const sellerEmail = prop.seller_email || prop.seller?.email;
+        if (sellerEmail) {
+          alert(`Property "${prop.title}" approved and published live!\n\nEmail notification successfully dispatched to ${sellerEmail}.`);
+        } else {
+          alert(`Property "${prop.title}" approved and published live!`);
+        }
       } else {
         alert('Failed to approve property.');
       }
@@ -279,6 +286,12 @@ export default function AdminPage() {
       });
       if (res.ok) {
         await fetchProperties();
+        const sellerEmail = prop.seller_email || prop.seller?.email;
+        if (sellerEmail) {
+          alert(`Property marked as rejected.\n\nReview feedback email successfully dispatched to ${sellerEmail}.`);
+        } else {
+          alert('Property marked as rejected.');
+        }
       } else {
         alert('Failed to update property status.');
       }

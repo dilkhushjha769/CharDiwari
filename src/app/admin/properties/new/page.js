@@ -1182,18 +1182,13 @@ function NewPropertyPageContent() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowTrackerModal(true);
-                  setTrackingQuery(submittedSubmission.submission_ref);
-                  handlePerformTrack(submittedSubmission.submission_ref);
-                }}
+              <Link
+                href={`/track?ref=${encodeURIComponent(submittedSubmission.submission_ref)}`}
                 className="w-full sm:w-auto px-6 py-3 bg-stone-900 hover:bg-black text-white text-xs sm:text-sm font-semibold rounded-xl flex items-center justify-center gap-2 shadow-xs cursor-pointer"
               >
                 <Search className="w-4 h-4" />
-                <span>Track Status in Real-Time</span>
-              </button>
+                <span>Track Status on Live Dashboard ↗</span>
+              </Link>
               <button
                 type="button"
                 onClick={() => {

@@ -243,10 +243,16 @@ export default function AnalyticsDashboard() {
   // Combine PostHog API data with live browser session events
   const analytics = useMemo(() => {
     // 1. If backend API returned real traffic data, use it
-    if (apiData?.hasData) {
+    if (apiData?.hasData || (apiData?.overview && Array.isArray(apiData?.popularProperties))) {
       return {
         hasData: true,
-        overview: apiData.overview,
+        overview: apiData.overview || {
+          visitors: 0,
+          propertyViews: 0,
+          avgActiveSeconds: 0,
+          enquiries: 0,
+          conversionRatePct: 0,
+        },
         popularProperties: apiData.popularProperties || [],
         categories: apiData.categories || [],
         locations: apiData.locations || [],

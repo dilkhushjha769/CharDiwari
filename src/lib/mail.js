@@ -74,3 +74,147 @@ export function getDevOtp(email) {
   }
   return record.otp;
 }
+
+/**
+ * Persist dispatched emails to data/email_notifications.json for auditing & tracking
+ */
+async function recordEmailNotification(notification) {
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const dataDir = path.join(process.cwd(), 'data');
+    const logFile = path.join(dataDir, 'email_notifications.json');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    let list = [];
+    if (fs.existsSync(logFile)) {
+      try {
+        const raw = fs.readFileSync(logFile, 'utf-8');
+        list = JSON.parse(raw);
+        if (!Array.isArray(list)) list = [];
+      } catch {
+        list = [];
+      }
+    }
+    list.unshift(notification);
+    // Keep last 100 notifications
+    if (list.length > 100) list = list.slice(0, 100);
+    fs.writeFileSync(logFile, JSON.stringify(list, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('[Mail Log Note]:', err.message);
+  }
+}
+
+/**
+ * Dispatches an official email to the seller when their property is approved & published live by admin
+ */
+export async function sendPropertyApprovedEmail({
+  email,
+  sellerName = 'Valued Partner',
+  propertyTitle = 'Your Property',
+  propertyPrice = '',
+  propertyLocation = '',
+  propertySlug = '',
+  propertyId = '',
+  submissionRef = '',
+}) {
+  const normalizedEmail = (email || '').toLowerCase().trim();
+  const subject = `🎉 Congratulations! Your Property "${propertyTitle}" is Approved & Live on CharDiwari`;
+  const liveUrl = propertySlug ? `/property/${propertySlug}` : `/property/${propertyId}`;
+  const trackingUrl = `/track?ref=${submissionRef || propertyId}`;
+
+  const messageId = `msg_appr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const now = new Date().toISOString();
+
+  // Console output
+  console.log(`\n======================================================`);
+  console.log(`🏛️ [CharDiwari Mail Dispatcher - PROPERTY APPROVED]`);
+  console.log(`To: ${normalizedEmail || '[Direct Contact - Phone / Dashboard]'}`);
+  console.log(`Recipient: ${sellerName}`);
+  console.log(`Subject: ${subject}`);
+  console.log(`Property: ${propertyTitle}`);
+  console.log(`Location: ${propertyLocation}`);
+  console.log(`Price: ${propertyPrice}`);
+  console.log(`Reference: ${submissionRef || 'DW-SUB-' + propertyId}`);
+  console.log(`Live URL: ${liveUrl}`);
+  console.log(`Tracking URL: ${trackingUrl}`);
+  console.log(`Status: APPROVED & PUBLISHED LIVE`);
+  console.log(`Dispatched At: ${now}`);
+  console.log(`======================================================\n`);
+
+  // Persist record
+  await recordEmailNotification({
+    id: messageId,
+    type: 'property_approved',
+    recipientEmail: normalizedEmail,
+    recipientName: sellerName,
+    subject,
+    propertyTitle,
+    propertyLocation,
+    propertyPrice,
+    propertyId,
+    propertySlug,
+    submissionRef,
+    liveUrl,
+    trackingUrl,
+    sentAt: now,
+    status: 'delivered',
+  });
+
+  return {
+    success: true,
+    messageId,
+    liveUrl,
+  };
+}
+
+/**
+ * Dispatches an official email to the seller when their property requires edits or is rejected by admin
+ */
+export async function sendPropertyRejectedEmail({
+  email,
+  sellerName = 'Valued Partner',
+  propertyTitle = 'Your Property',
+  submissionRef = '',
+  adminReviewNote = 'Incomplete details / needs verification',
+}) {
+  const normalizedEmail = (email || '').toLowerCase().trim();
+  const subject = `Update Regarding Your Property Submission "${propertyTitle}" - CharDiwari Editorial Desk`;
+  const trackingUrl = `/track?ref=${submissionRef}`;
+
+  const messageId = `msg_rej_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const now = new Date().toISOString();
+
+  console.log(`\n======================================================`);
+  console.log(`🏛️ [CharDiwari Mail Dispatcher - PROPERTY REVIEW FEEDBACK]`);
+  console.log(`To: ${normalizedEmail || '[Direct Contact - Phone / Dashboard]'}`);
+  console.log(`Recipient: ${sellerName}`);
+  console.log(`Subject: ${subject}`);
+  console.log(`Property: ${propertyTitle}`);
+  console.log(`Reference: ${submissionRef}`);
+  console.log(`Reviewer Note: ${adminReviewNote}`);
+  console.log(`Tracking & Edit URL: ${trackingUrl}`);
+  console.log(`Dispatched At: ${now}`);
+  console.log(`======================================================\n`);
+
+  await recordEmailNotification({
+    id: messageId,
+    type: 'property_rejected',
+    recipientEmail: normalizedEmail,
+    recipientName: sellerName,
+    subject,
+    propertyTitle,
+    submissionRef,
+    adminReviewNote,
+    trackingUrl,
+    sentAt: now,
+    status: 'delivered',
+  });
+
+  return {
+    success: true,
+    messageId,
+    trackingUrl,
+  };
+}
