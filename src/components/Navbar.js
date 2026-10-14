@@ -412,7 +412,7 @@ export default function Navbar() {
                           icon={<Home className="w-4 h-4" />}
                           title="Post Property (Free)"
                           description="Reach verified buyers directly"
-                          href="/profile"
+                          href="/post-property"
                           onClick={() => setActiveMenu(null)}
                         />
                         <button
@@ -475,7 +475,7 @@ export default function Navbar() {
           {/* Right Action Buttons */}
           <div className="hidden sm:flex items-center gap-2.5">
             <Link
-              href="/profile"
+              href="/post-property"
               className="press focus-ring group text-sm font-medium text-white bg-stone-900 hover:bg-black transition-[color,background-color,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)] px-4 py-2 rounded-xl flex items-center gap-2 shadow-sm"
             >
               <span>Post Property</span>
@@ -701,7 +701,7 @@ export default function Navbar() {
                 {mobileAccordion === 'sell' && (
                   <div className="pl-3 pt-2 space-y-2 text-xs text-stone-600">
                     <Link
-                      href="/profile"
+                      href="/post-property"
                       onClick={() => setMobileMenuOpen(false)}
                       className="focus-ring rounded-md block py-1 hover:text-stone-900 transition-colors duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]"
                     >
@@ -799,7 +799,7 @@ export default function Navbar() {
                       Sign In
                     </Link>
                     <Link
-                      href="/profile"
+                      href="/post-property"
                       onClick={() => setMobileMenuOpen(false)}
                       className="press focus-ring block py-2.5 text-center text-sm font-medium rounded-xl border border-stone-200 bg-stone-100 text-stone-900 hover:bg-stone-200 transition-colors"
                     >

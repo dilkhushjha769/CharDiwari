@@ -1241,7 +1241,7 @@ export default function HomePage() {
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4">
                   <Link
-                    href="/profile"
+                    href="/post-property"
                     className="press focus-ring inline-flex items-center justify-center gap-1.5 sm:gap-2 px-4 py-2 sm:px-6 sm:py-3 rounded-xl bg-stone-900 hover:bg-black text-white text-[11px] sm:text-sm font-semibold transition shadow-xs whitespace-nowrap shrink-0 cursor-pointer"
                   >
                     <span>Post Property, It&apos;s Free</span>

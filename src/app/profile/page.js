@@ -28,6 +28,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
+  Plus,
+  AlertTriangle,
+  AlertCircle,
 } from 'lucide-react';
 import { getSupabaseClient } from '@/lib/supabase/client';
 import { useSavedProperties } from '@/lib/useSavedProperties';
@@ -94,6 +97,42 @@ export default function ProfilePage() {
   // Active Tab: 'searches' | 'viewed' | 'shortlisted' | 'contacted'
   const [activeTab, setActiveTab] = useState('shortlisted');
   const [page, setPage] = useState(1);
+
+  // My Listed Properties & Real-Time Review Tracker
+  const [myProperties, setMyProperties] = useState([]);
+  const [myPropertiesLoading, setMyPropertiesLoading] = useState(false);
+  const [trackQuery, setTrackQuery] = useState('');
+  const [trackError, setTrackError] = useState('');
+
+  const fetchMyProperties = useCallback(async (customQuery = null) => {
+    setMyPropertiesLoading(true);
+    setTrackError('');
+    try {
+      let q = customQuery !== null ? customQuery : trackQuery;
+      if (!q) {
+        let stored = [];
+        try {
+          stored = JSON.parse(localStorage.getItem('my_property_submissions') || '[]');
+        } catch (_) {}
+        q = (user?.phone) || (user?.email) || (stored[0]?.phone) || (stored[0]?.ref) || '';
+      }
+      if (!q) {
+        setMyProperties([]);
+        return;
+      }
+      const res = await fetch(`/api/properties/track?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      if (res.ok) {
+        setMyProperties(data.properties || []);
+      } else {
+        setTrackError(data.error || 'Failed to track properties.');
+      }
+    } catch (err) {
+      setTrackError('Error connecting to property tracking service.');
+    } finally {
+      setMyPropertiesLoading(false);
+    }
+  }, [user, trackQuery]);
 
   // Fetch Activity Feed from Server & merge with client storage
   const fetchActivity = useCallback(async (activeUserId = null) => {
@@ -280,6 +319,7 @@ export default function ProfilePage() {
             setUser(data.user);
             setLoading(false);
             fetchActivity(data.user.id);
+            fetchMyProperties(data.user.phone || data.user.email);
             return;
           }
         }
@@ -443,6 +483,14 @@ export default function ProfilePage() {
 
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
+              href="/post-property"
+              className="text-xs font-semibold text-white bg-stone-900 hover:bg-black px-3.5 py-1.5 rounded-xl transition focus-ring shadow-xs flex items-center gap-1"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Post Property</span>
+            </Link>
+
+            <Link
               href="/"
               className="hidden sm:inline-block text-xs font-semibold text-stone-600 hover:text-stone-900 px-3 py-1.5 rounded-lg hover:bg-stone-100 transition focus-ring"
             >
@@ -500,14 +548,216 @@ export default function ProfilePage() {
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <Link
-                href="/search"
+                href="/post-property"
                 className="flex-1 sm:flex-none justify-center px-4 py-2 rounded-xl bg-stone-900 hover:bg-black text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-xs focus-ring"
               >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Post Property (Free)</span>
+              </Link>
+              <Link
+                href="/search"
+                className="flex-1 sm:flex-none justify-center px-4 py-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-800 text-xs font-semibold transition flex items-center gap-1.5 shadow-xs focus-ring"
+              >
                 <Search className="w-3.5 h-3.5" />
-                <span>Search Properties</span>
+                <span>Explore Homes</span>
               </Link>
             </div>
           </div>
+        </div>
+
+        {/* ============================================================== */}
+        {/* MY LISTED PROPERTIES & REAL-TIME STATUS TRACKER */}
+        {/* ============================================================== */}
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/80 p-4 sm:p-7 shadow-sm mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-stone-100 gap-2 mb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-stone-900" />
+                <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-stone-900">
+                  My Listed Properties &amp; Review Status
+                </h2>
+              </div>
+              <p className="text-[11px] sm:text-xs text-stone-500 mt-0.5">
+                Track whether your posted properties are Under Review, Approved &amp; Live, or Rejected.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Link
+                href="/post-property"
+                className="px-3.5 py-1.5 rounded-xl bg-stone-900 hover:bg-black text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Post New Property</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Quick Track Input Bar */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              fetchMyProperties();
+            }}
+            className="flex gap-2 mb-4"
+          >
+            <div className="relative flex-1">
+              <input
+                type="text"
+                value={trackQuery}
+                onChange={(e) => setTrackQuery(e.target.value)}
+                placeholder="Track by phone number or DW-SUB-... reference"
+                className="w-full pl-9 pr-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition font-mono"
+              />
+              <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
+            <button
+              type="submit"
+              disabled={myPropertiesLoading}
+              className="px-4 py-2 bg-stone-900 hover:bg-black text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50 shrink-0"
+            >
+              {myPropertiesLoading ? <RefreshCw className="w-3 h-3 animate-spin" /> : 'Track Status'}
+            </button>
+          </form>
+
+          {trackError && (
+            <div className="p-3 mb-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+              <span>{trackError}</span>
+            </div>
+          )}
+
+          {/* Properties Grid or Empty State */}
+          {myPropertiesLoading ? (
+            <div className="p-6 text-center text-xs text-stone-500 flex flex-col items-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin text-stone-700" />
+              <span>Fetching listing status...</span>
+            </div>
+          ) : myProperties.length === 0 ? (
+            <div className="p-6 sm:p-8 rounded-2xl bg-stone-50/70 border border-stone-200/80 text-center space-y-2">
+              <Building2 className="w-8 h-8 text-stone-400 mx-auto" />
+              <h3 className="text-xs sm:text-sm font-bold text-stone-800">
+                No Listed Properties Found Yet
+              </h3>
+              <p className="text-[11px] sm:text-xs text-stone-500 max-w-sm mx-auto leading-relaxed">
+                Have a residence, penthouse, or villa to sell or lease? Post it directly to our verified luxury audience.
+              </p>
+              <div className="pt-2">
+                <Link
+                  href="/post-property"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-stone-900 text-white text-xs font-semibold hover:bg-black transition shadow-xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Post Your Property (Free)</span>
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {myProperties.map((p) => {
+                const isPending = p.status === 'pending_review' || p.status === 'pending';
+                const isPublished = p.status === 'published';
+                const isRejected = p.status === 'rejected';
+
+                return (
+                  <div
+                    key={p.id}
+                    className="p-3.5 sm:p-4 rounded-2xl border border-stone-200 bg-white shadow-2xs space-y-3 flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-2.5 mb-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-14 h-14 rounded-xl bg-stone-100 overflow-hidden shrink-0 border border-stone-200 relative">
+                            {p.image ? (
+                              <img
+                                src={p.image}
+                                alt={p.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-stone-400 text-[10px]">
+                                No photo
+                              </div>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-mono text-[10px] font-bold text-stone-400 block truncate">
+                              {p.submission_ref}
+                            </span>
+                            <h4 className="text-xs sm:text-sm font-bold text-stone-900 truncate">
+                              {p.title}
+                            </h4>
+                            <span className="text-[11px] text-stone-500 truncate block">
+                              {p.location || p.city} &bull; <strong className="text-stone-800">{p.price}</strong>
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Status Badge */}
+                        {isPending && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1 shrink-0">
+                            <RefreshCw className="w-2.5 h-2.5 text-amber-600 animate-spin" />
+                            <span>Under Review</span>
+                          </span>
+                        )}
+                        {isPublished && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1 shrink-0">
+                            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
+                            <span>Live</span>
+                          </span>
+                        )}
+                        {isRejected && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-200 flex items-center gap-1 shrink-0">
+                            <AlertTriangle className="w-2.5 h-2.5 text-rose-600" />
+                            <span>Rejected</span>
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-[11px] text-stone-600 leading-relaxed">
+                        {p.status_description}
+                      </p>
+
+                      {/* Rejection Note from Admin */}
+                      {isRejected && p.admin_review_note && (
+                        <div className="mt-2 p-2.5 rounded-xl bg-rose-50/80 border border-rose-200 text-rose-900 text-xs space-y-1">
+                          <div className="font-bold flex items-center gap-1 text-[11px] text-rose-950">
+                            <AlertCircle className="w-3 h-3 text-rose-700" />
+                            <span>Editorial Feedback:</span>
+                          </div>
+                          <p className="text-[11px] leading-relaxed">{p.admin_review_note}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="pt-2 border-t border-stone-100 flex items-center justify-between text-[11px]">
+                      <span className="text-stone-400">
+                        {p.submitted_at ? formatDate(p.submitted_at) : 'Recent'}
+                      </span>
+                      {isPublished && p.live_url ? (
+                        <Link
+                          href={p.live_url}
+                          target="_blank"
+                          className="font-semibold text-stone-900 hover:underline flex items-center gap-1"
+                        >
+                          <span>View on Marketplace</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </Link>
+                      ) : (
+                        <Link
+                          href="/post-property"
+                          className="font-semibold text-stone-600 hover:text-stone-900 flex items-center gap-1"
+                        >
+                          <span>Post Another</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* ============================================================== */}

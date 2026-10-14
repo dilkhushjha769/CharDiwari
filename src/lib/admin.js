@@ -432,10 +432,22 @@ export async function saveAdminProperty(propertyData) {
   // Update local DB
   if (isEdit) {
     const idx = properties.findIndex(p => Number(p.id) === Number(id));
-    if (idx !== -1) properties[idx] = cleanProperty;
-    else properties.unshift(cleanProperty);
+    if (idx !== -1) {
+      properties[idx] = { ...properties[idx], ...cleanProperty };
+    } else {
+      properties.unshift(cleanProperty);
+    }
   } else {
     properties.unshift(cleanProperty);
+  }
+
+  // Also sync status into propertySubmissions if present
+  if (Array.isArray(db.propertySubmissions)) {
+    const subIdx = db.propertySubmissions.findIndex(s => Number(s.property_id) === Number(id));
+    if (subIdx !== -1) {
+      db.propertySubmissions[subIdx].status = cleanProperty.status || 'published';
+      db.propertySubmissions[subIdx].updated_at = new Date().toISOString();
+    }
   }
 
   db.properties = properties;

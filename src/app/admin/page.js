@@ -41,6 +41,8 @@ import {
   ShieldCheck,
   Flame,
   Compass,
+  Phone,
+  User,
 } from 'lucide-react';
 import Footer from '@/components/Footer';
 import { parseVideoUrl } from '@/lib/video';
@@ -64,6 +66,7 @@ export default function AdminPage() {
   const [properties, setProperties] = useState([]);
   const [loadingProps, setLoadingProps] = useState(false);
   const [propSearch, setPropSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all' | 'pending' | 'published' | 'rejected'
   const [editingProperty, setEditingProperty] = useState(null);
   const [isCreatingNew, setIsCreatingNew] = useState(false);
   const [savePropLoading, setSavePropLoading] = useState(false);
@@ -236,6 +239,56 @@ export default function AdminPage() {
     }
   };
 
+  const handleApproveProperty = async (prop) => {
+    try {
+      setLoadingProps(true);
+      const res = await fetch(`/api/admin/properties/${prop.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...prop,
+          status: 'published',
+          tag: prop.tag === 'Under Review' ? 'Verified Property' : (prop.tag || 'Verified'),
+        }),
+      });
+      if (res.ok) {
+        await fetchProperties();
+      } else {
+        alert('Failed to approve property.');
+      }
+    } catch (err) {
+      alert('Error approving property.');
+    } finally {
+      setLoadingProps(false);
+    }
+  };
+
+  const handleRejectProperty = async (prop) => {
+    const reason = window.prompt('Reason for rejection or admin feedback note (optional):', 'Incomplete details / needs verification');
+    if (reason === null) return;
+    try {
+      setLoadingProps(true);
+      const res = await fetch(`/api/admin/properties/${prop.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...prop,
+          status: 'rejected',
+          admin_review_note: reason,
+        }),
+      });
+      if (res.ok) {
+        await fetchProperties();
+      } else {
+        alert('Failed to update property status.');
+      }
+    } catch (err) {
+      alert('Error updating property.');
+    } finally {
+      setLoadingProps(false);
+    }
+  };
+
   const handleSaveProperty = async (e) => {
     e.preventDefault();
     setSavePropLoading(true);
@@ -387,15 +440,33 @@ export default function AdminPage() {
     setTimeout(() => setCopiedUrl(''), 2000);
   };
 
+  // Counts for status
+  const pendingCount = properties.filter((p) => p.status === 'pending_review' || p.status === 'pending').length;
+  const publishedCount = properties.filter((p) => p.status === 'published' || (!p.status && !p.is_deleted)).length;
+  const rejectedCount = properties.filter((p) => p.status === 'rejected' || p.status === 'archived').length;
+
   // Filtered properties
   const filteredProperties = properties.filter((p) => {
+    // Status filter
+    if (statusFilter === 'pending') {
+      if (p.status !== 'pending_review' && p.status !== 'pending') return false;
+    } else if (statusFilter === 'published') {
+      if (p.status !== 'published' && p.status) return false;
+    } else if (statusFilter === 'rejected') {
+      if (p.status !== 'rejected' && p.status !== 'archived') return false;
+    }
+
     if (!propSearch.trim()) return true;
     const q = propSearch.toLowerCase();
     return (
       p.title?.toLowerCase().includes(q) ||
       p.city?.toLowerCase().includes(q) ||
       p.location?.toLowerCase().includes(q) ||
-      p.type?.toLowerCase().includes(q)
+      p.type?.toLowerCase().includes(q) ||
+      p.seller_name?.toLowerCase().includes(q) ||
+      p.seller_phone?.includes(q) ||
+      p.seller?.name?.toLowerCase().includes(q) ||
+      p.seller?.phone?.includes(q)
     );
   });
 
@@ -673,6 +744,23 @@ export default function AdminPage() {
 
             {/* Quick Stat Highlights */}
             <div className="flex items-center gap-3">
+              <div
+                onClick={() => { setActiveTab('properties'); setStatusFilter('pending'); }}
+                className={`border rounded-2xl px-4 py-2.5 shadow-xs text-center min-w-[100px] transition cursor-pointer ${
+                  pendingCount > 0
+                    ? 'bg-amber-50 border-amber-300 ring-2 ring-amber-100 hover:bg-amber-100/70'
+                    : 'bg-white border-stone-200/90'
+                }`}
+                title="Filter pending property submissions"
+              >
+                <div className={`text-xl font-serif font-bold tabular-nums ${pendingCount > 0 ? 'text-amber-700' : 'text-stone-900'}`}>
+                  {pendingCount}
+                </div>
+                <div className={`text-[10px] font-semibold uppercase tracking-wider ${pendingCount > 0 ? 'text-amber-800' : 'text-stone-500'}`}>
+                  Review Queue
+                </div>
+              </div>
+
               <div className="bg-white border border-stone-200/90 rounded-2xl px-4 py-2.5 shadow-xs text-center min-w-[100px]">
                 <div className="text-xl font-serif font-bold text-stone-900 tabular-nums">
                   {properties.length}
@@ -697,7 +785,7 @@ export default function AdminPage() {
         {/* Navigation Tabs (Styled to match website categories) */}
         <div className="flex items-center gap-2 mb-6 border-b border-stone-200 pb-3 overflow-x-auto scrollbar-none">
           {[
-            { id: 'properties', label: 'Property Listings', icon: Building2, count: properties.length },
+            { id: 'properties', label: 'Property Listings', icon: Building2, count: properties.length, pending: pendingCount },
             { id: 'access', label: 'Website Availability', icon: Globe },
             { id: 'media', label: 'Media & Video Vault', icon: Film },
             { id: 'analytics', label: 'PostHog Analytics', icon: BarChart3 },
@@ -726,6 +814,11 @@ export default function AdminPage() {
                     {tab.count}
                   </span>
                 )}
+                {tab.pending > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white animate-pulse">
+                    {tab.pending} review
+                  </span>
+                )}
               </button>
             );
           })}
@@ -736,13 +829,50 @@ export default function AdminPage() {
         {/* ================================================================ */}
         {activeTab === 'properties' && (
           <div className="space-y-6">
+            {/* Status Filter Tabs Strip */}
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
+              {[
+                { id: 'all', label: 'All Listings', count: properties.length },
+                { id: 'pending', label: 'Awaiting Review', count: pendingCount, highlight: pendingCount > 0 },
+                { id: 'published', label: 'Live Published', count: publishedCount },
+                { id: 'rejected', label: 'Rejected / Archived', count: rejectedCount },
+              ].map((sf) => (
+                <button
+                  key={sf.id}
+                  type="button"
+                  onClick={() => setStatusFilter(sf.id)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer shrink-0 ${
+                    statusFilter === sf.id
+                      ? 'bg-stone-900 text-white shadow-xs'
+                      : sf.highlight
+                      ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300'
+                      : 'bg-white hover:bg-stone-50 text-stone-600 border border-stone-200'
+                  }`}
+                >
+                  {sf.highlight && <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />}
+                  <span>{sf.label}</span>
+                  <span
+                    className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
+                      statusFilter === sf.id
+                        ? 'bg-stone-800 text-white'
+                        : sf.highlight
+                        ? 'bg-amber-200 text-amber-900'
+                        : 'bg-stone-100 text-stone-600'
+                    }`}
+                  >
+                    {sf.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+
             {/* Filter & Add Strip */}
             <div className="bg-white p-4 rounded-2xl border border-stone-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="relative flex-1 max-w-md">
                 <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search listings by title, city, or address..."
+                  placeholder="Search by title, locality, seller name, or phone..."
                   value={propSearch}
                   onChange={(e) => setPropSearch(e.target.value)}
                   className="w-full pl-9 pr-4 py-2.5 bg-stone-50 hover:bg-white focus:bg-white border border-stone-200 rounded-xl text-xs text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition"
@@ -785,17 +915,53 @@ export default function AdminPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProperties.map((prop) => {
                   const hasVideo = Boolean(prop.video_url || prop.videoUrl);
+                  const isPending = prop.status === 'pending_review' || prop.status === 'pending';
+                  const isRejected = prop.status === 'rejected';
+                  const sellerName = prop.seller_name || prop.seller?.name;
+                  const sellerPhone = prop.seller_phone || prop.seller?.phone;
+                  const sellerRole = prop.seller_role || prop.seller?.role || 'Owner';
+                  const cleanPhone = (sellerPhone || '').replace(/[^\d]/g, '');
 
                   return (
                     <div
                       key={prop.id}
-                      className="group bg-white rounded-3xl border border-stone-200/90 hover:border-stone-300 overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between"
+                      className={`group bg-white rounded-3xl border overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between ${
+                        isPending
+                          ? 'border-amber-300 ring-2 ring-amber-100 bg-amber-50/10'
+                          : isRejected
+                          ? 'border-rose-200 bg-rose-50/10 opacity-75'
+                          : 'border-stone-200/90 hover:border-stone-300'
+                      }`}
                     >
                       <div>
+                        {/* Status Warning Banner for Pending */}
+                        {isPending && (
+                          <div className="bg-amber-500 text-white px-4 py-2 text-xs font-bold flex items-center justify-between">
+                            <div className="flex items-center gap-1.5">
+                              <AlertTriangle className="w-3.5 h-3.5" />
+                              <span>Awaiting Review &amp; Call</span>
+                            </div>
+                            <span className="text-[10px] font-mono tracking-wider bg-amber-600 px-2 py-0.5 rounded-full">
+                              {prop.submission_ref || 'User Submission'}
+                            </span>
+                          </div>
+                        )}
+
+                        {isRejected && (
+                          <div className="bg-rose-600 text-white px-4 py-1.5 text-xs font-bold flex items-center justify-between">
+                            <span>Listing Rejected / Archived</span>
+                            {prop.admin_review_note && (
+                              <span className="text-[10px] font-normal opacity-90 truncate max-w-[150px]">
+                                {prop.admin_review_note}
+                              </span>
+                            )}
+                          </div>
+                        )}
+
                         {/* Image Cover */}
                         <div className="relative aspect-4/3 w-full overflow-hidden bg-stone-100">
                           <img
-                            src={prop.image}
+                            src={prop.image || (Array.isArray(prop.gallery) && prop.gallery[0]) || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80'}
                             alt={prop.title}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />
@@ -805,8 +971,12 @@ export default function AdminPage() {
                             <span className="px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-md text-xs font-semibold text-stone-900 shadow-xs">
                               {prop.city}
                             </span>
-                            <span className="px-2.5 py-1 rounded-full bg-emerald-700 text-white text-xs font-medium shadow-xs">
-                              {prop.tag || 'Verified'}
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-xs font-medium shadow-xs text-white ${
+                                isPending ? 'bg-amber-600' : isRejected ? 'bg-rose-700' : 'bg-emerald-700'
+                              }`}
+                            >
+                              {isPending ? 'Under Review' : isRejected ? 'Rejected' : (prop.tag || 'Verified')}
                             </span>
                           </div>
 
@@ -845,7 +1015,7 @@ export default function AdminPage() {
                           <div className="flex items-center justify-between pt-3 border-t border-stone-100 text-xs font-medium text-stone-600">
                             <div className="flex items-center gap-1.5">
                               <Bed className="w-4 h-4 text-stone-400" />
-                              <span>{prop.beds}</span>
+                              <span>{prop.beds || prop.bhk}</span>
                             </div>
                             <div className="flex items-center gap-1.5">
                               <Bath className="w-4 h-4 text-stone-400" />
@@ -856,40 +1026,126 @@ export default function AdminPage() {
                               <span>{prop.area}</span>
                             </div>
                           </div>
+
+                          {/* Seller Details Card (Shown for all user submissions) */}
+                          {sellerPhone && (
+                            <div className="mt-3.5 p-3 rounded-2xl bg-stone-50 border border-stone-200/80 text-xs space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-stone-900 flex items-center gap-1.5">
+                                  <User className="w-3.5 h-3.5 text-stone-500" />
+                                  <span>{sellerName || 'Direct Seller'}</span>
+                                </span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-stone-200 text-stone-700">
+                                  {sellerRole}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between gap-2 pt-1 border-t border-stone-200/50">
+                                <a
+                                  href={`tel:+91${cleanPhone}`}
+                                  className="inline-flex items-center gap-1 text-stone-900 font-mono font-bold hover:underline"
+                                  title="Call Seller"
+                                >
+                                  <Phone className="w-3 h-3 text-stone-600" />
+                                  <span>+91 {sellerPhone}</span>
+                                </a>
+                                <a
+                                  href={`https://wa.me/91${cleanPhone}?text=Hi%20${encodeURIComponent(sellerName || '')},%20this%20is%20Dwarkesh%20regarding%20your%20property%20listing%20"${encodeURIComponent(prop.title)}".`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold inline-flex items-center gap-1 transition shadow-2xs"
+                                >
+                                  <span>WhatsApp</span>
+                                </a>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
 
                       {/* Card Action Footer */}
                       <div className="p-5 pt-0">
-                        <div className="flex items-center justify-between gap-2 pt-3 border-t border-stone-100">
-                          <Link
-                            href={`/property/${prop.slug || prop.id}`}
-                            target="_blank"
-                            className="text-xs font-semibold text-stone-600 hover:text-stone-900 flex items-center gap-1 transition"
-                          >
-                            <span>Live Page</span>
-                            <ExternalLink className="w-3 h-3 text-stone-400" />
-                          </Link>
+                        {/* Pending Review Primary Action Strip */}
+                        {isPending ? (
+                          <div className="pt-3 border-t border-amber-200 space-y-2">
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleApproveProperty(prop)}
+                                className="w-full py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                                <span>Approve &amp; Publish</span>
+                              </button>
 
-                          <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleRejectProperty(prop)}
+                                className="w-full py-2 px-3 rounded-xl border border-rose-300 hover:bg-rose-50 text-rose-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                                <span>Reject</span>
+                              </button>
+                            </div>
+
+                            <div className="flex items-center justify-between text-xs pt-1">
+                              <Link
+                                href={`/admin/properties/new?id=${prop.id}`}
+                                className="text-stone-600 hover:text-stone-900 font-semibold flex items-center gap-1"
+                              >
+                                <Edit className="w-3 h-3" />
+                                <span>Edit Specs First</span>
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteProperty(prop.id)}
+                                className="text-stone-400 hover:text-rose-600"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between gap-2 pt-3 border-t border-stone-100">
                             <Link
-                              href={`/admin/properties/new?id=${prop.id}`}
-                              className="px-3 py-1.5 rounded-xl border border-stone-200 hover:border-stone-900 bg-white text-stone-800 text-xs font-semibold flex items-center gap-1 transition cursor-pointer shadow-xs"
+                              href={`/property/${prop.slug || prop.id}`}
+                              target="_blank"
+                              className="text-xs font-semibold text-stone-600 hover:text-stone-900 flex items-center gap-1 transition"
                             >
-                              <Edit className="w-3 h-3 text-stone-600" />
-                              <span>Edit</span>
+                              <span>Live Page</span>
+                              <ExternalLink className="w-3 h-3 text-stone-400" />
                             </Link>
 
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteProperty(prop.id)}
-                              className="p-1.5 rounded-xl border border-stone-200 hover:border-rose-300 hover:bg-rose-50 text-stone-400 hover:text-rose-600 transition cursor-pointer"
-                              title="Delete listing"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                            <div className="flex items-center gap-2">
+                              {isRejected && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleApproveProperty(prop)}
+                                  className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition cursor-pointer"
+                                  title="Approve and make live"
+                                >
+                                  Publish
+                                </button>
+                              )}
+
+                              <Link
+                                href={`/admin/properties/new?id=${prop.id}`}
+                                className="px-3 py-1.5 rounded-xl border border-stone-200 hover:border-stone-900 bg-white text-stone-800 text-xs font-semibold flex items-center gap-1 transition cursor-pointer shadow-xs"
+                              >
+                                <Edit className="w-3 h-3 text-stone-600" />
+                                <span>Edit</span>
+                              </Link>
+
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteProperty(prop.id)}
+                                className="p-1.5 rounded-xl border border-stone-200 hover:border-rose-300 hover:bg-rose-50 text-stone-400 hover:text-rose-600 transition cursor-pointer"
+                                title="Delete listing"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </div>
                   );
