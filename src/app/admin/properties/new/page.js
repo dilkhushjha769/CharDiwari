@@ -128,8 +128,19 @@ const POSSESSION_OPTIONS = [
   'Possession in 2029+',
 ];
 
-// The 9 Step-by-Step Sections with Real Icons including Contact & Review
-const STEPS = [
+// Admin 7-Step Sections (Direct listing management without Seller Contact or Review submission)
+const ADMIN_STEPS = [
+  { id: 1, key: 'overview', title: 'Basic Overview', short: 'Overview', icon: Home, desc: 'Property title, city, type & possession' },
+  { id: 2, key: 'pricing', title: 'Pricing & Terms', short: 'Pricing', icon: DollarSign, desc: 'Price, negotiable terms & rent' },
+  { id: 3, key: 'specs', title: 'Specifications', short: 'Specs', icon: Maximize2, desc: 'BHK, size, bedrooms & bathrooms' },
+  { id: 4, key: 'media', title: 'Photos & Video', short: 'Photos', icon: Film, desc: 'Cover image, gallery & walkthrough' },
+  { id: 5, key: 'map', title: 'Location & Map', short: 'Map', icon: MapPin, desc: 'Interactive map & landmark distances' },
+  { id: 6, key: 'amenities', title: 'Amenities & Details', short: 'Amenities', icon: Building2, desc: 'Selected amenities & summary' },
+  { id: 7, key: 'faqs', title: 'Curated FAQs & Highlights', short: 'FAQs', icon: HelpCircle, desc: 'Buyer questions & selling points' },
+];
+
+// Public Post Property 9-Step Sections (Includes Seller Verification & Review before Admin submission)
+const PUBLIC_STEPS = [
   { id: 1, key: 'contact', title: 'Seller & Contact Info', short: 'Contact', icon: User, desc: 'Mobile phone, name & seller verification' },
   { id: 2, key: 'overview', title: 'Basic Overview', short: 'Overview', icon: Home, desc: 'Property title, city, type & possession' },
   { id: 3, key: 'pricing', title: 'Pricing & Terms', short: 'Pricing', icon: DollarSign, desc: 'Price, negotiable terms & rent' },
@@ -175,12 +186,13 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
   const [adminUser, setAdminUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Multi-step Wizard State: 1 to 7
+  // Multi-step Wizard State: 1 to 7 (admin) or 1 to 9 (public)
+  const steps = isPublicPortal ? PUBLIC_STEPS : ADMIN_STEPS;
   const [currentStep, setCurrentStep] = useState(1);
 
   // Form State
   const [property, setProperty] = useState({
-    // Seller Contact (Step 1)
+    // Seller Contact (Used only when user posts property)
     seller_name: '',
     seller_phone: '',
     seller_email: '',
@@ -196,7 +208,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
     badge: 'Verified Property',
     builder: '',
     possession: 'Ready to Move',
-    status: 'pending_review',
+    status: isPublicPortal ? 'pending_review' : 'published',
     rera_id: '',
 
     // Pricing
@@ -378,10 +390,21 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
     }));
   };
 
+  const activeStepObj = steps.find((s) => s.id === currentStep) || steps[0];
+  const activeStepKey = activeStepObj?.key;
+
+  const goToStepByKey = (key) => {
+    const target = steps.find((s) => s.key === key);
+    if (target) {
+      setCurrentStep(target.id);
+      window.scrollTo({ top: 120, behavior: 'smooth' });
+    }
+  };
+
   // Step transitions
   const goToNextStep = () => {
-    // Validation before leaving step 1 (Seller Contact)
-    if (currentStep === 1) {
+    // Validation before leaving Seller Contact (public portal only)
+    if (activeStepKey === 'contact') {
       if (!property.seller_name?.trim()) {
         alert('Please enter your full name as the seller / contact person.');
         return;
@@ -392,8 +415,8 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
         return;
       }
     }
-    // Validation before leaving step 2 (Overview)
-    if (currentStep === 2) {
+    // Validation before leaving Overview
+    if (activeStepKey === 'overview') {
       if (!property.title.trim()) {
         alert('Please enter a Property Name/Title.');
         return;
@@ -403,15 +426,15 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
         return;
       }
     }
-    // Validation before leaving step 3 (Pricing)
-    if (currentStep === 3) {
+    // Validation before leaving Pricing
+    if (activeStepKey === 'pricing') {
       if (!property.price_on_demand && !property.price.trim()) {
         alert('Please enter a Quoted Price or select Price on Demand.');
         return;
       }
     }
 
-    if (currentStep < 9) {
+    if (currentStep < steps.length) {
       setCurrentStep((prev) => prev + 1);
       window.scrollTo({ top: 120, behavior: 'smooth' });
     }
@@ -828,7 +851,6 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
   const totalUploadedImages = (property.image ? 1 : 0) + (property.gallery?.length || 0);
   const minRequired = property.min_images_required || 1;
   const imageRequirementMet = totalUploadedImages >= minRequired;
-  const activeStepObj = STEPS.find((s) => s.id === currentStep) || STEPS[0];
 
   return (
     <div className="min-h-screen bg-stone-50/50 dark:bg-white text-stone-900 flex flex-col font-sans selection:bg-stone-900 selection:text-white">
@@ -865,7 +887,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
                       : 'bg-stone-100 text-stone-700 border border-stone-200'
                   }`}
                 >
-                  {isAdminLoggedIn && property.status === 'published' ? 'Live' : 'Under Review'}
+                  {isAdminLoggedIn && property.status === 'published' ? 'Live' : (property.status === 'draft' ? 'Draft' : 'Admin Mode')}
                 </span>
               )}
             </div>
@@ -873,15 +895,17 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
 
           {/* Quick Header Actions */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-            {/* Track Status */}
-            <Link
-              href="/track"
-              className="px-2.5 sm:px-3.5 py-1.5 rounded-xl border border-stone-200 hover:border-stone-900 bg-white text-stone-800 text-xs font-semibold flex items-center gap-1.5 transition shadow-xs"
-              title="Track submitted listing review status"
-            >
-              <Search className="w-3.5 h-3.5 text-stone-600" />
-              <span>Track</span>
-            </Link>
+            {/* Track Status (Shown only on public customer portal) */}
+            {isPublicPortal && (
+              <Link
+                href="/track"
+                className="px-2.5 sm:px-3.5 py-1.5 rounded-xl border border-stone-200 hover:border-stone-900 bg-white text-stone-800 text-xs font-semibold flex items-center gap-1.5 transition shadow-xs"
+                title="Track submitted listing review status"
+              >
+                <Search className="w-3.5 h-3.5 text-stone-600" />
+                <span>Track</span>
+              </Link>
+            )}
 
             {/* Preview button - visible on desktop for inspection, hidden on small mobile to prevent header blowout */}
             <button
@@ -936,7 +960,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 mb-3">
             <div>
               <span className="text-[10px] sm:text-[11px] font-bold text-stone-500 uppercase tracking-wider">
-                Step {currentStep} of 9
+                Step {currentStep} of {steps.length}
               </span>
               <h2 className="text-base sm:text-lg font-serif font-bold text-stone-900">
                 {activeStepObj.title}
@@ -951,19 +975,22 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
           <div className="sm:hidden pt-1">
             <div className="flex items-center justify-between text-xs font-semibold text-stone-600 mb-2">
               <span>{activeStepObj.title}</span>
-              <span className="font-mono text-stone-400">Step {currentStep} of 9</span>
+              <span className="font-mono text-stone-400">Step {currentStep} of {steps.length}</span>
             </div>
             <div className="w-full bg-stone-100 h-1.5 rounded-full overflow-hidden">
               <div
                 className="bg-stone-900 h-full transition-all duration-300"
-                style={{ width: `${(currentStep / 9) * 100}%` }}
+                style={{ width: `${(currentStep / steps.length) * 100}%` }}
               />
             </div>
           </div>
 
-          {/* Stepper Tabs - Desktop 9-Column Grid */}
-          <div className="hidden sm:grid sm:grid-cols-9 gap-1.5 pt-1">
-            {STEPS.map((step) => {
+          {/* Stepper Tabs - Desktop Dynamic Grid */}
+          <div
+            className="hidden sm:grid gap-1.5 pt-1"
+            style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}
+          >
+            {steps.map((step) => {
               const Icon = step.icon;
               const isCurrent = currentStep === step.id;
               const isPast = currentStep > step.id;
@@ -1200,7 +1227,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
         {/* ========================================================================= */}
         {/* STEP 1: SELLER & CONTACT DETAILS                                          */}
         {/* ========================================================================= */}
-        {!submittedSubmission && currentStep === 1 && (
+        {!submittedSubmission && activeStepKey === 'contact' && (
           <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/90 p-4 sm:p-8 shadow-xs space-y-5 sm:space-y-6 animate-fade-in">
             <div className="border-b border-stone-100 pb-3 sm:pb-4">
               <h3 className="text-base sm:text-lg font-serif font-bold text-stone-900">
@@ -1318,7 +1345,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
         {/* ========================================================================= */}
         {/* STEP 2: BASIC OVERVIEW & DETAILS                                          */}
         {/* ========================================================================= */}
-        {!submittedSubmission && currentStep === 2 && (
+        {!submittedSubmission && activeStepKey === 'overview' && (
           <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/90 p-4 sm:p-8 shadow-xs space-y-5 sm:space-y-6 animate-fade-in">
             <div className="border-b border-stone-100 pb-3 sm:pb-4">
               <h3 className="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
@@ -1482,7 +1509,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
         {/* ========================================================================= */}
         {/* STEP 3: PRICING & COMMERCIAL TERMS                                        */}
         {/* ========================================================================= */}
-        {!submittedSubmission && currentStep === 3 && (
+        {!submittedSubmission && activeStepKey === 'pricing' && (
           <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/90 p-4 sm:p-8 shadow-xs space-y-5 sm:space-y-6 animate-fade-in">
             <div className="border-b border-stone-100 pb-3 sm:pb-4">
               <h3 className="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
@@ -1607,7 +1634,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
         {/* ========================================================================= */}
         {/* STEP 4: SPECIFICATIONS                                                    */}
         {/* ========================================================================= */}
-        {!submittedSubmission && currentStep === 4 && (
+        {!submittedSubmission && activeStepKey === 'specs' && (
           <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/90 p-4 sm:p-8 shadow-xs space-y-5 sm:space-y-6 animate-fade-in">
             <div className="border-b border-stone-100 pb-3 sm:pb-4">
               <h3 className="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
@@ -1728,7 +1755,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
         {/* ========================================================================= */}
         {/* STEP 5: PHOTOS & VIDEO TOUR (MINIMUM 3 PHOTOS)                            */}
         {/* ========================================================================= */}
-        {!submittedSubmission && currentStep === 5 && (
+        {!submittedSubmission && activeStepKey === 'media' && (
           <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/90 p-4 sm:p-8 shadow-xs space-y-5 sm:space-y-6 animate-fade-in">
             <div className="border-b border-stone-100 pb-3 sm:pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
               <div>
@@ -1956,7 +1983,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
         {/* ========================================================================= */}
         {/* STEP 6: LOCATION & LANDMARK MAP (DISTANCE VISIBLE FROM MAIN HOME)         */}
         {/* ========================================================================= */}
-        {!submittedSubmission && currentStep === 6 && (
+        {!submittedSubmission && activeStepKey === 'map' && (
           <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/90 p-4 sm:p-8 shadow-xs space-y-5 sm:space-y-6 animate-fade-in">
             <div className="border-b border-stone-100 pb-3 sm:pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
               <div>
@@ -2103,7 +2130,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
         {/* ========================================================================= */}
         {/* STEP 7: AMENITIES & DESCRIPTION (REFINED STYLE & REAL ICONS)              */}
         {/* ========================================================================= */}
-        {!submittedSubmission && currentStep === 7 && (
+        {!submittedSubmission && activeStepKey === 'amenities' && (
           <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/90 p-4 sm:p-8 shadow-xs space-y-5 sm:space-y-6 animate-fade-in">
             <div className="border-b border-stone-100 pb-3 sm:pb-4">
               <h3 className="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
@@ -2226,7 +2253,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
         {/* ========================================================================= */}
         {/* STEP 8: CURATED BUYER FAQS & HIGHLIGHTS                                   */}
         {/* ========================================================================= */}
-        {!submittedSubmission && currentStep === 8 && (
+        {!submittedSubmission && activeStepKey === 'faqs' && (
           <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/90 p-4 sm:p-8 shadow-xs space-y-5 sm:space-y-6 animate-fade-in">
             <div className="border-b border-stone-100 pb-3 sm:pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
               <div>
@@ -2334,7 +2361,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
         {/* ========================================================================= */}
         {/* STEP 9: EXECUTIVE REVIEW & VERIFICATION                                   */}
         {/* ========================================================================= */}
-        {!submittedSubmission && currentStep === 9 && (
+        {!submittedSubmission && activeStepKey === 'review' && (
           <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/90 p-4 sm:p-8 shadow-xs space-y-5 sm:space-y-6 animate-fade-in">
             {/* Header */}
             <div className="border-b border-stone-100 pb-3 sm:pb-4 flex items-center justify-between">
@@ -2396,7 +2423,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
 
               <button
                 type="button"
-                onClick={() => setCurrentStep(2)}
+                onClick={() => goToStepByKey('overview')}
                 className="text-xs font-semibold text-stone-600 hover:text-stone-900 underline cursor-pointer shrink-0"
               >
                 Edit Overview
@@ -2414,7 +2441,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
                   </span>
                   <button
                     type="button"
-                    onClick={() => setCurrentStep(1)}
+                    onClick={() => goToStepByKey('contact')}
                     className="text-[11px] font-medium text-stone-600 hover:text-stone-900 underline cursor-pointer"
                   >
                     Edit
@@ -2451,7 +2478,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
                   </span>
                   <button
                     type="button"
-                    onClick={() => setCurrentStep(4)}
+                    onClick={() => goToStepByKey('specs')}
                     className="text-[11px] font-medium text-stone-600 hover:text-stone-900 underline cursor-pointer"
                   >
                     Edit
@@ -2490,7 +2517,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
                   </span>
                   <button
                     type="button"
-                    onClick={() => setCurrentStep(5)}
+                    onClick={() => goToStepByKey('media')}
                     className="text-[11px] font-medium text-stone-600 hover:text-stone-900 underline cursor-pointer"
                   >
                     Edit
@@ -2533,7 +2560,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
                   </span>
                   <button
                     type="button"
-                    onClick={() => setCurrentStep(7)}
+                    onClick={() => goToStepByKey('amenities')}
                     className="text-[11px] font-medium text-stone-600 hover:text-stone-900 underline cursor-pointer"
                   >
                     Edit
@@ -2600,16 +2627,16 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
 
             <div className="flex items-center gap-2 flex-1 sm:flex-initial justify-end">
               <span className="text-xs text-stone-500 font-medium hidden md:inline">
-                Step {currentStep} of 9
+                Step {currentStep} of {steps.length}
               </span>
 
-              {currentStep < 9 ? (
+              {currentStep < steps.length ? (
                 <button
                   type="button"
                   onClick={goToNextStep}
                   className="w-full sm:w-auto px-5 sm:px-6 py-2.5 bg-stone-900 hover:bg-black text-white text-xs sm:text-sm font-semibold rounded-xl flex items-center justify-center gap-2 transition shadow-xs cursor-pointer"
                 >
-                  <span>Next: {STEPS[currentStep]?.short || 'Continue'}</span>
+                  <span>Next: {steps[currentStep]?.short || 'Continue'}</span>
                   <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
               ) : (
