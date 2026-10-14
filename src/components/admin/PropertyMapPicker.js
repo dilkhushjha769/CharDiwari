@@ -376,12 +376,14 @@ export default function PropertyMapPicker({
       });
 
       // Update connecting dashed lines layer
-      const source = mapRef.current.getSource('connecting-lines');
-      if (source) {
-        source.setData({
-          type: 'FeatureCollection',
-          features: lineFeatures,
-        });
+      if (mapRef.current && typeof mapRef.current.getSource === 'function') {
+        const source = mapRef.current.getSource('connecting-lines');
+        if (source) {
+          source.setData({
+            type: 'FeatureCollection',
+            features: lineFeatures,
+          });
+        }
       }
     });
   }, [nearbyLocations, selectedNearbyIndex, mapLoaded, propertyCoords]);

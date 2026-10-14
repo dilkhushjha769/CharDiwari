@@ -914,36 +914,28 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
 
           {/* Quick Header Actions */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-            {/* Track Listing Status Modal Trigger */}
-            <button
-              type="button"
-              onClick={() => {
-                setShowTrackerModal(true);
-                const q = property.seller_phone || '';
-                if (q) {
-                  setTrackingQuery(q);
-                  handlePerformTrack(q);
-                }
-              }}
-              className="px-2.5 sm:px-3.5 py-1.5 rounded-xl border border-stone-200 hover:border-stone-900 bg-white text-stone-800 text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+            {/* Track Status */}
+            <Link
+              href="/track"
+              className="px-2.5 sm:px-3.5 py-1.5 rounded-xl border border-stone-200 hover:border-stone-900 bg-white text-stone-800 text-xs font-semibold flex items-center gap-1.5 transition shadow-xs"
               title="Track submitted listing review status"
             >
               <Search className="w-3.5 h-3.5 text-stone-600" />
-              <span className="hidden sm:inline">Track Status</span>
-              <span className="sm:hidden">Track</span>
-            </button>
+              <span>Track</span>
+            </Link>
 
+            {/* Preview button - visible on desktop for inspection, hidden on small mobile to prevent header blowout */}
             <button
               type="button"
               onClick={() => setShowLivePreview(!showLivePreview)}
-              className="p-2 sm:px-3.5 sm:py-1.5 rounded-xl border border-stone-200 hover:border-stone-900 bg-white text-stone-800 text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+              className="hidden sm:flex px-3 py-1.5 rounded-xl border border-stone-200 hover:border-stone-900 bg-white text-stone-800 text-xs font-semibold items-center gap-1.5 transition shadow-xs cursor-pointer"
               title="Preview buyer card"
             >
               <Eye className="w-3.5 h-3.5 text-stone-600" />
-              <span className="hidden md:inline">{showLivePreview ? 'Hide Preview' : 'Card Preview'}</span>
+              <span>{showLivePreview ? 'Hide' : 'Preview'}</span>
             </button>
 
-            {isAdminLoggedIn ? (
+            {isAdminLoggedIn && !isPublicPortal ? (
               <>
                 <button
                   type="button"
@@ -958,42 +950,22 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
                   type="button"
                   disabled={saveLoading}
                   onClick={() => handleSaveProperty('published')}
-                  className="px-3.5 sm:px-5 py-2 bg-stone-900 hover:bg-black text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 sm:gap-2 transition shadow-xs cursor-pointer disabled:opacity-50"
+                  className="px-3 sm:px-4 py-1.5 bg-stone-900 hover:bg-black text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-xs cursor-pointer disabled:opacity-50"
                 >
                   {saveLoading ? (
                     <>
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span className="hidden sm:inline">Saving...</span>
+                      <span>Saving...</span>
                     </>
                   ) : (
                     <>
                       <Save className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">{editId ? 'Save Changes' : 'Publish Property'}</span>
-                      <span className="sm:hidden">{editId ? 'Save' : 'Publish'}</span>
+                      <span>{editId ? 'Save' : 'Publish'}</span>
                     </>
                   )}
                 </button>
               </>
-            ) : (
-              <button
-                type="button"
-                disabled={saveLoading}
-                onClick={() => handleSaveProperty('pending_review')}
-                className="px-3.5 sm:px-5 py-2 bg-stone-900 hover:bg-black text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 sm:gap-2 transition shadow-xs cursor-pointer disabled:opacity-50"
-              >
-                {saveLoading ? (
-                  <>
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    <span className="hidden sm:inline">Submitting...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Submit for Review</span>
-                  </>
-                )}
-              </button>
-            )}
+            ) : null}
           </div>
         </div>
       </header>
@@ -1016,8 +988,22 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
             </div>
           </div>
 
-          {/* Stepper Tabs - Mobile Horizontal Scroll + Desktop 9-Column Grid */}
-          <div className="flex sm:grid sm:grid-cols-9 gap-1.5 sm:gap-1.5 pt-0.5 overflow-x-auto no-scrollbar scroll-smooth pb-1 -mx-1 px-1">
+          {/* Mobile Step Compact Indicator */}
+          <div className="sm:hidden pt-1">
+            <div className="flex items-center justify-between text-xs font-semibold text-stone-600 mb-2">
+              <span>{activeStepObj.title}</span>
+              <span className="font-mono text-stone-400">Step {currentStep} of 9</span>
+            </div>
+            <div className="w-full bg-stone-100 h-1.5 rounded-full overflow-hidden">
+              <div
+                className="bg-stone-900 h-full transition-all duration-300"
+                style={{ width: `${(currentStep / 9) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Stepper Tabs - Desktop 9-Column Grid */}
+          <div className="hidden sm:grid sm:grid-cols-9 gap-1.5 pt-1">
             {STEPS.map((step) => {
               const Icon = step.icon;
               const isCurrent = currentStep === step.id;
@@ -1028,37 +1014,26 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
                   key={step.id}
                   type="button"
                   onClick={() => setCurrentStep(step.id)}
-                  className={`shrink-0 sm:shrink py-2 sm:py-2.5 px-3 sm:px-1 rounded-xl text-xs font-semibold transition flex sm:flex-col items-center justify-center gap-1.5 sm:gap-1 cursor-pointer border ${
+                  className={`py-2 px-1 rounded-xl text-xs font-semibold transition flex flex-col items-center justify-center gap-1 cursor-pointer border ${
                     isCurrent
-                      ? 'bg-stone-900 text-white border-stone-900 shadow-sm'
+                      ? 'bg-stone-900 text-white border-stone-900 shadow-2xs'
                       : isPast
                       ? 'bg-stone-100 text-stone-800 border-stone-200 hover:bg-stone-200'
-                      : 'bg-stone-50/80 text-stone-500 border-stone-200/80 hover:bg-stone-100 hover:text-stone-800'
+                      : 'bg-stone-50 text-stone-500 border-stone-200 hover:bg-stone-100 hover:text-stone-800'
                   }`}
                   title={step.title}
                 >
                   <Icon
-                    className={`w-4 h-4 sm:w-3.5 sm:h-3.5 shrink-0 ${
+                    className={`w-3.5 h-3.5 shrink-0 ${
                       isCurrent ? 'text-white' : isPast ? 'text-stone-800' : 'text-stone-400'
                     }`}
                   />
-                  <span className="text-[11px] font-medium whitespace-nowrap sm:truncate sm:w-full sm:text-center">
+                  <span className="text-[11px] font-medium truncate w-full text-center">
                     {step.short}
                   </span>
-                  {isPast && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 sm:hidden ml-0.5 shrink-0" />
-                  )}
                 </button>
               );
             })}
-          </div>
-
-          {/* Mobile Step Progress Bar */}
-          <div className="w-full bg-stone-100 h-1 rounded-full overflow-hidden mt-2.5 sm:hidden">
-            <div
-              className="bg-stone-900 h-full transition-all duration-300"
-              style={{ width: `${(currentStep / 9) * 100}%` }}
-            />
           </div>
         </div>
 
@@ -1260,25 +1235,17 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
         {/* ========================================================================= */}
         {!submittedSubmission && currentStep === 1 && (
           <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/90 p-4 sm:p-8 shadow-xs space-y-5 sm:space-y-6 animate-fade-in">
-            <div className="border-b border-stone-100 pb-3 sm:pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
-              <div>
-                <h3 className="text-base sm:text-lg font-serif font-bold text-stone-900 flex items-center gap-2">
-                  <User className="w-4 h-4 sm:w-5 sm:h-5 text-stone-800" />
-                  <span>Seller Verification & Contact Details</span>
-                </h3>
-                <p className="text-xs text-stone-500 mt-1 font-light">
-                  Your direct contact details. Our verification desk and genuine high-net-worth buyers will connect with you here.
-                </p>
-              </div>
-
-              <div className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-1.5 self-start sm:self-auto">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Zero Brokerage & Verified Desk</span>
-              </div>
+            <div className="border-b border-stone-100 pb-3 sm:pb-4">
+              <h3 className="text-base sm:text-lg font-serif font-bold text-stone-900">
+                Your Contact Details
+              </h3>
+              <p className="text-xs text-stone-500 mt-1 font-light">
+                Our verification desk and prospective buyers will reach out to you directly on these details.
+              </p>
             </div>
 
             {/* Seller Contact Inputs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
               {/* Full Name */}
               <div className="sm:col-span-1">
                 <label className="block text-xs font-semibold text-stone-800 mb-1.5">
@@ -1291,7 +1258,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
                     value={property.seller_name || ''}
                     onChange={(e) => setProperty({ ...property, seller_name: e.target.value })}
                     placeholder="e.g. Vikram Singhania"
-                    className="w-full pl-9 pr-3.5 py-2.5 sm:py-3 bg-stone-50 hover:bg-white focus:bg-white border border-stone-200 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition"
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-stone-50 hover:bg-white focus:bg-white border border-stone-200 rounded-xl text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition"
                   />
                   <User className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
@@ -1300,11 +1267,11 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
               {/* Mobile Phone */}
               <div className="sm:col-span-1">
                 <label className="block text-xs font-semibold text-stone-800 mb-1.5">
-                  Contact Mobile Number *
+                  Mobile Number *
                 </label>
                 <div className="relative flex">
-                  <span className="inline-flex items-center px-3 rounded-l-xl sm:rounded-l-2xl border border-r-0 border-stone-200 bg-stone-100 text-stone-700 text-xs sm:text-sm font-semibold select-none">
-                    🇮🇳 +91
+                  <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-stone-200 bg-stone-100 text-stone-700 text-xs sm:text-sm font-semibold select-none">
+                    +91
                   </span>
                   <input
                     type="tel"
@@ -1316,26 +1283,23 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
                       setProperty({ ...property, seller_phone: digits });
                     }}
                     placeholder="98765 43210"
-                    className="w-full px-3.5 py-2.5 sm:py-3 bg-stone-50 hover:bg-white focus:bg-white border border-stone-200 rounded-r-xl sm:rounded-r-2xl text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition font-mono tracking-wide"
+                    className="w-full px-3.5 py-2.5 bg-stone-50 hover:bg-white focus:bg-white border border-stone-200 rounded-r-xl text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition font-mono tracking-wide"
                   />
                 </div>
-                <p className="mt-1 text-[11px] text-stone-500">
-                  Required for OTP/desk verification and buyer status tracking.
-                </p>
               </div>
 
               {/* Email Address */}
               <div className="sm:col-span-1">
                 <label className="block text-xs font-semibold text-stone-800 mb-1.5">
-                  Email Address (Optional)
+                  Email Address <span className="text-stone-400 font-normal">(Optional)</span>
                 </label>
                 <div className="relative">
                   <input
                     type="email"
                     value={property.seller_email || ''}
                     onChange={(e) => setProperty({ ...property, seller_email: e.target.value })}
-                    placeholder="e.g. vikram@singhania.com"
-                    className="w-full pl-9 pr-3.5 py-2.5 sm:py-3 bg-stone-50 hover:bg-white focus:bg-white border border-stone-200 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition"
+                    placeholder="vikram@singhania.com"
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-stone-50 hover:bg-white focus:bg-white border border-stone-200 rounded-xl text-xs sm:text-sm text-stone-900 placeholder-stone-400 focus:outline-none focus:border-stone-900 transition"
                   />
                   <Mail className="w-4 h-4 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
@@ -1344,72 +1308,41 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
               {/* You are the */}
               <div className="sm:col-span-2">
                 <label className="block text-xs font-semibold text-stone-800 mb-1.5">
-                  You are posting this property as *
+                  I am the *
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { id: 'owner', label: 'Property Owner', desc: 'Direct owner / titleholder' },
-                    { id: 'agent', label: 'Agent / Broker', desc: 'Authorized channel partner' },
-                    { id: 'builder', label: 'Builder / Developer', desc: 'Official sales representative' },
+                    { id: 'owner', label: 'Owner' },
+                    { id: 'agent', label: 'Agent / Broker' },
+                    { id: 'builder', label: 'Builder' },
                   ].map((role) => (
                     <button
                       key={role.id}
                       type="button"
                       onClick={() => setProperty({ ...property, seller_role: role.id })}
-                      className={`p-3 rounded-xl border text-left transition cursor-pointer ${
+                      className={`py-2 px-3 rounded-xl border text-center transition cursor-pointer text-xs font-semibold ${
                         (property.seller_role || 'owner') === role.id
-                          ? 'bg-stone-900 text-white border-stone-900 shadow-xs'
-                          : 'bg-stone-50 hover:bg-stone-100 text-stone-800 border-stone-200'
+                          ? 'bg-stone-900 text-white border-stone-900 shadow-2xs'
+                          : 'bg-stone-50 hover:bg-stone-100 text-stone-700 border-stone-200'
                       }`}
                     >
-                      <div className="text-xs font-bold">{role.label}</div>
-                      <div
-                        className={`text-[10px] truncate mt-0.5 ${
-                          (property.seller_role || 'owner') === role.id ? 'text-stone-300' : 'text-stone-500'
-                        }`}
-                      >
-                        {role.desc}
-                      </div>
+                      {role.label}
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Preferred Call Time */}
-              <div className="sm:col-span-1">
-                <label className="block text-xs font-semibold text-stone-800 mb-1.5">
-                  Preferred Contact Window
+              {/* WhatsApp Toggle */}
+              <div className="sm:col-span-1 flex items-end">
+                <label className="flex items-center gap-2 cursor-pointer text-xs text-stone-700 pb-2">
+                  <input
+                    type="checkbox"
+                    checked={property.whatsapp_consent !== false}
+                    onChange={(e) => setProperty({ ...property, whatsapp_consent: e.target.checked })}
+                    className="rounded text-stone-900 focus:ring-stone-900 cursor-pointer"
+                  />
+                  <span>WhatsApp updates on this number</span>
                 </label>
-                <select
-                  value={property.preferred_contact || 'anytime'}
-                  onChange={(e) => setProperty({ ...property, preferred_contact: e.target.value })}
-                  className="w-full px-3.5 sm:px-4 py-2.5 sm:py-3 bg-stone-50 hover:bg-white focus:bg-white border border-stone-200 rounded-xl sm:rounded-2xl text-xs sm:text-sm text-stone-900 focus:outline-none focus:border-stone-900 transition cursor-pointer"
-                >
-                  <option value="anytime">Any Time (9 AM – 9 PM)</option>
-                  <option value="morning">Morning (9 AM – 12 PM)</option>
-                  <option value="afternoon">Afternoon (12 PM – 5 PM)</option>
-                  <option value="evening">Evening (5 PM – 9 PM)</option>
-                </select>
-              </div>
-            </div>
-
-            {/* WhatsApp Consent & Privacy Trust Box */}
-            <div className="p-4 rounded-xl sm:rounded-2xl bg-stone-50 border border-stone-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <label className="flex items-start gap-2.5 cursor-pointer text-xs text-stone-700">
-                <input
-                  type="checkbox"
-                  checked={property.whatsapp_consent !== false}
-                  onChange={(e) => setProperty({ ...property, whatsapp_consent: e.target.checked })}
-                  className="mt-0.5 rounded text-stone-900 focus:ring-stone-900 cursor-pointer"
-                />
-                <span>
-                  Enable direct WhatsApp inquiries and real-time review updates on this mobile number.
-                </span>
-              </label>
-
-              <div className="flex items-center gap-2 text-[11px] text-stone-500 shrink-0">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>100% Privacy Protected</span>
               </div>
             </div>
           </div>
