@@ -165,7 +165,7 @@ function parsePriceToCrores(priceStr) {
   return 0;
 }
 
-function NewPropertyPageContent() {
+function NewPropertyPageContent({ isPublicPortal = false }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('id');
@@ -323,10 +323,18 @@ function NewPropertyPageContent() {
           setAdminUser(data.admin);
         } else {
           setIsAdminLoggedIn(false);
+          if (!isPublicPortal) {
+            router.replace('/admin');
+          }
         }
       })
       .catch(() => {
-        if (!ignore) setIsAdminLoggedIn(false);
+        if (!ignore) {
+          setIsAdminLoggedIn(false);
+          if (!isPublicPortal) {
+            router.replace('/admin');
+          }
+        }
       })
       .finally(() => {
         if (!ignore) setAuthLoading(false);
@@ -870,12 +878,12 @@ function NewPropertyPageContent() {
         <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <Link
-              href={isAdminLoggedIn ? '/admin' : '/'}
+              href={isPublicPortal ? '/' : (isAdminLoggedIn ? '/admin' : '/')}
               className="p-2 rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-600 hover:text-stone-900 transition flex items-center gap-1.5 text-xs font-semibold shrink-0"
-              title={isAdminLoggedIn ? 'Return to Admin Portfolio' : 'Return to CharDiwari Home'}
+              title={isPublicPortal ? 'Return to Home' : (isAdminLoggedIn ? 'Return to Admin Portfolio' : 'Return to Home')}
             >
               <ArrowLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">{isAdminLoggedIn ? 'Portfolio' : 'Home'}</span>
+              <span className="hidden sm:inline">{isPublicPortal ? 'Home' : (isAdminLoggedIn ? 'Portfolio' : 'Home')}</span>
             </Link>
 
             <span className="h-4 w-px bg-stone-200 hidden sm:block" />
@@ -884,19 +892,23 @@ function NewPropertyPageContent() {
               <span className="font-serif font-bold text-stone-900 text-sm sm:text-base tracking-tight truncate max-w-[150px] xs:max-w-[200px] sm:max-w-xs">
                 {editId
                   ? `Edit: ${property.title || 'Listing'}`
+                  : isPublicPortal
+                  ? 'Post Your Property'
                   : isAdminLoggedIn
                   ? 'New Property Listing'
                   : 'Post Your Property'}
               </span>
-              <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
-                  isAdminLoggedIn && property.status === 'published'
-                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                    : 'bg-amber-50 text-amber-800 border border-amber-200'
-                }`}
-              >
-                {isAdminLoggedIn && property.status === 'published' ? 'Live' : 'Admin Review Flow'}
-              </span>
+              {!isPublicPortal && (
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${
+                    isAdminLoggedIn && property.status === 'published'
+                      ? 'bg-stone-900 text-white'
+                      : 'bg-stone-100 text-stone-700 border border-stone-200'
+                  }`}
+                >
+                  {isAdminLoggedIn && property.status === 'published' ? 'Live' : 'Under Review'}
+                </span>
+              )}
             </div>
           </div>
 
@@ -2763,10 +2775,10 @@ function NewPropertyPageContent() {
                 </button>
               ) : (
                 <Link
-                  href={isAdminLoggedIn ? '/admin' : '/'}
+                  href={isPublicPortal ? '/' : (isAdminLoggedIn ? '/admin' : '/')}
                   className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-stone-200 hover:bg-stone-100 bg-white text-stone-600 text-xs sm:text-sm font-semibold transition flex items-center justify-center"
                 >
-                  {isAdminLoggedIn ? 'Portfolio' : 'Home'}
+                  {isPublicPortal ? 'Home' : (isAdminLoggedIn ? 'Portfolio' : 'Home')}
                 </Link>
               )}
             </div>
@@ -2973,7 +2985,7 @@ function NewPropertyPageContent() {
   );
 }
 
-export default function NewPropertyPage() {
+export default function NewPropertyPage({ isPublicPortal = false }) {
   return (
     <Suspense
       fallback={
@@ -2985,7 +2997,7 @@ export default function NewPropertyPage() {
         </div>
       }
     >
-      <NewPropertyPageContent />
+      <NewPropertyPageContent isPublicPortal={isPublicPortal} />
     </Suspense>
   );
 }

@@ -828,8 +828,8 @@ export default function AdminPage() {
                   </span>
                 )}
                 {tab.pending > 0 && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white animate-pulse">
-                    {tab.pending} review
+                  <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-stone-100 text-stone-700">
+                    {tab.pending}
                   </span>
                 )}
               </button>
@@ -846,7 +846,7 @@ export default function AdminPage() {
             <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1">
               {[
                 { id: 'all', label: 'All Listings', count: properties.length },
-                { id: 'pending', label: 'Awaiting Review', count: pendingCount, highlight: pendingCount > 0 },
+                { id: 'pending', label: 'Awaiting Review', count: pendingCount },
                 { id: 'published', label: 'Live Published', count: publishedCount },
                 { id: 'rejected', label: 'Rejected / Archived', count: rejectedCount },
               ].map((sf) => (
@@ -857,19 +857,14 @@ export default function AdminPage() {
                   className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer shrink-0 ${
                     statusFilter === sf.id
                       ? 'bg-stone-900 text-white shadow-xs'
-                      : sf.highlight
-                      ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300'
                       : 'bg-white hover:bg-stone-50 text-stone-600 border border-stone-200'
                   }`}
                 >
-                  {sf.highlight && <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />}
                   <span>{sf.label}</span>
                   <span
                     className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
                       statusFilter === sf.id
                         ? 'bg-stone-800 text-white'
-                        : sf.highlight
-                        ? 'bg-amber-200 text-amber-900'
                         : 'bg-stone-100 text-stone-600'
                     }`}
                   >
@@ -930,47 +925,13 @@ export default function AdminPage() {
                   const hasVideo = Boolean(prop.video_url || prop.videoUrl);
                   const isPending = prop.status === 'pending_review' || prop.status === 'pending';
                   const isRejected = prop.status === 'rejected';
-                  const sellerName = prop.seller_name || prop.seller?.name;
-                  const sellerPhone = prop.seller_phone || prop.seller?.phone;
-                  const sellerRole = prop.seller_role || prop.seller?.role || 'Owner';
-                  const cleanPhone = (sellerPhone || '').replace(/[^\d]/g, '');
 
                   return (
                     <div
                       key={prop.id}
-                      className={`group bg-white rounded-3xl border overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between ${
-                        isPending
-                          ? 'border-amber-300 ring-2 ring-amber-100 bg-amber-50/10'
-                          : isRejected
-                          ? 'border-rose-200 bg-rose-50/10 opacity-75'
-                          : 'border-stone-200/90 hover:border-stone-300'
-                      }`}
+                      className="group bg-white rounded-3xl border border-stone-200/90 overflow-hidden shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between"
                     >
                       <div>
-                        {/* Status Warning Banner for Pending */}
-                        {isPending && (
-                          <div className="bg-amber-500 text-white px-4 py-2 text-xs font-bold flex items-center justify-between">
-                            <div className="flex items-center gap-1.5">
-                              <AlertTriangle className="w-3.5 h-3.5" />
-                              <span>Awaiting Review &amp; Call</span>
-                            </div>
-                            <span className="text-[10px] font-mono tracking-wider bg-amber-600 px-2 py-0.5 rounded-full">
-                              {prop.submission_ref || 'User Submission'}
-                            </span>
-                          </div>
-                        )}
-
-                        {isRejected && (
-                          <div className="bg-rose-600 text-white px-4 py-1.5 text-xs font-bold flex items-center justify-between">
-                            <span>Listing Rejected / Archived</span>
-                            {prop.admin_review_note && (
-                              <span className="text-[10px] font-normal opacity-90 truncate max-w-[150px]">
-                                {prop.admin_review_note}
-                              </span>
-                            )}
-                          </div>
-                        )}
-
                         {/* Image Cover */}
                         <div className="relative aspect-4/3 w-full overflow-hidden bg-stone-100">
                           <img
@@ -981,29 +942,35 @@ export default function AdminPage() {
 
                           {/* Top Badges */}
                           <div className="absolute top-3.5 left-3.5 flex gap-1.5 flex-wrap">
-                            <span className="px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-md text-xs font-semibold text-stone-900 shadow-xs">
+                            <span className="px-2.5 py-1 rounded-full bg-white/95 backdrop-blur-md text-xs font-semibold text-stone-900 shadow-2xs">
                               {prop.city}
                             </span>
-                            <span
-                              className={`px-2.5 py-1 rounded-full text-xs font-medium shadow-xs text-white ${
-                                isPending ? 'bg-amber-600' : isRejected ? 'bg-rose-700' : 'bg-emerald-700'
-                              }`}
-                            >
-                              {isPending ? 'Under Review' : isRejected ? 'Rejected' : (prop.tag || 'Verified')}
-                            </span>
+                            {isPending ? (
+                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-900 text-white shadow-2xs">
+                                Under Review
+                              </span>
+                            ) : isRejected ? (
+                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-100 text-stone-700 border border-stone-300 shadow-2xs">
+                                Rejected
+                              </span>
+                            ) : (
+                              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-white/95 text-stone-900 border border-stone-200 shadow-2xs">
+                                {prop.tag || 'Verified'}
+                              </span>
+                            )}
                           </div>
 
                           {/* Video Indicator */}
                           {hasVideo && (
-                            <div className="absolute top-3.5 right-3.5 px-2.5 py-1 rounded-full bg-black/85 backdrop-blur-md text-amber-300 text-xs font-bold flex items-center gap-1 shadow-xs">
-                              <Video className="w-3 h-3 text-amber-400" />
-                              <span>Video Tour</span>
+                            <div className="absolute top-3.5 right-3.5 px-2.5 py-1 rounded-full bg-stone-900/90 backdrop-blur-md text-stone-100 text-xs font-medium flex items-center gap-1 shadow-2xs">
+                              <Video className="w-3 h-3 text-stone-300" />
+                              <span>Video</span>
                             </div>
                           )}
 
                           {/* Price Tag */}
                           <div className="absolute bottom-3.5 left-3.5">
-                            <span className="px-3.5 py-1.5 rounded-xl bg-stone-900/90 backdrop-blur-md text-white font-serif font-bold text-base tabular-nums shadow-xs">
+                            <span className="px-3 py-1 rounded-xl bg-stone-900/90 backdrop-blur-md text-white font-serif font-bold text-sm sm:text-base tabular-nums shadow-2xs">
                               {prop.price}
                             </span>
                           </div>
@@ -1016,7 +983,7 @@ export default function AdminPage() {
                             <span className="truncate">{prop.location}</span>
                           </div>
 
-                          <h3 className="text-lg font-bold text-stone-900 truncate mb-1">
+                          <h3 className="text-base sm:text-lg font-bold text-stone-900 truncate mb-1">
                             {prop.title}
                           </h3>
 
@@ -1039,52 +1006,18 @@ export default function AdminPage() {
                               <span>{prop.area}</span>
                             </div>
                           </div>
-
-                          {/* Seller Details Card (Shown for all user submissions) */}
-                          {sellerPhone && (
-                            <div className="mt-3.5 p-3 rounded-2xl bg-stone-50 border border-stone-200/80 text-xs space-y-2">
-                              <div className="flex items-center justify-between">
-                                <span className="font-bold text-stone-900 flex items-center gap-1.5">
-                                  <User className="w-3.5 h-3.5 text-stone-500" />
-                                  <span>{sellerName || 'Direct Seller'}</span>
-                                </span>
-                                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-stone-200 text-stone-700">
-                                  {sellerRole}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between gap-2 pt-1 border-t border-stone-200/50">
-                                <a
-                                  href={`tel:+91${cleanPhone}`}
-                                  className="inline-flex items-center gap-1 text-stone-900 font-mono font-bold hover:underline"
-                                  title="Call Seller"
-                                >
-                                  <Phone className="w-3 h-3 text-stone-600" />
-                                  <span>+91 {sellerPhone}</span>
-                                </a>
-                                <a
-                                  href={`https://wa.me/91${cleanPhone}?text=Hi%20${encodeURIComponent(sellerName || '')},%20this%20is%20Dwarkesh%20regarding%20your%20property%20listing%20"${encodeURIComponent(prop.title)}".`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold inline-flex items-center gap-1 transition shadow-2xs"
-                                >
-                                  <span>WhatsApp</span>
-                                </a>
-                              </div>
-                            </div>
-                          )}
                         </div>
                       </div>
 
                       {/* Card Action Footer */}
                       <div className="p-5 pt-0">
-                        {/* Pending Review Primary Action Strip */}
                         {isPending ? (
-                          <div className="pt-3 border-t border-amber-200 space-y-2">
+                          <div className="pt-3 border-t border-stone-100 space-y-2">
                             <div className="grid grid-cols-2 gap-2">
                               <button
                                 type="button"
                                 onClick={() => handleApproveProperty(prop)}
-                                className="w-full py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+                                className="w-full py-2 px-3 rounded-xl bg-stone-900 hover:bg-black text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-2xs"
                               >
                                 <Check className="w-3.5 h-3.5" />
                                 <span>Approve &amp; Publish</span>
@@ -1093,7 +1026,7 @@ export default function AdminPage() {
                               <button
                                 type="button"
                                 onClick={() => handleRejectProperty(prop)}
-                                className="w-full py-2 px-3 rounded-xl border border-rose-300 hover:bg-rose-50 text-rose-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                                className="w-full py-2 px-3 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
                               >
                                 <X className="w-3.5 h-3.5" />
                                 <span>Reject</span>
@@ -1103,15 +1036,14 @@ export default function AdminPage() {
                             <div className="flex items-center justify-between text-xs pt-1">
                               <Link
                                 href={`/admin/properties/new?id=${prop.id}`}
-                                className="text-stone-600 hover:text-stone-900 font-semibold flex items-center gap-1"
+                                className="text-stone-600 hover:text-stone-900 font-medium"
                               >
-                                <Edit className="w-3 h-3" />
-                                <span>Edit Specs First</span>
+                                Edit Details
                               </Link>
                               <button
                                 type="button"
                                 onClick={() => handleDeleteProperty(prop.id)}
-                                className="text-stone-400 hover:text-rose-600"
+                                className="text-stone-400 hover:text-rose-600 cursor-pointer"
                               >
                                 Delete
                               </button>

@@ -107,9 +107,9 @@ function TrackPropertyContent() {
         {/* ============================================================== */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-12">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[11px] font-semibold uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Real-Time Verification Tracking
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-stone-100 border border-stone-200 text-stone-700 text-[11px] font-semibold uppercase tracking-wider">
+              <span className="w-1.5 h-1.5 rounded-full bg-stone-500" />
+              Listing Verification
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold text-stone-900 tracking-tight">
@@ -261,18 +261,18 @@ function TrackPropertyContent() {
                     <div
                       className={`px-5 sm:px-6 py-3 border-b flex flex-wrap items-center justify-between gap-3 ${
                         isPublished
-                          ? 'bg-emerald-50/80 border-emerald-100 text-emerald-900'
+                          ? 'bg-stone-50 border-stone-200 text-stone-900'
                           : isRejected
-                          ? 'bg-rose-50/80 border-rose-100 text-rose-900'
-                          : 'bg-amber-50/80 border-amber-100 text-amber-900'
+                          ? 'bg-stone-50 border-stone-200 text-stone-900'
+                          : 'bg-stone-50 border-stone-200 text-stone-900'
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        {isPublished && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
-                        {isPending && <Clock className="w-4 h-4 text-amber-600 animate-pulse" />}
-                        {isRejected && <XCircle className="w-4 h-4 text-rose-600" />}
-                        <span className="text-xs font-bold uppercase tracking-wide">
-                          {isPublished ? 'Approved & Live on CharDiwari' : isPending ? 'Under Editorial Review' : 'Changes Requested / Rejected'}
+                        {isPublished && <CheckCircle2 className="w-4 h-4 text-stone-900" />}
+                        {isPending && <Clock className="w-4 h-4 text-stone-600" />}
+                        {isRejected && <XCircle className="w-4 h-4 text-stone-600" />}
+                        <span className="text-xs font-semibold tracking-wide">
+                          {isPublished ? 'Live on CharDiwari' : isPending ? 'Under Review' : 'Listing Archived / Rejected'}
                         </span>
                       </div>
 
@@ -372,37 +372,37 @@ function TrackPropertyContent() {
                             </p>
                           </div>
 
-                          {/* Step 2: Editorial Review */}
+                          {/* Step 2: Review */}
                           <div
                             className={`p-3.5 rounded-2xl border space-y-1.5 ${
                               isPublished || isRejected
                                 ? 'bg-stone-50 border-stone-200/80'
-                                : 'bg-amber-50/70 border-amber-300 ring-2 ring-amber-400/20'
+                                : 'bg-stone-100/70 border-stone-300'
                             }`}
                           >
                             <div className="flex items-center justify-between">
                               <div
                                 className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                                   isPublished || isRejected
-                                    ? 'bg-emerald-500 text-white'
-                                    : 'bg-amber-500 text-white animate-pulse'
+                                    ? 'bg-stone-900 text-white'
+                                    : 'bg-stone-800 text-white'
                                 }`}
                               >
                                 {isPublished || isRejected ? <Check className="w-3.5 h-3.5" /> : '2'}
                               </div>
                               <span
-                                className={`text-[10px] font-bold px-1.5 py-0.2 rounded border ${
+                                className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border ${
                                   isPublished || isRejected
-                                    ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
-                                    : 'text-amber-800 bg-amber-100 border-amber-300'
+                                    ? 'text-stone-700 bg-white border-stone-200'
+                                    : 'text-stone-800 bg-stone-200/80 border-stone-300'
                                 }`}
                               >
                                 {isPublished || isRejected ? 'Completed' : 'In Progress'}
                               </span>
                             </div>
-                            <div className="font-bold text-xs text-stone-900">2. Quality Assessment</div>
+                            <div className="font-semibold text-xs text-stone-900">2. Editorial Review</div>
                             <p className="text-[11px] text-stone-500 leading-tight">
-                              Photo resolution, pricing benchmark &amp; RERA verification.
+                              Photo resolution, pricing benchmark &amp; verification.
                             </p>
                           </div>
 
@@ -561,13 +561,13 @@ function TrackPropertyContent() {
                       {/* UNDER REVIEW INFORMATIVE BOX                                   */}
                       {/* ============================================================== */}
                       {isPending && (
-                        <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/80 border border-amber-200 text-amber-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="p-4 sm:p-5 rounded-2xl bg-stone-50 border border-stone-200 text-stone-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                           <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
-                              <Clock className="w-4 h-4 text-amber-700 animate-pulse" />
-                              <span>Current Turnaround: 2 to 4 Business Hours</span>
+                            <div className="flex items-center gap-2 text-xs font-semibold text-stone-800">
+                              <Clock className="w-4 h-4 text-stone-600" />
+                              <span>Turnaround: 2 to 4 Business Hours</span>
                             </div>
-                            <p className="text-xs text-amber-800">
+                            <p className="text-xs text-stone-600">
                               Our editorial team is reviewing your property specifications. We will send an email confirmation the moment your listing is approved.
                             </p>
                           </div>
@@ -575,9 +575,9 @@ function TrackPropertyContent() {
                             href={`https://wa.me/919876543210?text=Hi%20CharDiwari,%20checking%20status%20for%20reference%20${item.submission_ref}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-4 py-2 rounded-xl bg-amber-900 hover:bg-black text-white text-xs font-semibold shrink-0 transition"
+                            className="px-4 py-2 rounded-xl bg-stone-900 hover:bg-black text-white text-xs font-semibold shrink-0 transition"
                           >
-                            Expedite on WhatsApp
+                            Support on WhatsApp
                           </a>
                         </div>
                       )}

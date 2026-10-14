@@ -9,5 +9,5 @@ import NewPropertyPage from '@/app/admin/properties/new/page';
  * interactive map plotting, luxury amenities, executive review, and real-time status tracking.
  */
 export default function PostPropertyPage() {
-  return <NewPropertyPage />;
+  return <NewPropertyPage isPublicPortal={true} />;
 }

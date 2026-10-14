@@ -33,9 +33,20 @@ export async function proxy(request) {
     }
   }
 
+  // Secure admin subroutes: anyone accessing /admin/properties, etc. without an admin token is redirected to /admin
+  const hasAdminCookie =
+    Boolean(request.cookies.get('dwarkesh_admin_token')?.value) ||
+    Boolean(request.cookies.get('chardiwari_admin_token')?.value);
+
+  if (pathname.startsWith('/admin/') && pathname !== '/admin') {
+    if (!hasAdminCookie) {
+      return NextResponse.redirect(new URL('/admin', request.url));
+    }
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/profile/:path*', '/dashboard/:path*', '/auth'],
+  matcher: ['/profile/:path*', '/dashboard/:path*', '/auth', '/admin/:path*'],
 };
