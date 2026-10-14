@@ -11,7 +11,7 @@
 // Route: GET /api/places/nearby?lat=…&lng=…&type=school&radius=3000
 // Returns: { places: [ { id, name, address, types, location, distanceKm } ] }
 
-const PLACES_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+const PLACES_KEY = process.env.GOOGLE_PLACES_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyCdmEoOmIcuMfwe7EP0Xi3KEBHHqAIQyFs';
 
 // Maps our UI category IDs to Google Places "includedTypes" values.
 // See: https://developers.google.com/maps/documentation/places/web-service/place-types

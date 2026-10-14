@@ -1,8 +1,8 @@
 'use client';
 
-import { useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Briefcase, Car } from 'lucide-react';
-import { hasMapsKey, importMapsLibrary } from '@/lib/google-maps';
+import { hasMapsKey, importMapsLibrary, isGoogleMapsFailed, onGoogleMapsFailure } from '@/lib/google-maps';
 
 // "How long is my commute, really?" Traffic-aware drive times from the
 // visitor's office at a weekday rush hour and on a Sunday, beside the
@@ -56,7 +56,13 @@ export default function CommuteCheck({ detail }) {
   const [result, setResult] = useState(null);
   const inputHost = useRef(null);
 
-  if (!hasMapsKey || !coords) return null;
+  const [available, setAvailable] = useState(() => hasMapsKey && !isGoogleMapsFailed());
+
+  useEffect(() => {
+    return onGoogleMapsFailure(() => setAvailable(false));
+  }, []);
+
+  if (!available || !coords) return null;
 
   async function compute(origin, label) {
     setStatus('loading');

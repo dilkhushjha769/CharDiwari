@@ -97,6 +97,7 @@ export default function PropertyMapPicker({
 
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState(false);
+  const [mapType, setMapType] = useState('street'); // 'street' | 'satellite'
 
   // Initialize MapLibre GL
   useEffect(() => {
@@ -107,7 +108,10 @@ export default function PropertyMapPicker({
       if (!mapContainerRef.current) return;
 
       try {
-        const maplibreglModule = await import('maplibre-gl');
+        const [maplibreglModule, libModule] = await Promise.all([
+          import('maplibre-gl'),
+          import('@/lib/maplibre'),
+        ]);
         const maplibregl = maplibreglModule.default;
         await import('maplibre-gl/dist/maplibre-gl.css');
 
@@ -115,10 +119,11 @@ export default function PropertyMapPicker({
 
         const defaultLat = Number(propertyCoords?.lat) || 28.4595;
         const defaultLng = Number(propertyCoords?.lng) || 77.0266;
+        const initialStyle = await libModule.loadSiteStyle();
 
         mapInstance = new maplibregl.Map({
           container: mapContainerRef.current,
-          style: 'https://tiles.openfreemap.org/styles/liberty',
+          style: initialStyle,
           center: [defaultLng, defaultLat],
           zoom: 12.8,
           pitch: 15,
@@ -402,6 +407,37 @@ export default function PropertyMapPicker({
     mapRef.current?.flyTo({ center: [lng, lat], zoom: 13, duration: 800 });
   };
 
+  const handleStyleChange = async (type) => {
+    if (type === mapType || !mapRef.current) return;
+    setMapType(type);
+    try {
+      const { getSatelliteStyle, loadSiteStyle } = await import('@/lib/maplibre');
+      const nextStyle = type === 'satellite' ? getSatelliteStyle() : await loadSiteStyle();
+      mapRef.current.setStyle(nextStyle);
+      mapRef.current.once('style.load', () => {
+        if (!mapRef.current.getSource('connecting-lines')) {
+          mapRef.current.addSource('connecting-lines', {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: [] },
+          });
+          mapRef.current.addLayer({
+            id: 'connecting-lines-layer',
+            type: 'line',
+            source: 'connecting-lines',
+            paint: {
+              'line-color': type === 'satellite' ? '#ffffff' : '#0f172a',
+              'line-width': 1.5,
+              'line-dasharray': [2.5, 2.5],
+              'line-opacity': 0.75,
+            },
+          });
+        }
+      });
+    } catch (err) {
+      console.warn('Style switch failed:', err);
+    }
+  };
+
   return (
     <div className="relative w-full h-[300px] sm:h-[440px] rounded-2xl sm:rounded-3xl overflow-hidden border border-stone-200/90 shadow-inner bg-stone-100">
       {/* Map Canvas */}
@@ -427,6 +463,32 @@ export default function PropertyMapPicker({
         <div className="text-[10px] text-stone-600 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-lg border border-stone-200/80 shadow-xs hidden sm:block">
           Dashed lines show distances directly from the main property to each landmark.
         </div>
+      </div>
+
+      {/* Map Style Selector: Street Map vs Satellite */}
+      <div className="absolute top-3 right-3 sm:top-3.5 sm:right-3.5 z-10 flex items-center bg-white/95 backdrop-blur-md p-1 rounded-2xl border border-stone-200 shadow-md">
+        <button
+          type="button"
+          onClick={() => handleStyleChange('street')}
+          className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            mapType === 'street'
+              ? 'bg-stone-900 text-white shadow-xs'
+              : 'text-stone-600 hover:text-black hover:bg-stone-100'
+          }`}
+        >
+          Street
+        </button>
+        <button
+          type="button"
+          onClick={() => handleStyleChange('satellite')}
+          className={`px-2.5 py-1 rounded-xl text-xs font-semibold transition cursor-pointer ${
+            mapType === 'satellite'
+              ? 'bg-stone-900 text-white shadow-xs'
+              : 'text-stone-600 hover:text-black hover:bg-stone-100'
+          }`}
+        >
+          Satellite
+        </button>
       </div>
 
       {/* Map Controls */}

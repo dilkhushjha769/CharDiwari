@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { useLenis } from 'lenis/react';
-import { Box, Expand, House, Map as MapIcon, MapPin, PersonStanding, Route, Share2, X } from 'lucide-react';
-import { MAP_ID, hasMapsKey, importMapsLibrary } from '@/lib/google-maps';
+import { Box, Expand, Globe, House, Map as MapIcon, MapPin, PersonStanding, Route, Share2, X } from 'lucide-react';
+import { MAP_ID, hasMapsKey, importMapsLibrary, isGoogleMapsFailed, onGoogleMapsFailure } from '@/lib/google-maps';
 import { whatsappShareLink } from '@/lib/contact';
 import { NearbyIcon, nearbyColor, getNearbyIconSvg } from './nearby';
 import NearbyPlacesPanel, { PLACE_CATEGORIES } from './NearbyPlacesPanel';
@@ -21,20 +21,18 @@ function escapeHtml(str) {
 }
 
 // Neighbourhood viewer for a property. Two engines, same frame and toolbar:
-// - With a Google Maps key: photorealistic 3D, Street View and a map. Each
-//   mode is created the first time it is opened and kept, so switching back
-//   never reloads it.
-// - Without one: a free OpenStreetMap map (MapLibre + OpenFreeMap, recoloured
-//   to the site palette) with a 3D view of building shapes and a flat map.
-//   One map instance; switching modes only moves the camera.
-// Nothing loads until the visitor asks. Pins sit at the locality centre,
-// never a specific building.
+// - With a Google Maps key: photorealistic 3D, Satellite, Street Map and Street View.
+// - Without one (or as auto-fallback in production): a free map with 3D buildings,
+//   satellite imagery (ESRI World Imagery), and OpenStreetMap/OpenFreeMap street tiles.
+//   One map instance; switching modes updates camera and style.
+// Pins sit at the locality centre, never a specific building.
 
 const EASE = 'ease-[cubic-bezier(0.16,1,0.3,1)]';
 const MODES = [
   { id: '3d', label: '3D', icon: Box },
+  { id: 'satellite', label: 'Satellite', icon: Globe },
+  { id: 'map', label: 'Street Map', icon: MapIcon },
   { id: 'street', label: 'Street View', icon: PersonStanding },
-  { id: 'map', label: 'Map', icon: MapIcon },
 ];
 // Where the 3D camera settles, and where the fly-in starts.
 const SETTLED = { range: 600, tilt: 65, heading: 20 };
@@ -128,9 +126,17 @@ export default function NeighbourhoodViewer({
   const [geocodeFailed, setGeocodeFailed] = useState(false);
   const approximate = detail.locationPrecision === 'approximate';
   const startMode = detail.viewerDefault === 'map' ? 'map' : '3d';
-  const engine = hasMapsKey ? 'google' : 'open';
-  // The free map has no Street View, so its toolbar shows only 3D and Map.
+  const [engine, setEngine] = useState(() => (hasMapsKey && !isGoogleMapsFailed() ? 'google' : 'open'));
+  // The free map has no Street View 360 panorama, so its toolbar shows 3D, Satellite, and Street Map.
   const modes = engine === 'google' ? MODES : MODES.filter((m) => m.id !== 'street');
+
+  // Auto-switch to Open engine if Google Maps fails at any point
+  useEffect(() => {
+    return onGoogleMapsFailure(() => {
+      console.warn('[NeighbourhoodViewer] Switching to Open engine due to Google Maps failure.');
+      setEngine('open');
+    });
+  }, []);
 
   // Dynamic Street View coverage and imagery state
   const [streetCheckStatus, setStreetCheckStatus] = useState('idle'); // 'idle' | 'checking' | 'available' | 'unavailable' | 'error'
@@ -444,7 +450,7 @@ export default function NeighbourhoodViewer({
   );
 
   const createMap = useCallback(
-    async (view) => {
+    async (view, initialType = 'roadmap') => {
       const [{ Map, Circle, InfoWindow }, { AdvancedMarkerElement, PinElement }] = await Promise.all([
         importMapsLibrary('maps'),
         importMapsLibrary('marker'),
@@ -453,6 +459,7 @@ export default function NeighbourhoodViewer({
         center: { lat: view?.lat ?? coords.lat, lng: view?.lng ?? coords.lng },
         zoom: view?.zoom ?? 16,
         mapId: MAP_ID,
+        mapTypeId: initialType === 'satellite' ? 'hybrid' : 'roadmap',
         gestureHandling: 'cooperative',
         mapTypeControl: false,
         streetViewControl: false,
@@ -628,10 +635,11 @@ export default function NeighbourhoodViewer({
   const createOpen = useCallback(
     async (first, view) => {
       const lib = await import('@/lib/maplibre');
-      const { default: maplibregl, loadSiteStyle, showApproximateArea } = lib;
+      const { default: maplibregl, loadSiteStyle, getSatelliteStyle, showApproximateArea } = lib;
       mapLib.current = lib;
-      const style = await loadSiteStyle();
-      const framing = first === 'map' ? OPEN_FLAT : OPEN_3D;
+      const isSat = first === 'satellite';
+      const style = isSat ? getSatelliteStyle() : await loadSiteStyle();
+      const framing = first === 'map' ? OPEN_FLAT : isSat ? { zoom: 15.5, pitch: 0, bearing: 0 } : OPEN_3D;
       const camera = {
         center: [view?.lng ?? coords.lng, view?.lat ?? coords.lat],
         zoom: view?.zoom ?? framing.zoom,
@@ -640,8 +648,7 @@ export default function NeighbourhoodViewer({
       };
       const animate = !view && first === '3d' && !prefersReducedMotion();
       const host = layers.current.open;
-      // MapLibre's stylesheet makes its container position: relative, which would undo the
-      // layer's absolute inset-0, so the map gets its own full-size element inside the layer.
+      if (!host) return;
       const mount = document.createElement('div');
       mount.style.width = '100%';
       mount.style.height = '100%';
@@ -655,6 +662,7 @@ export default function NeighbourhoodViewer({
         cooperativeGestures: true,
         attributionControl: { compact: true },
       });
+      map._currentStyleName = isSat ? 'satellite' : 'street';
       // Zoom and compass buttons: the only way to zoom without a wheel or pinch.
       map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
 
@@ -714,45 +722,90 @@ export default function NeighbourhoodViewer({
     [approximate, coords, property.title]
   );
 
+  const frameOpen = useCallback(
+    (next) => {
+      const map = instances.current.open;
+      const lib = mapLib.current;
+      if (!map || !lib) return;
+      stopOrbit.current?.();
+      const duration = prefersReducedMotion() ? 0 : 500;
+
+      // Switch between Satellite and Vector/Street styles if needed
+      if (next === 'satellite' && map._currentStyleName !== 'satellite') {
+        map._currentStyleName = 'satellite';
+        map.setStyle(lib.getSatelliteStyle());
+        map.once('style.load', () => {
+          if (approximate) lib.showApproximateArea(map, coords);
+          if (nearbyRun.current.routes) lib.addNearbyLayers(map, coords, nearbyRun.current.routes);
+        });
+      } else if ((next === 'map' || next === '3d') && map._currentStyleName === 'satellite') {
+        map._currentStyleName = 'street';
+        lib.loadSiteStyle().then((streetStyle) => {
+          map.setStyle(streetStyle);
+          map.once('style.load', () => {
+            if (approximate) lib.showApproximateArea(map, coords);
+            if (nearbyRun.current.routes) lib.addNearbyLayers(map, coords, nearbyRun.current.routes);
+          });
+        });
+      }
+
+      if (nearbyRun.current.routes) {
+        // Nearby places on screen: keep the overview, only tilt it.
+        map.easeTo({ pitch: next === 'map' ? 0 : 55, bearing: next === 'map' ? 0 : 20, duration });
+        return;
+      }
+      const framing = next === 'map' ? OPEN_FLAT : next === 'satellite' ? { zoom: 15.5, pitch: 0, bearing: 0 } : OPEN_3D;
+      map.easeTo({ center: [coords.lng, coords.lat], ...framing, duration });
+    },
+    [approximate, coords]
+  );
+
   const ensureMode = useCallback(
-    async (next, view) => {
-      if (engine === 'open') {
-        if (instances.current.open) return true;
+    async (next, view, requestedEngine = engine) => {
+      if (requestedEngine === 'open') {
+        if (instances.current.open) {
+          frameOpen(next);
+          return true;
+        }
         try {
           await createOpen(next, view);
-          setCreated({ open: true });
+          setCreated((cur) => ({ ...cur, open: true }));
           return true;
-        } catch {
+        } catch (err) {
+          console.warn('[NeighbourhoodViewer] Open map creation failed:', err);
           return false;
         }
       }
+
+      // Google Maps: satellite and map share the 2D map instance
+      if (next === 'satellite' || next === 'map') {
+        if (instances.current.map) {
+          instances.current.map.setMapTypeId(next === 'satellite' ? 'hybrid' : 'roadmap');
+          return true;
+        }
+        try {
+          await createMap(view, next);
+          setCreated((current) => ({ ...current, map: true }));
+          return true;
+        } catch (err) {
+          console.warn('[NeighbourhoodViewer] Google Map creation failed:', err);
+          return false;
+        }
+      }
+
       if (instances.current[next]) return true;
-      const creators = { '3d': create3D, street: createStreet, map: createMap };
+      const creators = { '3d': create3D, street: createStreet };
       try {
         await creators[next](view);
         setCreated((current) => ({ ...current, [next]: true }));
         return true;
-      } catch {
+      } catch (err) {
+        console.warn(`[NeighbourhoodViewer] Google ${next} creation failed:`, err);
         return false;
       }
     },
-    [create3D, createMap, createOpen, createStreet, engine]
+    [create3D, createMap, createOpen, createStreet, engine, frameOpen]
   );
-
-  // Free map: 3D and Map are one map, so switching tilts the camera in place.
-  function frameOpen(next) {
-    const map = instances.current.open;
-    if (!map) return;
-    stopOrbit.current?.();
-    const duration = prefersReducedMotion() ? 0 : 500;
-    if (nearbyRun.current.routes) {
-      // Nearby places on screen: keep the overview, only tilt it.
-      map.easeTo({ pitch: next === 'map' ? 0 : 55, bearing: next === 'map' ? 0 : 20, duration });
-      return;
-    }
-    const framing = next === 'map' ? OPEN_FLAT : OPEN_3D;
-    map.easeTo({ center: [coords.lng, coords.lat], ...framing, duration });
-  }
 
   // ── Nearby places (free map): road routes fan out from the area like a web ──
   const places = detail.nearby ?? [];
@@ -895,7 +948,7 @@ export default function NeighbourhoodViewer({
           },
           durationMillis: 1800,
         });
-      } else if (mode === 'map' && instances.current.map) {
+      } else if ((mode === 'map' || mode === 'satellite') && instances.current.map) {
         instances.current.map.panTo(place.location);
         instances.current.map.setZoom(17);
       }
@@ -929,7 +982,7 @@ export default function NeighbourhoodViewer({
         } catch (err) {
           console.warn('Marker3D error:', err);
         }
-      } else if (activeMode === 'map' && instances.current.map) {
+      } else if ((activeMode === 'map' || activeMode === 'satellite') && instances.current.map) {
         try {
           const { AdvancedMarkerElement, PinElement } = await importMapsLibrary('marker');
           const newMarkers = places.map((place) => {
@@ -971,38 +1024,91 @@ export default function NeighbourhoodViewer({
   const explore = useCallback(async () => {
     setPhase('loading');
     const view = shared;
-    const first = view?.mode === 'street' && streetDisabled ? startMode : view?.mode ?? startMode;
-    // Render the layers first so the creators have somewhere to mount.
-    setMode(first);
+    let curEngine = engine;
+
+    if (curEngine === 'google') {
+      const first = view?.mode === 'street' && streetDisabled ? startMode : view?.mode ?? startMode;
+      setMode(first);
+      await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+
+      let ok = await ensureMode(first, view, 'google');
+      if (ok) {
+        setPhase('ready');
+        return;
+      }
+
+      // 3D or Street View unavailable on Google, try Google 2D Map
+      if (first !== 'map' && first !== 'satellite') {
+        ok = await ensureMode('map', view, 'google');
+        if (ok) {
+          setMode('map');
+          setPhase('ready');
+          return;
+        }
+      }
+
+      // If Google Maps failed on Vercel:
+      console.warn('[NeighbourhoodViewer] Google Maps failed in production. Auto-switching to OpenStreetMap / MapLibre.');
+      setEngine('open');
+      curEngine = 'open';
+    }
+
+    const openFirst = view?.mode === 'street' ? 'map' : view?.mode ?? (startMode === '3d' ? '3d' : 'map');
+    setMode(openFirst);
     await new Promise((resolve) => requestAnimationFrame(() => resolve()));
-    const ok = await ensureMode(first, view);
-    if (ok) {
+
+    const openOk = await ensureMode(openFirst, view, 'open');
+    if (openOk) {
       setPhase('ready');
       return;
     }
-    // 3D or Street View unavailable here: fall back to the map.
-    if (first !== 'map' && (await ensureMode('map'))) {
-      setMode('map');
-      setPhase('ready');
-      return;
+
+    if (openFirst !== 'map') {
+      const flatOk = await ensureMode('map', view, 'open');
+      if (flatOk) {
+        setMode('map');
+        setPhase('ready');
+        return;
+      }
     }
+
     setPhase('error');
-  }, [ensureMode, shared, startMode, streetDisabled]);
+  }, [engine, ensureMode, shared, startMode, streetDisabled]);
 
   async function switchTo(next) {
     if (next === mode) return;
     if (next === 'street' && streetDisabled) return;
     trackPropertyMapInteracted(property, next);
+
     if (engine === 'open') {
       setMode(next);
       frameOpen(next);
       return;
     }
-    const ok = await ensureMode(next);
+
+    // Google engine: instant switch between satellite and street map
+    if ((next === 'satellite' || next === 'map') && instances.current.map) {
+      setMode(next);
+      instances.current.map.setMapTypeId(next === 'satellite' ? 'hybrid' : 'roadmap');
+      if (currentCatRef.current && currentPlacesRef.current.length) {
+        renderGoogleMarkers(currentPlacesRef.current, currentCatRef.current, next);
+      }
+      return;
+    }
+
+    const ok = await ensureMode(next, null, 'google');
     if (ok) {
       setMode(next);
       if (currentCatRef.current && currentPlacesRef.current.length) {
         renderGoogleMarkers(currentPlacesRef.current, currentCatRef.current, next);
+      }
+    } else {
+      console.warn(`[NeighbourhoodViewer] Switching to Google ${next} failed. Auto-switching to Open engine.`);
+      setEngine('open');
+      const fallbackMode = next === 'street' ? 'map' : next;
+      const openOk = await ensureMode(fallbackMode, null, 'open');
+      if (openOk) {
+        setMode(fallbackMode);
       }
     }
   }
@@ -1164,7 +1270,7 @@ export default function NeighbourhoodViewer({
         url.searchParams.set('range', round(map.range, 0));
         url.searchParams.set('tilt', round(map.tilt, 1));
         url.searchParams.set('heading', round(map.heading, 1));
-      } else if (mode === 'map' && instances.current.map) {
+      } else if ((mode === 'map' || mode === 'satellite') && instances.current.map) {
         const c = instances.current.map.getCenter();
         url.searchParams.set('lat', round(c.lat()));
         url.searchParams.set('lng', round(c.lng));
@@ -1211,8 +1317,8 @@ export default function NeighbourhoodViewer({
   const frame = 'relative w-full overflow-hidden rounded-3xl border border-stone-200/90 bg-stone-100 dark:bg-stone-50 aspect-[4/3] sm:aspect-[16/9]';
 
   const exploreLabel = shared ? 'Open the shared view' : startMode === '3d' ? 'Explore in 3D' : 'Explore the area';
-  const layerIds = engine === 'google' ? modes.map((m) => m.id) : ['open'];
-  const visibleLayer = engine === 'google' ? mode : 'open';
+  const layerIds = ['3d', 'map', 'street', 'open'];
+  const visibleLayer = engine === 'google' ? (mode === 'satellite' ? 'map' : mode) : 'open';
   const modeIndex = Math.max(0, modes.findIndex((m) => m.id === mode));
 
   return (

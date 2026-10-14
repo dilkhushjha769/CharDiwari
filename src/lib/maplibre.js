@@ -38,23 +38,105 @@ const PALETTE = [
   [/^label_/, { 'text-color': '#1c1917', 'text-halo-color': LAND }],
 ];
 
+// Reliable global ESRI World Imagery satellite raster tiles with boundary/place labels
+export const SATELLITE_STYLE = {
+  version: 8,
+  sources: {
+    'satellite-tiles': {
+      type: 'raster',
+      tiles: [
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      ],
+      tileSize: 256,
+      maxzoom: 19,
+      attribution: 'Esri, Maxar, Earthstar Geographics',
+    },
+    'satellite-labels': {
+      type: 'raster',
+      tiles: [
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+      ],
+      tileSize: 256,
+      maxzoom: 19,
+    },
+  },
+  layers: [
+    {
+      id: 'satellite-tiles-layer',
+      type: 'raster',
+      source: 'satellite-tiles',
+      minzoom: 0,
+      maxzoom: 22,
+    },
+    {
+      id: 'satellite-labels-layer',
+      type: 'raster',
+      source: 'satellite-labels',
+      minzoom: 0,
+      maxzoom: 22,
+    },
+  ],
+};
+
+export const OSM_RASTER_STYLE = {
+  version: 8,
+  sources: {
+    'osm-tiles': {
+      type: 'raster',
+      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      maxzoom: 19,
+      attribution: '&copy; OpenStreetMap contributors',
+    },
+  },
+  layers: [
+    {
+      id: 'osm-tiles-layer',
+      type: 'raster',
+      source: 'osm-tiles',
+      minzoom: 0,
+      maxzoom: 22,
+    },
+  ],
+};
+
+export function getSatelliteStyle() {
+  return SATELLITE_STYLE;
+}
+
+export function getOsmRasterStyle() {
+  return OSM_RASTER_STYLE;
+}
+
+let cachedStreetStyle = null;
+
 // Fetches the style and recolours it before the map draws anything, so the
-// original colours never flash.
+// original colours never flash. Falls back to OSM raster style if OpenFreeMap is blocked or down.
 export async function loadSiteStyle() {
-  const response = await fetch(STYLE_URL);
-  if (!response.ok) throw new Error(`Map style failed to load (${response.status})`);
-  const style = await response.json();
-  for (const layer of style.layers) {
-    const rule = PALETTE.find(([pattern]) => pattern.test(layer.id));
-    if (!rule) continue;
-    for (const [property, value] of Object.entries(rule[1])) {
-      // Only recolour properties the layer actually paints (a line has no fill-color).
-      if (property.split('-')[0] === (layer.type === 'fill-extrusion' ? 'fill' : layer.type === 'symbol' ? 'text' : layer.type)) {
-        layer.paint = { ...layer.paint, [property]: value };
+  if (cachedStreetStyle) return cachedStreetStyle;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
+    const response = await fetch(STYLE_URL, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!response.ok) throw new Error(`Map style failed to load (${response.status})`);
+    const style = await response.json();
+    for (const layer of style.layers) {
+      const rule = PALETTE.find(([pattern]) => pattern.test(layer.id));
+      if (!rule) continue;
+      for (const [property, value] of Object.entries(rule[1])) {
+        // Only recolour properties the layer actually paints (a line has no fill-color).
+        if (property.split('-')[0] === (layer.type === 'fill-extrusion' ? 'fill' : layer.type === 'symbol' ? 'text' : layer.type)) {
+          layer.paint = { ...layer.paint, [property]: value };
+        }
       }
     }
+    cachedStreetStyle = style;
+    return style;
+  } catch (err) {
+    console.warn('[MapLibre] OpenFreeMap liberty style failed or timed out, using OSM fallback:', err);
+    return OSM_RASTER_STYLE;
   }
-  return style;
 }
 
 // A circle of `metres` around a point, as a closed ring of [lng, lat].
