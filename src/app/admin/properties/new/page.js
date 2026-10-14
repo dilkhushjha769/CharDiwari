@@ -191,97 +191,56 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
     title: '',
     slug: '',
     type: 'Luxury Villa & Estate',
-    mode: 'both', // 'buy' | 'rent' | 'both'
+    mode: 'buy', // 'buy' | 'rent' | 'both'
     tag: 'Available',
     badge: 'Verified Property',
-    builder: 'Studio Lotus',
+    builder: '',
     possession: 'Ready to Move',
-    status: 'published',
+    status: 'pending_review',
     rera_id: '',
 
     // Pricing
-    price: '₹5.50 Cr',
-    price_num: 5.5,
+    price: '',
+    price_num: 0,
     price_on_demand: false,
     is_negotiable: false,
-    rent_price: '₹2.80 Lakh/mo',
-    rent_price_num: 2.8,
-    maintenance_charges: '₹12,000/mo',
-    booking_amount: '₹10,00,000',
+    rent_price: '',
+    rent_price_num: 0,
+    maintenance_charges: '',
+    booking_amount: '',
 
     // Specs
-    bhk: '4 BHK',
-    beds: '4 Beds',
-    baths: '5 Baths',
-    area: '4,800 sq.ft',
-    carpet_area: '4,200 sq.ft',
+    bhk: '3 BHK',
+    beds: '3 Beds',
+    baths: '3 Baths',
+    area: '',
+    carpet_area: '',
     furnishing: 'Semi-Furnished',
     facing: 'North-East',
-    floor_info: 'Ground + 2 Floors',
-    parking: '3 Covered Bays',
+    floor_info: '',
+    parking: '',
 
     // Media
-    min_images_required: 3,
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
-    gallery: [
-      {
-        url: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Central Courtyard',
-      },
-      {
-        url: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Infinity Pool',
-      },
-      {
-        url: 'https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=1200&q=80',
-        caption: 'Master Suite',
-      },
-    ],
-    video_url: 'https://youtu.be/e1cwjeP5Ofs',
+    min_images_required: 1,
+    image: '',
+    gallery: [],
+    video_url: '',
 
     // Location & Landmarks
-    location: 'Golf Course Extension, Sector 66',
-    locality: 'Sector 66',
+    location: '',
+    locality: '',
     city: 'Gurugram',
     state: 'Haryana',
-    coordinates: { lat: 28.409, lng: 77.0658 },
-    nearby: [
-      { type: 'metro', name: 'Sector 55–56 Rapid Metro', km: 4.2, time: '8 mins' },
-      { type: 'hospital', name: 'Medanta – The Medicity', km: 6.5, time: '12 mins' },
-      { type: 'mall', name: 'M3M Urbana & Promenade', km: 2.1, time: '5 mins' },
-      { type: 'school', name: 'The Heritage School', km: 3.8, time: '7 mins' },
-      { type: 'airport', name: 'Indira Gandhi International Airport (T3)', km: 22.4, time: '35 mins' },
-    ],
+    coordinates: { lat: 28.4595, lng: 77.0266 },
+    nearby: [],
 
     // Highlights & Description
-    description:
-      'An exceptional contemporary estate crafted with indigenous stone masonry, expansive floor-to-ceiling facades, private infinity pool, and a serene central courtyard sanctuary.',
-    highlights: [
-      'Private infinity swimming pool with sun deck',
-      'Open landscaped central courtyard with water cascade',
-      'Italian Statuario marble and bespoke teakwood finishes',
-      'Smart home automation and climate control',
-    ],
-    amenities: ['pool', 'gym', 'clubhouse', 'garden', 'security', 'power-backup', 'parking', 'cctv'],
+    description: '',
+    highlights: [],
+    amenities: [],
 
     // FAQs
-    faqs: [
-      {
-        question: 'What is the price of this property and are terms negotiable?',
-        answer:
-          'This residence is listed at ₹5.50 Cr. Pricing terms are open for confidential negotiation for qualified buyers.',
-      },
-      {
-        question: 'What is the possession timeline and RERA registration status?',
-        answer:
-          'The property is certified Ready to Move, with an unconditional Occupancy Certificate (OC) in hand.',
-      },
-      {
-        question: 'How do I schedule a confidential private walkthrough?',
-        answer:
-          'Tap "Book a Free Visit" or connect directly via WhatsApp. Accompanied private tours are arranged at your convenience.',
-      },
-    ],
+    faqs: [],
   });
 
   // UI state
@@ -736,9 +695,9 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
     }
 
     const totalImages = (property.image ? 1 : 0) + (property.gallery?.length || 0);
-    if (totalImages < (property.min_images_required || 3)) {
+    if (totalImages < (property.min_images_required || 1)) {
       setSaveMessage({
-        text: `Minimum ${property.min_images_required || 3} images are required (Cover + Gallery). Currently you have ${totalImages}.`,
+        text: `Please upload at least ${property.min_images_required || 1} photo for your property. Currently you have ${totalImages}.`,
         type: 'error',
       });
       setSaveLoading(false);
@@ -867,7 +826,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
   }
 
   const totalUploadedImages = (property.image ? 1 : 0) + (property.gallery?.length || 0);
-  const minRequired = property.min_images_required || 3;
+  const minRequired = property.min_images_required || 1;
   const imageRequirementMet = totalUploadedImages >= minRequired;
   const activeStepObj = STEPS.find((s) => s.id === currentStep) || STEPS[0];
 
@@ -1188,38 +1147,46 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
                     price_num: 0,
                     price_on_demand: false,
                     is_negotiable: false,
+                    rent_price: '',
+                    rent_price_num: 0,
+                    maintenance_charges: '',
+                    booking_amount: '',
                     location: '',
+                    locality: '',
                     city: 'Gurugram',
+                    state: 'Haryana',
                     type: 'Luxury Villa & Estate',
-                    bhk: '4 BHK',
-                    beds: '4 Beds',
-                    baths: '5 Baths',
-                    area: '5,500 sq.ft',
+                    mode: 'buy',
+                    bhk: '3 BHK',
+                    beds: '3 Beds',
+                    baths: '3 Baths',
+                    area: '',
+                    carpet_area: '',
                     image: '',
                     gallery: [],
                     video_url: '',
                     tag: 'Available',
                     badge: 'Verified Property',
                     possession: 'Ready to Move',
-                    furnishing: 'Fully Furnished',
-                    floor: 'Top Floor / Penthouse',
+                    furnishing: 'Semi-Furnished',
+                    floor_info: '',
                     facing: 'North-East',
-                    parking: '3 Covered Bays',
+                    parking: '',
                     builder: '',
-                    project_size: '2.5 Acres',
                     description: '',
                     highlights: [],
-                    amenities: ['pool', 'gym', 'clubhouse', 'security', 'power-backup'],
+                    amenities: [],
                     nearby: [],
                     faqs: [],
                     coordinates: { lat: 28.4595, lng: 77.0266 },
-                    min_images_required: 3,
+                    min_images_required: 1,
                     seller_name: '',
                     seller_phone: '',
                     seller_email: '',
                     seller_role: 'owner',
                     whatsapp_consent: true,
                     preferred_contact: 'anytime',
+                    status: 'pending_review',
                   });
                 }}
                 className="w-full sm:w-auto px-5 py-3 bg-white border border-stone-200 hover:bg-stone-100 text-stone-700 text-xs sm:text-sm font-semibold rounded-xl transition cursor-pointer"
@@ -2368,36 +2335,23 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
         {/* STEP 9: EXECUTIVE REVIEW & VERIFICATION                                   */}
         {/* ========================================================================= */}
         {!submittedSubmission && currentStep === 9 && (
-          <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/90 p-4 sm:p-8 shadow-xs space-y-6 sm:space-y-8 animate-fade-in">
+          <div className="bg-white rounded-2xl sm:rounded-3xl border border-stone-200/90 p-4 sm:p-8 shadow-xs space-y-5 sm:space-y-6 animate-fade-in">
             {/* Header */}
-            <div className="border-b border-stone-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="border-b border-stone-100 pb-3 sm:pb-4 flex items-center justify-between">
               <div>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-900 border border-amber-200 uppercase tracking-wider">
-                  Final Step &bull; Quality Verification
-                </span>
-                <h3 className="text-lg sm:text-xl font-serif font-bold text-stone-900 flex items-center gap-2 mt-1.5">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                  <span>Executive Review &amp; Submit for Editorial Approval</span>
+                <h3 className="text-base sm:text-lg font-serif font-bold text-stone-900">
+                  Review Your Listing
                 </h3>
-                <p className="text-xs text-stone-500 mt-1 font-light">
-                  Please review all verified contact details, specifications, and media. Once submitted, your property is verified by the Dwarkesh Editorial Board and you can track real-time approval status.
+                <p className="text-xs text-stone-500 mt-0.5 font-light">
+                  Please verify your property details before submitting for review.
                 </p>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setShowLivePreview(true)}
-                className="px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer self-start sm:self-auto shrink-0 shadow-xs"
-              >
-                <Eye className="w-3.5 h-3.5 text-stone-600" />
-                <span>Open Buyer Card Preview</span>
-              </button>
             </div>
 
-            {/* Quick Hero Summary Card */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-stone-50/80 border border-stone-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            {/* Property Summary Card */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-stone-50/70 border border-stone-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-stone-200 shrink-0 border border-stone-300 relative shadow-xs">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-stone-200 shrink-0 border border-stone-300 relative">
                   {property.image ? (
                     <img
                       src={property.image}
@@ -2406,287 +2360,215 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-stone-400 text-xs">
-                      No Cover
+                      No Photo
                     </div>
                   )}
-                  <span className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-md bg-stone-900/80 backdrop-blur-xs text-[10px] font-bold text-white">
-                    {totalUploadedImages} photos
-                  </span>
+                  {totalUploadedImages > 0 && (
+                    <span className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-md bg-stone-900/80 text-[10px] font-bold text-white">
+                      {totalUploadedImages}
+                    </span>
+                  )}
                 </div>
 
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2 text-xs text-stone-500 mb-1">
-                    <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
-                    <span className="truncate">{property.location || 'Location'}, {property.city}</span>
-                  </div>
-                  <h4 className="text-base sm:text-lg font-serif font-bold text-stone-900 truncate">
+                  <h4 className="text-sm sm:text-base font-bold text-stone-900 truncate">
                     {property.title || 'Untitled Property'}
                   </h4>
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <span className="text-sm sm:text-base font-serif font-bold text-stone-900">
-                      {property.price_on_demand ? 'Price on Request' : property.price || 'Price Not Set'}
+                  <div className="flex items-center gap-1.5 text-xs text-stone-500 mt-0.5">
+                    <MapPin className="w-3.5 h-3.5 text-stone-400 shrink-0" />
+                    <span className="truncate">{property.location || 'Location not specified'}{property.city ? `, ${property.city}` : ''}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                    <span className="text-sm font-serif font-bold text-stone-900">
+                      {property.price_on_demand ? 'Price on Request' : (property.price || 'Price not set')}
                     </span>
                     {property.is_negotiable && (
-                      <span className="px-2 py-0.5 rounded-md bg-stone-200 text-stone-800 text-[10px] font-bold uppercase tracking-wider">
+                      <span className="px-2 py-0.5 rounded bg-stone-200 text-stone-800 text-[10px] font-semibold">
                         Negotiable
                       </span>
                     )}
-                    <span className="px-2 py-0.5 rounded-md bg-stone-900 text-white text-[10px] font-bold">
+                    <span className="px-2 py-0.5 rounded bg-stone-900 text-white text-[10px] font-semibold">
                       {property.type}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex md:flex-col items-start md:items-end justify-between w-full md:w-auto pt-3 md:pt-0 border-t md:border-t-0 border-stone-200 text-xs text-stone-600 gap-1 shrink-0">
-                <span className="text-[11px] font-medium text-stone-500">Contact Person</span>
-                <span className="font-bold text-stone-900 text-sm">{property.seller_name || 'Not provided'}</span>
-                <span className="font-mono text-xs text-stone-700">+91 {property.seller_phone || '—'}</span>
-              </div>
+              <button
+                type="button"
+                onClick={() => setCurrentStep(2)}
+                className="text-xs font-semibold text-stone-600 hover:text-stone-900 underline cursor-pointer shrink-0"
+              >
+                Edit Overview
+              </button>
             </div>
 
-            {/* Structured Review Blocks */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Block 1: Seller & Verification Info */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-stone-200 shadow-xs space-y-3">
-                <div className="flex items-center justify-between border-b border-stone-100 pb-2.5">
-                  <div className="flex items-center gap-2 text-xs font-bold text-stone-900">
-                    <User className="w-4 h-4 text-stone-800" />
-                    <span>Seller &amp; Contact Verification</span>
-                  </div>
+            {/* Review Sections Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4 text-xs">
+              {/* Contact Details */}
+              <div className="p-4 rounded-xl bg-white border border-stone-200 space-y-2.5">
+                <div className="flex items-center justify-between border-b border-stone-100 pb-2">
+                  <span className="font-semibold text-stone-900 flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 text-stone-500" />
+                    Contact Details
+                  </span>
                   <button
                     type="button"
                     onClick={() => setCurrentStep(1)}
-                    className="text-[11px] font-semibold text-stone-600 hover:text-stone-900 underline cursor-pointer"
+                    className="text-[11px] font-medium text-stone-600 hover:text-stone-900 underline cursor-pointer"
                   >
-                    Edit Contact
+                    Edit
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="text-stone-500 block text-[11px]">Seller Name</span>
-                    <span className="font-semibold text-stone-900">{property.seller_name || '—'}</span>
+                <div className="space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-stone-500">Name</span>
+                    <span className="font-medium text-stone-900">{property.seller_name || '—'}</span>
                   </div>
-                  <div>
-                    <span className="text-stone-500 block text-[11px]">Mobile Phone</span>
-                    <span className="font-semibold text-stone-900 font-mono">+91 {property.seller_phone || '—'}</span>
+                  <div className="flex justify-between">
+                    <span className="text-stone-500">Phone</span>
+                    <span className="font-medium text-stone-900 font-mono">+91 {property.seller_phone || '—'}</span>
                   </div>
-                  <div>
-                    <span className="text-stone-500 block text-[11px]">Email</span>
-                    <span className="font-semibold text-stone-900 truncate block">{property.seller_email || 'Not specified'}</span>
-                  </div>
-                  <div>
-                    <span className="text-stone-500 block text-[11px]">Posting Role</span>
-                    <span className="font-semibold text-stone-900 capitalize">{property.seller_role || 'Owner'}</span>
-                  </div>
-                  <div>
-                    <span className="text-stone-500 block text-[11px]">Preferred Time</span>
-                    <span className="font-semibold text-stone-900 capitalize">{property.preferred_contact || 'Any time'}</span>
-                  </div>
-                  <div>
-                    <span className="text-stone-500 block text-[11px]">WhatsApp Alerts</span>
-                    <span className="font-semibold text-emerald-700">
-                      {property.whatsapp_consent !== false ? 'Enabled' : 'Disabled'}
-                    </span>
+                  {property.seller_email && (
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Email</span>
+                      <span className="font-medium text-stone-900 truncate max-w-[180px]">{property.seller_email}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span className="text-stone-500">Posting As</span>
+                    <span className="font-medium text-stone-900 capitalize">{property.seller_role || 'Owner'}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Block 2: Fundamental Specs */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-stone-200 shadow-xs space-y-3">
-                <div className="flex items-center justify-between border-b border-stone-100 pb-2.5">
-                  <div className="flex items-center gap-2 text-xs font-bold text-stone-900">
-                    <Maximize2 className="w-4 h-4 text-stone-800" />
-                    <span>Configuration &amp; Layout</span>
-                  </div>
+              {/* Specifications */}
+              <div className="p-4 rounded-xl bg-white border border-stone-200 space-y-2.5">
+                <div className="flex items-center justify-between border-b border-stone-100 pb-2">
+                  <span className="font-semibold text-stone-900 flex items-center gap-1.5">
+                    <Maximize2 className="w-3.5 h-3.5 text-stone-500" />
+                    Specifications
+                  </span>
                   <button
                     type="button"
                     onClick={() => setCurrentStep(4)}
-                    className="text-[11px] font-semibold text-stone-600 hover:text-stone-900 underline cursor-pointer"
+                    className="text-[11px] font-medium text-stone-600 hover:text-stone-900 underline cursor-pointer"
                   >
-                    Edit Specs
+                    Edit
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="text-stone-500 block text-[11px]">Configuration</span>
-                    <span className="font-semibold text-stone-900">{property.bhk} ({property.beds})</span>
+                <div className="space-y-1.5">
+                  <div className="flex justify-between">
+                    <span className="text-stone-500">Configuration</span>
+                    <span className="font-medium text-stone-900">{property.bhk} ({property.beds})</span>
                   </div>
-                  <div>
-                    <span className="text-stone-500 block text-[11px]">Carpet Area</span>
-                    <span className="font-semibold text-stone-900">{property.area}</span>
+                  <div className="flex justify-between">
+                    <span className="text-stone-500">Area</span>
+                    <span className="font-medium text-stone-900">{property.area || '—'}</span>
                   </div>
-                  <div>
-                    <span className="text-stone-500 block text-[11px]">Bathrooms</span>
-                    <span className="font-semibold text-stone-900">{property.baths}</span>
+                  <div className="flex justify-between">
+                    <span className="text-stone-500">Bathrooms</span>
+                    <span className="font-medium text-stone-900">{property.baths}</span>
                   </div>
-                  <div>
-                    <span className="text-stone-500 block text-[11px]">Possession</span>
-                    <span className="font-semibold text-stone-900">{property.possession}</span>
+                  <div className="flex justify-between">
+                    <span className="text-stone-500">Possession</span>
+                    <span className="font-medium text-stone-900">{property.possession}</span>
                   </div>
-                  <div>
-                    <span className="text-stone-500 block text-[11px]">Furnishing</span>
-                    <span className="font-semibold text-stone-900">{property.furnishing}</span>
-                  </div>
-                  <div>
-                    <span className="text-stone-500 block text-[11px]">Parking</span>
-                    <span className="font-semibold text-stone-900">{property.parking || 'Covered Bays'}</span>
+                  <div className="flex justify-between">
+                    <span className="text-stone-500">Furnishing</span>
+                    <span className="font-medium text-stone-900">{property.furnishing}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Block 3: Media & Virtual Assets */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-stone-200 shadow-xs space-y-3">
-                <div className="flex items-center justify-between border-b border-stone-100 pb-2.5">
-                  <div className="flex items-center gap-2 text-xs font-bold text-stone-900">
-                    <Film className="w-4 h-4 text-stone-800" />
-                    <span>Media &amp; Photos ({totalUploadedImages})</span>
-                  </div>
+              {/* Photos & Media */}
+              <div className="p-4 rounded-xl bg-white border border-stone-200 space-y-2.5">
+                <div className="flex items-center justify-between border-b border-stone-100 pb-2">
+                  <span className="font-semibold text-stone-900 flex items-center gap-1.5">
+                    <Film className="w-3.5 h-3.5 text-stone-500" />
+                    Photos ({totalUploadedImages})
+                  </span>
                   <button
                     type="button"
                     onClick={() => setCurrentStep(5)}
-                    className="text-[11px] font-semibold text-stone-600 hover:text-stone-900 underline cursor-pointer"
+                    className="text-[11px] font-medium text-stone-600 hover:text-stone-900 underline cursor-pointer"
                   >
-                    Edit Photos
+                    Edit
                   </button>
                 </div>
-                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-                  {property.image && (
-                    <img
-                      src={property.image}
-                      alt="Cover"
-                      className="w-16 h-12 rounded-lg object-cover border border-stone-200 shrink-0"
-                    />
-                  )}
-                  {property.gallery?.slice(0, 4).map((g, idx) => (
-                    <img
-                      key={idx}
-                      src={g.url}
-                      alt={`Gallery ${idx + 1}`}
-                      className="w-16 h-12 rounded-lg object-cover border border-stone-200 shrink-0"
-                    />
-                  ))}
-                  {(property.gallery?.length || 0) > 4 && (
-                    <div className="w-16 h-12 rounded-lg bg-stone-100 border border-stone-200 flex items-center justify-center text-xs font-bold text-stone-600 shrink-0">
-                      +{(property.gallery?.length || 0) - 4} more
-                    </div>
-                  )}
-                </div>
-                <div className="text-[11px] text-stone-500 flex items-center gap-2">
-                  <span>Video Tour:</span>
-                  <span className="font-semibold text-stone-800">
-                    {property.video_url ? 'Attached Walkthrough' : 'Not Provided'}
-                  </span>
-                </div>
+                {totalUploadedImages > 0 ? (
+                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                    {property.image && (
+                      <img
+                        src={property.image}
+                        alt="Cover"
+                        className="w-14 h-11 rounded-lg object-cover border border-stone-200 shrink-0"
+                      />
+                    )}
+                    {property.gallery?.slice(0, 4).map((g, idx) => (
+                      <img
+                        key={idx}
+                        src={g.url}
+                        alt={`Gallery ${idx + 1}`}
+                        className="w-14 h-11 rounded-lg object-cover border border-stone-200 shrink-0"
+                      />
+                    ))}
+                    {(property.gallery?.length || 0) > 4 && (
+                      <div className="w-14 h-11 rounded-lg bg-stone-100 border border-stone-200 flex items-center justify-center text-xs font-semibold text-stone-600 shrink-0">
+                        +{(property.gallery?.length || 0) - 4}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs text-stone-400">No photos uploaded yet.</p>
+                )}
               </div>
 
-              {/* Block 4: Map & Landmarks */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-white border border-stone-200 shadow-xs space-y-3">
-                <div className="flex items-center justify-between border-b border-stone-100 pb-2.5">
-                  <div className="flex items-center gap-2 text-xs font-bold text-stone-900">
-                    <MapPin className="w-4 h-4 text-stone-800" />
-                    <span>Location &amp; Landmarks ({property.nearby?.length || 0})</span>
-                  </div>
+              {/* Amenities */}
+              <div className="p-4 rounded-xl bg-white border border-stone-200 space-y-2.5">
+                <div className="flex items-center justify-between border-b border-stone-100 pb-2">
+                  <span className="font-semibold text-stone-900 flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-stone-500" />
+                    Amenities ({property.amenities?.length || 0})
+                  </span>
                   <button
                     type="button"
-                    onClick={() => setCurrentStep(6)}
-                    className="text-[11px] font-semibold text-stone-600 hover:text-stone-900 underline cursor-pointer"
+                    onClick={() => setCurrentStep(7)}
+                    className="text-[11px] font-medium text-stone-600 hover:text-stone-900 underline cursor-pointer"
                   >
-                    Edit Map
+                    Edit
                   </button>
                 </div>
-                <div className="text-xs space-y-1.5">
-                  <div className="text-stone-700">
-                    <span className="text-stone-500">Address: </span>
-                    <span className="font-semibold">{property.location}, {property.city}</span>
-                  </div>
-                  <div className="text-stone-700 font-mono text-[11px]">
-                    <span className="text-stone-500 font-sans">Pin: </span>
-                    {property.coordinates?.lat?.toFixed(4)}, {property.coordinates?.lng?.toFixed(4)}
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                    {property.nearby?.slice(0, 3).map((nb, i) => (
-                      <span key={i} className="px-2 py-0.5 rounded-md bg-stone-100 border border-stone-200 text-[10px] text-stone-700">
-                        {nb.name} ({nb.time || `${nb.km} km`})
+                {property.amenities?.length > 0 ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    {property.amenities.slice(0, 6).map((id) => {
+                      const am = LUXURY_AMENITIES.find((a) => a.id === id);
+                      if (!am) return null;
+                      return (
+                        <span
+                          key={id}
+                          className="px-2 py-0.5 rounded-md bg-stone-100 text-[11px] text-stone-700 font-medium"
+                        >
+                          {am.label}
+                        </span>
+                      );
+                    })}
+                    {property.amenities.length > 6 && (
+                      <span className="px-2 py-0.5 rounded-md bg-stone-100 text-[11px] text-stone-500 font-medium">
+                        +{property.amenities.length - 6} more
                       </span>
-                    ))}
+                    )}
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Block 5: Selected Amenities */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-white border border-stone-200 shadow-xs space-y-3">
-              <div className="flex items-center justify-between border-b border-stone-100 pb-2.5">
-                <div className="flex items-center gap-2 text-xs font-bold text-stone-900">
-                  <Building2 className="w-4 h-4 text-stone-800" />
-                  <span>Selected Amenities ({property.amenities?.length || 0})</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep(7)}
-                  className="text-[11px] font-semibold text-stone-600 hover:text-stone-900 underline cursor-pointer"
-                >
-                  Edit Amenities
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {property.amenities?.map((id) => {
-                  const am = LUXURY_AMENITIES.find((a) => a.id === id);
-                  if (!am) return null;
-                  const Icon = am.icon;
-                  return (
-                    <span
-                      key={id}
-                      className="px-2.5 py-1 rounded-xl bg-stone-100 border border-stone-200 text-xs font-medium text-stone-800 flex items-center gap-1.5"
-                    >
-                      <Icon className="w-3.5 h-3.5 text-stone-600" />
-                      <span>{am.label}</span>
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Editorial Review & Approval Process Banner */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-amber-50/70 border border-amber-200/90 text-amber-950 space-y-2">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-900">
-                <ShieldCheck className="w-4 h-4 text-amber-700" />
-                <span>Dwarkesh Quality Review &amp; Tracking Guarantee</span>
-              </div>
-              <p className="text-xs text-amber-900/90 leading-relaxed font-light">
-                Once submitted, your listing enters our editorial queue under reference ID <span className="font-mono font-bold">DW-SUB-...</span>. Our curation team verifies property documents and coordinates with you on <strong>+91 {property.seller_phone}</strong>. If any adjustments are needed, you will receive clear revision notes and can track approval live anytime.
-              </p>
-            </div>
-
-            {/* Action Bar inside Review Step */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={() => setCurrentStep(1)}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-stone-200 hover:bg-stone-100 text-stone-700 text-xs font-semibold transition cursor-pointer"
-              >
-                Back to First Step
-              </button>
-
-              <button
-                type="button"
-                disabled={saveLoading}
-                onClick={() => handleSaveProperty(isAdminLoggedIn ? 'published' : 'pending_review')}
-                className="w-full sm:w-auto px-7 py-3 bg-stone-900 hover:bg-black text-white text-xs sm:text-sm font-semibold rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer transition disabled:opacity-50"
-              >
-                {saveLoading ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Submitting for Review...</span>
-                  </>
                 ) : (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    <span>{isAdminLoggedIn ? 'Publish Listing to Live Marketplace' : 'Submit Property for Admin Review'}</span>
-                  </>
+                  <p className="text-xs text-stone-400">No amenities selected.</p>
                 )}
-              </button>
+              </div>
+            </div>
+
+            {/* Simple Assurance Note */}
+            <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-600 text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-stone-700 shrink-0" />
+              <span>Your listing will be reviewed by our desk and published within 2 to 4 business hours.</span>
             </div>
           </div>
         )}
