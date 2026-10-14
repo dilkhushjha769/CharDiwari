@@ -404,7 +404,8 @@ export default function PropertyMapPicker({
   const handleCenterProperty = () => {
     const lat = Number(propertyCoords?.lat) || 28.4595;
     const lng = Number(propertyCoords?.lng) || 77.0266;
-    mapRef.current?.flyTo({ center: [lng, lat], zoom: 13, duration: 800 });
+    mapRef.current?.resetNorthPitch?.({ duration: 300 });
+    mapRef.current?.flyTo({ center: [lng, lat], zoom: 13, pitch: 0, bearing: 0, duration: 800 });
   };
 
   const handleStyleChange = async (type) => {
@@ -414,6 +415,9 @@ export default function PropertyMapPicker({
       const { getSatelliteStyle, loadSiteStyle } = await import('@/lib/maplibre');
       const nextStyle = type === 'satellite' ? getSatelliteStyle() : await loadSiteStyle();
       mapRef.current.setStyle(nextStyle);
+      if (type === 'satellite') {
+        mapRef.current.resetNorthPitch?.({ duration: 250 });
+      }
       mapRef.current.once('style.load', () => {
         if (!mapRef.current.getSource('connecting-lines')) {
           mapRef.current.addSource('connecting-lines', {

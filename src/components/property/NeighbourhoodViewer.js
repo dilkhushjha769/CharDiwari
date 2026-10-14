@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from '
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { useLenis } from 'lenis/react';
-import { Box, Expand, Globe, House, Map as MapIcon, MapPin, PersonStanding, Route, Share2, X } from 'lucide-react';
+import { Box, Compass, Crosshair, Expand, Globe, House, Map as MapIcon, MapPin, PersonStanding, Route, Share2, X } from 'lucide-react';
 import { MAP_ID, hasMapsKey, importMapsLibrary, isGoogleMapsFailed, onGoogleMapsFailure } from '@/lib/google-maps';
 import { whatsappShareLink } from '@/lib/contact';
 import { NearbyIcon, nearbyColor, getNearbyIconSvg } from './nearby';
@@ -121,8 +121,8 @@ export default function NeighbourhoodViewer({
   onSelectPlace,
   onHoverPlace,
 }) {
-  const [coords, setCoords] = useState(detail.coordinates ?? null);
-  const [geocoding, setGeocoding] = useState(!detail.coordinates);
+  const [coords, setCoords] = useState(detail.coordinates ?? property.coordinates ?? null);
+  const [geocoding, setGeocoding] = useState(!detail.coordinates && !property.coordinates);
   const [geocodeFailed, setGeocodeFailed] = useState(false);
   const approximate = detail.locationPrecision === 'approximate';
   const startMode = detail.viewerDefault === 'map' ? 'map' : '3d';
@@ -180,50 +180,94 @@ export default function NeighbourhoodViewer({
   const stopOrbit = useRef(null); // free map: ends the fly-in / orbit
   const mapLib = useRef(null); // free map: the loaded @/lib/maplibre module
   const nearbyRun = useRef({ routes: null, markers: [], home: null, before: null, cancel: null, declutter: null });
+  const googleConnectingLines = useRef([]);
+  const mapLibreLandmarkMarkers = useRef([]);
   const shellRef = useRef(null);
   const expandButtonRef = useRef(null);
   const closeButtonRef = useRef(null);
   const lenis = useLenis();
 
-  // If coordinates are missing, geocode the address automatically
+  // If coordinates are missing, geocode the address automatically with multi-tier clean queries and city fallback
   useEffect(() => {
     if (coords) return;
     let active = true;
     async function geocodeAddress() {
       setGeocoding(true);
-      const query = `${property.title}, ${property.location}`;
-      try {
-        if (hasMapsKey) {
-          const { Geocoder } = await importMapsLibrary('geocoding');
-          const geocoder = new Geocoder();
-          const res = await geocoder.geocode({ address: query });
-          const loc = res.results?.[0]?.geometry?.location;
-          if (loc && active) {
-            setCoords({ lat: loc.lat(), lng: loc.lng() });
-            setGeocoding(false);
-            return;
+      const rawLocation = property.location || '';
+      const cleanLoc = rawLocation
+        .replace(/^(luxury|premium|modern|spacious|stunning|ultra|exclusive)\s+/i, '')
+        .trim();
+      const city = property.city || '';
+
+      const candidates = [
+        cleanLoc && city ? `${cleanLoc}, ${city}` : null,
+        cleanLoc ? `${cleanLoc}, India` : null,
+        rawLocation ? `${rawLocation}, India` : null,
+        property.title && rawLocation ? `${property.title}, ${rawLocation}` : null,
+        city ? `${city}, India` : null,
+      ].filter(Boolean);
+
+      for (const query of candidates) {
+        if (!active) return;
+        try {
+          if (hasMapsKey && !isGoogleMapsFailed()) {
+            const { Geocoder } = await importMapsLibrary('geocoding');
+            const geocoder = new Geocoder();
+            const res = await geocoder.geocode({ address: query });
+            const loc = res.results?.[0]?.geometry?.location;
+            if (loc && active) {
+              setCoords({ lat: loc.lat(), lng: loc.lng() });
+              setGeocoding(false);
+              return;
+            }
           }
-        }
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.[0] && active) {
-            setCoords({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
-            setGeocoding(false);
-            return;
+        } catch {}
+
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
+            { headers: { 'Accept-Language': 'en', 'User-Agent': 'CharDiwari/1.0' } }
+          );
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.[0] && active) {
+              setCoords({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+              setGeocoding(false);
+              return;
+            }
           }
-        }
-      } catch (err) {
-        console.warn('Geocoding failed', err);
+        } catch {}
       }
+
       if (active) {
+        const fallbackCityCoords = {
+          gurgaon: { lat: 28.4595, lng: 77.0266 },
+          gurugram: { lat: 28.4595, lng: 77.0266 },
+          delhi: { lat: 28.6139, lng: 77.209 },
+          noida: { lat: 28.5355, lng: 77.391 },
+          mumbai: { lat: 19.076, lng: 72.8777 },
+          alibaug: { lat: 18.6414, lng: 72.8722 },
+          kasauli: { lat: 30.9013, lng: 76.9649 },
+          goa: { lat: 15.2993, lng: 74.124 },
+          bangalore: { lat: 12.9716, lng: 77.5946 },
+          bengaluru: { lat: 12.9716, lng: 77.5946 },
+        };
+        const cityKey = (city || rawLocation).toLowerCase();
+        const matched = Object.entries(fallbackCityCoords).find(([k]) => cityKey.includes(k));
+        if (matched) {
+          setCoords(matched[1]);
+          setGeocoding(false);
+          return;
+        }
         setGeocoding(false);
         setGeocodeFailed(true);
       }
     }
     geocodeAddress();
-    return () => { active = false; };
-  }, [coords, property.location, property.title]);
+    return () => {
+      active = false;
+    };
+  }, [coords, property.city, property.location, property.title]);
 
   const center = useCallback(
     (lat = coords?.lat ?? 0, lng = coords?.lng ?? 0) => ({ lat, lng, altitude: 0 }),
@@ -505,16 +549,61 @@ export default function NeighbourhoodViewer({
       });
       nearbyMarkersRef.current = {};
 
+      // Clear any existing Google dashed connecting lines
+      googleConnectingLines.current.forEach((l) => l.setMap?.(null));
+      googleConnectingLines.current = [];
+
       const nearbyPlaces = detail.nearby ?? [];
       const bounds = new window.google.maps.LatLngBounds();
       bounds.extend({ lat: coords.lat, lng: coords.lng });
       let hasNearbyCoords = false;
 
-      // Render each nearby place with its category color label
-      nearbyPlaces.forEach((place) => {
-        if (!place.lat || !place.lng) return;
+      // Render each nearby place with its category color label & dashed connecting line
+      nearbyPlaces.forEach((place, index) => {
+        let lat = Number(place.lat);
+        let lng = Number(place.lng);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng) || (lat === 0 && lng === 0)) {
+          const angle = (index * (360 / Math.max(nearbyPlaces.length, 1)) * Math.PI) / 180;
+          const distKm = Number(place.km) || index + 1.2;
+          lat = coords.lat + (distKm / 111) * Math.cos(angle);
+          lng = coords.lng + (distKm / (111 * Math.cos((coords.lat * Math.PI) / 180))) * Math.sin(angle);
+          place._resolvedLat = lat;
+          place._resolvedLng = lng;
+        } else {
+          place._resolvedLat = lat;
+          place._resolvedLng = lng;
+        }
+
         hasNearbyCoords = true;
-        bounds.extend({ lat: place.lat, lng: place.lng });
+        bounds.extend({ lat, lng });
+
+        // Add dashed connecting line from main property to landmark
+        if (window.google?.maps?.Polyline) {
+          const polyline = new window.google.maps.Polyline({
+            path: [
+              { lat: coords.lat, lng: coords.lng },
+              { lat, lng },
+            ],
+            geodesic: true,
+            strokeColor: initialType === 'satellite' ? '#ffffff' : '#0f172a',
+            strokeOpacity: 0,
+            strokeWeight: 2,
+            icons: [
+              {
+                icon: {
+                  path: 'M 0,-1 0,1',
+                  strokeOpacity: initialType === 'satellite' ? 0.9 : 0.7,
+                  scale: 2.5,
+                  strokeColor: initialType === 'satellite' ? '#ffffff' : '#0f172a',
+                },
+                offset: '0',
+                repeat: '10px',
+              },
+            ],
+            map,
+          });
+          googleConnectingLines.current.push(polyline);
+        }
 
         const color = nearbyColor(place.type);
         const iconSvg = getNearbyIconSvg(place.type);
@@ -556,7 +645,7 @@ export default function NeighbourhoodViewer({
 
         const marker = new AdvancedMarkerElement({
           map,
-          position: { lat: place.lat, lng: place.lng },
+          position: { lat, lng },
           title: `${place.name} (${place.km} km)`,
           content: pill,
         });
@@ -578,7 +667,7 @@ export default function NeighbourhoodViewer({
         });
 
         const showInfo = () => {
-          map.panTo({ lat: place.lat, lng: place.lng });
+          map.panTo({ lat, lng });
           if (map.getZoom() < 14) map.setZoom(14);
           infoWindow.setContent(`
             <div style="font-family: inherit; padding: 4px 2px; max-width: 240px;">
@@ -596,7 +685,7 @@ export default function NeighbourhoodViewer({
               <p style="font-size: 11.5px; color: #78716c; margin: 0 0 10px 0;">
                 <strong style="color: #1c1917;">${place.km} km by road</strong> from ${escapeHtml(property.title)}
               </p>
-              <a href="https://www.google.com/maps/dir/?api=1&origin=${coords.lat},${coords.lng}&destination=${place.lat},${place.lng}"
+              <a href="https://www.google.com/maps/dir/?api=1&origin=${coords.lat},${coords.lng}&destination=${lat},${lng}"
                  target="_blank" rel="noopener noreferrer"
                  style="display: inline-flex; align-items: center; gap: 4px; padding: 5px 11px; border-radius: 9999px; background: #1c1917; color: #ffffff; font-size: 11px; font-weight: 600; text-decoration: none;">
                 Get Directions &rarr;
@@ -631,6 +720,138 @@ export default function NeighbourhoodViewer({
     },
     [approximate, coords, detail.nearby, onHoverPlace, onSelectPlace, property.title]
   );
+
+  const renderOpenConnectingLines = useCallback((map, currentCoords, placesList) => {
+    if (!map || !currentCoords || !placesList?.length) return;
+    const propLat = Number(currentCoords.lat);
+    const propLng = Number(currentCoords.lng);
+    const lineFeatures = [];
+
+    placesList.forEach((place, index) => {
+      let lat = Number(place.lat);
+      let lng = Number(place.lng);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng) || (lat === 0 && lng === 0)) {
+        const angle = (index * (360 / Math.max(placesList.length, 1)) * Math.PI) / 180;
+        const distKm = Number(place.km) || index + 1.2;
+        const latOffset = (distKm / 111) * Math.cos(angle);
+        const lngOffset = (distKm / (111 * Math.cos((propLat * Math.PI) / 180))) * Math.sin(angle);
+        lat = propLat + latOffset;
+        lng = propLng + lngOffset;
+      }
+      lineFeatures.push({
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: [
+            [propLng, propLat],
+            [lng, lat],
+          ],
+        },
+        properties: { name: place.name, km: place.km },
+      });
+    });
+
+    try {
+      const existingSource = map.getSource('open-connecting-lines');
+      if (existingSource) {
+        existingSource.setData({ type: 'FeatureCollection', features: lineFeatures });
+      } else {
+        map.addSource('open-connecting-lines', {
+          type: 'geojson',
+          data: { type: 'FeatureCollection', features: lineFeatures },
+        });
+        map.addLayer({
+          id: 'open-connecting-lines-layer',
+          type: 'line',
+          source: 'open-connecting-lines',
+          paint: {
+            'line-color': map._currentStyleName === 'satellite' ? '#ffffff' : '#0f172a',
+            'line-width': 1.8,
+            'line-dasharray': [2.5, 2.5],
+            'line-opacity': 0.8,
+          },
+        });
+      }
+    } catch (e) {
+      console.warn('[NeighbourhoodViewer] Could not add connecting lines layer:', e);
+    }
+  }, []);
+
+  const renderOpenLandmarks = useCallback((map, maplibregl, currentCoords, placesList) => {
+    if (!map || !maplibregl || !currentCoords || !placesList?.length) return;
+    mapLibreLandmarkMarkers.current.forEach((m) => {
+      try { m.remove(); } catch {}
+    });
+    mapLibreLandmarkMarkers.current = [];
+
+    const propLat = Number(currentCoords.lat);
+    const propLng = Number(currentCoords.lng);
+
+    placesList.forEach((place, index) => {
+      let lat = Number(place.lat);
+      let lng = Number(place.lng);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng) || (lat === 0 && lng === 0)) {
+        const angle = (index * (360 / Math.max(placesList.length, 1)) * Math.PI) / 180;
+        const distKm = Number(place.km) || index + 1.2;
+        const latOffset = (distKm / 111) * Math.cos(angle);
+        const lngOffset = (distKm / (111 * Math.cos((propLat * Math.PI) / 180))) * Math.sin(angle);
+        lat = propLat + latOffset;
+        lng = propLng + lngOffset;
+      }
+
+      const color = nearbyColor(place.type);
+      const iconSvg = getNearbyIconSvg(place.type);
+
+      const el = document.createElement('div');
+      el.className = 'open-nearby-marker cursor-pointer transition-transform hover:scale-105 select-none';
+      el.style.transform = 'translate(-50%, -100%)';
+      el.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+          <div style="
+            background: #ffffff;
+            color: #0f172a;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+            border: 1.5px solid ${color};
+            white-space: nowrap;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          ">
+            <span style="color: ${color}; display: flex; align-items: center;">${iconSvg}</span>
+            <span>${escapeHtml(place.name)}</span>
+            <span style="background: #eff6ff; color: ${color}; padding: 1px 6px; border-radius: 8px; font-size: 10px; font-weight: 800;">
+              ${place.km ? `${place.km} km` : ''}
+            </span>
+          </div>
+          <div style="width: 14px; height: 14px; background: ${color}; border: 2.5px solid #ffffff; border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,0.35);"></div>
+        </div>
+      `;
+
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onSelectPlace?.(place.name);
+        map.flyTo({ center: [lng, lat], zoom: 14.5, duration: 600 });
+      });
+
+      el.addEventListener('mouseenter', () => {
+        onHoverPlace?.(place.name);
+      });
+      el.addEventListener('mouseleave', () => {
+        onHoverPlace?.(null);
+      });
+
+      const marker = new maplibregl.Marker({ element: el })
+        .setLngLat([lng, lat])
+        .addTo(map);
+
+      mapLibreLandmarkMarkers.current.push(marker);
+    });
+  }, [onHoverPlace, onSelectPlace]);
 
   const createOpen = useCallback(
     async (first, view) => {
@@ -690,6 +911,10 @@ export default function NeighbourhoodViewer({
       if (approximate) showApproximateArea(map, coords);
       instances.current.open = map;
 
+      // Render nearby landmark markers and dashed connecting lines
+      renderOpenConnectingLines(map, coords, detail.nearby);
+      renderOpenLandmarks(map, maplibregl, coords, detail.nearby);
+
       if (animate) {
         // Fly in once, then one slow orbit. Any input stops it for good.
         let stopped = false;
@@ -719,7 +944,7 @@ export default function NeighbourhoodViewer({
         map.flyTo({ ...camera, duration: 2500, essential: true });
       }
     },
-    [approximate, coords, property.title]
+    [approximate, coords, detail.nearby, property.title, renderOpenConnectingLines, renderOpenLandmarks]
   );
 
   const frameOpen = useCallback(
@@ -737,6 +962,8 @@ export default function NeighbourhoodViewer({
         map.once('style.load', () => {
           if (approximate) lib.showApproximateArea(map, coords);
           if (nearbyRun.current.routes) lib.addNearbyLayers(map, coords, nearbyRun.current.routes);
+          renderOpenConnectingLines(map, coords, detail.nearby);
+          renderOpenLandmarks(map, lib.default, coords, detail.nearby);
         });
       } else if ((next === 'map' || next === '3d') && map._currentStyleName === 'satellite') {
         map._currentStyleName = 'street';
@@ -745,19 +972,37 @@ export default function NeighbourhoodViewer({
           map.once('style.load', () => {
             if (approximate) lib.showApproximateArea(map, coords);
             if (nearbyRun.current.routes) lib.addNearbyLayers(map, coords, nearbyRun.current.routes);
+            renderOpenConnectingLines(map, coords, detail.nearby);
+            renderOpenLandmarks(map, lib.default, coords, detail.nearby);
           });
         });
       }
 
       if (nearbyRun.current.routes) {
         // Nearby places on screen: keep the overview, only tilt it.
-        map.easeTo({ pitch: next === 'map' ? 0 : 55, bearing: next === 'map' ? 0 : 20, duration });
+        const pitch = (next === 'map' || next === 'satellite') ? 0 : 55;
+        const bearing = (next === 'map' || next === 'satellite') ? 0 : 20;
+        map.easeTo({ pitch, bearing, duration });
         return;
       }
-      const framing = next === 'map' ? OPEN_FLAT : next === 'satellite' ? { zoom: 15.5, pitch: 0, bearing: 0 } : OPEN_3D;
-      map.easeTo({ center: [coords.lng, coords.lat], ...framing, duration });
+
+      if (next === 'satellite') {
+        // Satellite mode MUST stay strictly flat and North-up (no tilt or rotation)
+        map.resetNorthPitch?.({ duration: 250 });
+        map.easeTo({ center: [coords.lng, coords.lat], zoom: 15.5, pitch: 0, bearing: 0, duration });
+        return;
+      }
+      if (next === 'map') {
+        map.resetNorthPitch?.({ duration: 250 });
+        map.easeTo({ center: [coords.lng, coords.lat], zoom: 15, pitch: 0, bearing: 0, duration });
+        return;
+      }
+      if (next === '3d') {
+        map.easeTo({ center: [coords.lng, coords.lat], ...OPEN_3D, duration });
+        return;
+      }
     },
-    [approximate, coords]
+    [approximate, coords, detail.nearby, renderOpenConnectingLines, renderOpenLandmarks]
   );
 
   const ensureMode = useCallback(
@@ -1248,6 +1493,58 @@ export default function NeighbourhoodViewer({
     };
   }, [expanded, lenis]);
 
+  const handleRecenter = useCallback(() => {
+    if (!coords) return;
+    stopOrbit.current?.();
+
+    if (engine === 'open' && instances.current.open) {
+      const map = instances.current.open;
+      if (mode === 'satellite') {
+        map.resetNorthPitch?.({ duration: 300 });
+        map.flyTo({ center: [coords.lng, coords.lat], zoom: 15.5, pitch: 0, bearing: 0, duration: 800 });
+      } else if (mode === 'map') {
+        map.resetNorthPitch?.({ duration: 300 });
+        map.flyTo({ center: [coords.lng, coords.lat], zoom: 15, pitch: 0, bearing: 0, duration: 800 });
+      } else {
+        map.flyTo({ center: [coords.lng, coords.lat], ...OPEN_3D, duration: 800 });
+      }
+      return;
+    }
+
+    if (engine === 'google') {
+      if (mode === '3d' && instances.current['3d']) {
+        instances.current['3d'].flyCameraTo({
+          endCamera: { center: coords, ...SETTLED },
+          durationMillis: 800,
+        });
+        return;
+      }
+      if ((mode === 'map' || mode === 'satellite') && instances.current.map) {
+        const map = instances.current.map;
+        map.panTo(coords);
+        map.setZoom(15);
+        if (typeof map.setHeading === 'function') map.setHeading(0);
+        if (typeof map.setTilt === 'function') map.setTilt(0);
+        return;
+      }
+      if (mode === 'street' && instances.current.street) {
+        instances.current.street.setPosition(coords);
+        return;
+      }
+    }
+  }, [coords, engine, mode]);
+
+  const handleResetNorth = useCallback(() => {
+    stopOrbit.current?.();
+    if (engine === 'open' && instances.current.open) {
+      instances.current.open.resetNorthPitch?.({ duration: 300 });
+      instances.current.open.easeTo({ bearing: 0, pitch: 0, duration: 300 });
+    } else if (engine === 'google' && instances.current.map) {
+      if (typeof instances.current.map.setHeading === 'function') instances.current.map.setHeading(0);
+      if (typeof instances.current.map.setTilt === 'function') instances.current.map.setTilt(0);
+    }
+  }, [engine]);
+
   function share() {
     const url = new URL(window.location.href);
     ['view', 'lat', 'lng', 'range', 'tilt', 'heading', 'zoom'].forEach((key) => url.searchParams.delete(key));
@@ -1444,6 +1741,32 @@ export default function NeighbourhoodViewer({
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-stone-950/60 backdrop-blur-sm text-white">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
             <span className="mt-2.5 text-xs font-medium text-white/90">Loading 360° Street View…</span>
+          </div>
+        )}
+
+        {/* Floating Controls: Recenter and Align to North */}
+        {phase === 'ready' && mode !== 'street' && (
+          <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleRecenter}
+              title="Recenter map to property"
+              aria-label="Recenter map to property"
+              className="press inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-stone-900 shadow-lg backdrop-blur hover:bg-white focus-ring border border-stone-200/80 transition-all dark:bg-stone-900/90 dark:text-white dark:border-stone-700"
+            >
+              <Crosshair className="w-3.5 h-3.5 text-stone-700 dark:text-stone-300" />
+              <span>Recenter</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleResetNorth}
+              title="Align map to North"
+              aria-label="Align map to North"
+              className="press inline-flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1.5 text-xs font-semibold text-stone-900 shadow-lg backdrop-blur hover:bg-white focus-ring border border-stone-200/80 transition-all dark:bg-stone-900/90 dark:text-white dark:border-stone-700"
+            >
+              <Compass className="w-3.5 h-3.5 text-stone-700 dark:text-stone-300" />
+              <span className="hidden sm:inline">North</span>
+            </button>
           </div>
         )}
       </div>
