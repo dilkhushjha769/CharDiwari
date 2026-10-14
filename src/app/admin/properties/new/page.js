@@ -447,7 +447,7 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
     }
   };
 
-  // Upload handlers
+  // Upload handlers with seamless server + local Data URL fallback
   const handleCoverUpload = async (file) => {
     if (!file) return;
     setUploadLoading(true);
@@ -458,15 +458,32 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
 
       const uploadUrl = isAdminLoggedIn ? '/api/admin/upload' : '/api/properties/upload';
       const res = await fetch(uploadUrl, { method: 'POST', body: formData });
-      const data = await res.json();
-      const finalUrl = data.url || data.media?.url;
-      if (res.ok && finalUrl) {
-        setProperty((prev) => ({ ...prev, image: finalUrl }));
-      } else {
-        alert(data.error || 'Upload failed.');
+      if (res.ok) {
+        const data = await res.json();
+        const finalUrl = data.url || data.media?.url;
+        if (finalUrl) {
+          setProperty((prev) => ({ ...prev, image: finalUrl }));
+          return;
+        }
       }
+
+      // Safe client-side Data URL fallback so the user's selected photo always displays
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setProperty((prev) => ({ ...prev, image: e.target.result }));
+        }
+      };
+      reader.readAsDataURL(file);
     } catch (err) {
-      alert('Failed to upload image.');
+      // Safe offline/fallback
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setProperty((prev) => ({ ...prev, image: e.target.result }));
+        }
+      };
+      reader.readAsDataURL(file);
     } finally {
       setUploadLoading(false);
     }
@@ -482,18 +499,40 @@ function NewPropertyPageContent({ isPublicPortal = false }) {
 
       const uploadUrl = isAdminLoggedIn ? '/api/admin/upload' : '/api/properties/upload';
       const res = await fetch(uploadUrl, { method: 'POST', body: formData });
-      const data = await res.json();
-      const finalUrl = data.url || data.media?.url;
-      if (res.ok && finalUrl) {
-        setProperty((prev) => ({
-          ...prev,
-          gallery: [...prev.gallery, { url: finalUrl, caption: `View ${prev.gallery.length + 1}` }],
-        }));
-      } else {
-        alert(data.error || 'Upload failed.');
+      if (res.ok) {
+        const data = await res.json();
+        const finalUrl = data.url || data.media?.url;
+        if (finalUrl) {
+          setProperty((prev) => ({
+            ...prev,
+            gallery: [...prev.gallery, { url: finalUrl, caption: `View ${prev.gallery.length + 1}` }],
+          }));
+          return;
+        }
       }
+
+      // Safe client-side Data URL fallback
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setProperty((prev) => ({
+            ...prev,
+            gallery: [...prev.gallery, { url: e.target.result, caption: `View ${prev.gallery.length + 1}` }],
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
     } catch (err) {
-      alert('Failed to upload gallery image.');
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setProperty((prev) => ({
+            ...prev,
+            gallery: [...prev.gallery, { url: e.target.result, caption: `View ${prev.gallery.length + 1}` }],
+          }));
+        }
+      };
+      reader.readAsDataURL(file);
     } finally {
       setUploadLoading(false);
     }

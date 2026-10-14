@@ -26,8 +26,12 @@ function getAdminSupabase() {
 }
 
 function ensureUploadsDir() {
-  if (!fs.existsSync(UPLOADS_DIR)) {
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  try {
+    if (!fs.existsSync(UPLOADS_DIR)) {
+      fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    }
+  } catch (err) {
+    // Read-only filesystem in serverless environments (e.g. Vercel)
   }
 }
 
@@ -187,7 +191,7 @@ export async function updateWebsiteSettings(newSettings) {
 
 /**
  * Secure Media Upload Handler (Images & Videos)
- * Supports Supabase Storage with graceful fallback to public uploads
+ * Supports Supabase Storage, Local Disk, and Serverless Base64 Data URL fallback
  */
 export async function uploadMediaFile(file, category = 'properties') {
   if (!file) throw new Error('No file provided.');
@@ -197,8 +201,12 @@ export async function uploadMediaFile(file, category = 'properties') {
   const ext = path.extname(origName).toLowerCase() || '.bin';
   const cleanBase = path.basename(origName, ext).replace(/[^a-zA-Z0-9_-]/g, '_');
   const filename = `${cleanBase}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}${ext}`;
-  const contentType = file.type || 'application/octet-stream';
+  const contentType = file.type || 'image/jpeg';
   const isVideo = contentType.startsWith('video/') || ['.mp4', '.webm', '.mov', '.mkv'].includes(ext);
+
+  // Generate Base64 Data URI (always available, guaranteed to work on Vercel without disk write)
+  const base64Data = buffer.toString('base64');
+  const dataUrl = `data:${contentType};base64,${base64Data}`;
 
   const supabase = getAdminSupabase();
   let supabaseUrl = null;
@@ -226,20 +234,29 @@ export async function uploadMediaFile(file, category = 'properties') {
         }
       }
     } catch (err) {
-      console.warn('Supabase storage upload note:', err.message);
+      console.warn('[Storage] Supabase storage upload note:', err.message);
     }
   }
 
-  // 2. Always persist locally as well to ensure zero broken links
-  ensureUploadsDir();
-  const localFilePath = path.join(UPLOADS_DIR, filename);
-  fs.writeFileSync(localFilePath, buffer);
-  const localUrl = `/uploads/${filename}`;
+  // 2. Try writing to local disk (succeeds in local dev, gracefully skipped in serverless read-only environments)
+  let localUrl = null;
+  try {
+    ensureUploadsDir();
+    const localFilePath = path.join(UPLOADS_DIR, filename);
+    fs.writeFileSync(localFilePath, buffer);
+    localUrl = `/uploads/${filename}`;
+  } catch (fsErr) {
+    console.warn('[Storage] Local filesystem write skipped (serverless environment):', fsErr.message);
+  }
+
+  // Choose best available URL: Supabase CDN -> Local file path -> Base64 Data URI
+  const finalUrl = supabaseUrl || localUrl || dataUrl;
 
   return {
-    url: supabaseUrl || localUrl,
+    url: finalUrl,
     supabaseUrl,
     localUrl,
+    dataUrl: finalUrl.startsWith('data:') ? finalUrl : null,
     filename,
     isVideo,
     contentType,

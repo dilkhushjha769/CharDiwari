@@ -4,7 +4,10 @@ const nextConfig = {
   cacheComponents: true,
   images: {
     // Listing photos are served from Unsplash (their URLs carry sizing query strings).
-    remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com", pathname: "/**" }],
+    remotePatterns: [
+      { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
+      { protocol: "https", hostname: "*.supabase.co", pathname: "/**" },
+    ],
   },
   partialPrefetching: true,
   turbopack: {

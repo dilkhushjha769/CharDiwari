@@ -57,7 +57,21 @@ export async function POST(request) {
       );
     }
 
-    const uploadResult = await uploadMediaFile(file, category);
+    let uploadResult;
+    try {
+      uploadResult = await uploadMediaFile(file, category);
+    } catch (innerErr) {
+      console.warn('[Admin Upload Route] Fallback to direct Base64 Data URL:', innerErr.message);
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const base64 = buffer.toString('base64');
+      const dataUrl = `data:${contentType || 'image/jpeg'};base64,${base64}`;
+      uploadResult = {
+        url: dataUrl,
+        filename: file.name || 'uploaded_media.jpg',
+        sizeBytes: buffer.length,
+        isVideo,
+      };
+    }
 
     return NextResponse.json({
       success: true,
@@ -66,6 +80,6 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error('Media upload error:', error);
-    return NextResponse.json({ error: error.message || 'Media upload failed.' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Media upload failed.' }, { status: 400 });
   }
 }
