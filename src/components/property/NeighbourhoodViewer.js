@@ -34,9 +34,8 @@ const MODES = [
   { id: 'map', label: 'Street Map', icon: MapIcon },
   { id: 'street', label: 'Street View', icon: PersonStanding },
 ];
-// Where the 3D camera settles, and where the fly-in starts.
+// Camera framing for the free MapLibre 3D view.
 const SETTLED = { range: 600, tilt: 65, heading: 20 };
-const ABOVE = { range: 2000, tilt: 0, heading: 0 };
 // The same framings on the free map (zoom instead of range).
 const OPEN_3D = { zoom: 15.5, pitch: 60, bearing: 20 };
 const OPEN_FLAT = { zoom: 15, pitch: 0, bearing: 0 };
@@ -269,11 +268,6 @@ export default function NeighbourhoodViewer({
     };
   }, [coords, property.city, property.location, property.title]);
 
-  const center = useCallback(
-    (lat = coords?.lat ?? 0, lng = coords?.lng ?? 0) => ({ lat, lng, altitude: 0 }),
-    [coords]
-  );
-
   // Progressive radii check: 50m -> 150m -> 300m -> 1000m using StreetViewService
   const checkStreetViewCoverage = useCallback(async (location) => {
     if (!hasMapsKey || !location?.lat || !location?.lng) return;
@@ -350,80 +344,6 @@ export default function NeighbourhoodViewer({
       return () => clearTimeout(timer);
     }
   }, [coords, engine, checkStreetViewCoverage]);
-
-  const create3D = useCallback(
-    async (view) => {
-      const { Map3DElement, Marker3DElement, MapMode } = await importMapsLibrary('maps3d');
-      const camera = {
-        center: center(view?.lat ?? coords.lat, view?.lng ?? coords.lng),
-        range: view?.range ?? SETTLED.range,
-        tilt: view?.tilt ?? SETTLED.tilt,
-        heading: view?.heading ?? SETTLED.heading,
-      };
-      const animate = !view && !prefersReducedMotion();
-      const map = new Map3DElement({
-        center: camera.center,
-        ...(animate ? ABOVE : { range: camera.range, tilt: camera.tilt, heading: camera.heading }),
-        mode: MapMode?.HYBRID ?? 'HYBRID',
-        gestureHandling: 'COOPERATIVE',
-      });
-      map.style.width = '100%';
-      map.style.height = '100%';
-      map.append(new Marker3DElement({ position: { lat: coords.lat, lng: coords.lng }, label: approximate ? `${property.title} (area)` : property.title }));
-
-      // Add 3D markers for all nearby places
-      const nearbyPlaces = detail.nearby ?? [];
-      nearbyPlaces.forEach((place) => {
-        if (!place.lat || !place.lng) return;
-        const m3d = new Marker3DElement({
-          position: { lat: place.lat, lng: place.lng, altitude: 0 },
-          label: `${place.name} (${place.km} km)`,
-        });
-        m3d.addEventListener('gmp-click', () => {
-          map.flyCameraTo({
-            endCamera: {
-              center: { lat: place.lat, lng: place.lng, altitude: 0 },
-              range: 500,
-              tilt: 60,
-              heading: 25,
-            },
-            durationMillis: 1800,
-          });
-          onSelectPlace?.(place.name);
-        });
-        map.append(m3d);
-      });
-
-      layers.current['3d'].append(map);
-      instances.current['3d'] = map;
-
-      if (animate) {
-        // Fly in once, then one slow orbit (FlyAround). Any input stops it for good.
-        let stopped = false;
-        const stop = () => {
-          if (stopped) return;
-          stopped = true;
-          map.stopCameraAnimation();
-        };
-        ['pointerdown', 'wheel', 'keydown', 'touchstart'].forEach((type) =>
-          layers.current['3d'].addEventListener(type, stop, { once: true, passive: true })
-        );
-        let phaseOfFlight = 'fly-in';
-        map.addEventListener('gmp-animationend', () => {
-          if (stopped || phaseOfFlight !== 'fly-in') return;
-          phaseOfFlight = 'orbit';
-          map.flyCameraAround({ camera, durationMillis: 30000, repeatCount: 1 });
-        });
-        const startWhenSteady = (event) => {
-          if (!event.isSteady) return;
-          map.removeEventListener('gmp-steadychange', startWhenSteady);
-          if (!stopped) map.flyCameraTo({ endCamera: camera, durationMillis: 2500 });
-        };
-        map.addEventListener('gmp-steadychange', startWhenSteady);
-      }
-    },
-    [approximate, center, coords, detail.nearby, onSelectPlace, property.title]
-  );
 
   const createStreet = useCallback(
     async (view) => {
@@ -1007,7 +927,9 @@ export default function NeighbourhoodViewer({
 
   const ensureMode = useCallback(
     async (next, view, requestedEngine = engine) => {
-      if (requestedEngine === 'open') {
+      // The 3D experience always uses the saved MapLibre implementation.
+      // Google remains responsible for Satellite, Street Map, and Street View.
+      if (requestedEngine === 'open' || next === '3d') {
         if (instances.current.open) {
           frameOpen(next);
           return true;
@@ -1039,7 +961,7 @@ export default function NeighbourhoodViewer({
       }
 
       if (instances.current[next]) return true;
-      const creators = { '3d': create3D, street: createStreet };
+      const creators = { street: createStreet };
       try {
         await creators[next](view);
         setCreated((current) => ({ ...current, [next]: true }));
@@ -1049,7 +971,7 @@ export default function NeighbourhoodViewer({
         return false;
       }
     },
-    [create3D, createMap, createOpen, createStreet, engine, frameOpen]
+    [createMap, createOpen, createStreet, engine, frameOpen]
   );
 
   // ── Nearby places (free map): road routes fan out from the area like a web ──
@@ -1552,7 +1474,7 @@ export default function NeighbourhoodViewer({
     const round = (n, digits = 5) => String(Math.round(n * 10 ** digits) / 10 ** digits);
     // When listing hides exact location (approximate privacy setting), do not expose precise coordinates in URL
     if (!approximate) {
-      if (engine === 'open' && instances.current.open) {
+      if ((engine === 'open' || mode === '3d') && instances.current.open) {
         const map = instances.current.open;
         const c = map.getCenter();
         url.searchParams.set('lat', round(c.lat));
@@ -1615,7 +1537,7 @@ export default function NeighbourhoodViewer({
 
   const exploreLabel = shared ? 'Open the shared view' : startMode === '3d' ? 'Explore in 3D' : 'Explore the area';
   const layerIds = ['3d', 'map', 'street', 'open'];
-  const visibleLayer = engine === 'google' ? (mode === 'satellite' ? 'map' : mode) : 'open';
+  const visibleLayer = engine === 'open' || mode === '3d' ? 'open' : mode === 'satellite' ? 'map' : mode;
   const modeIndex = Math.max(0, modes.findIndex((m) => m.id === mode));
 
   return (
